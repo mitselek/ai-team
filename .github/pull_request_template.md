@@ -4,7 +4,7 @@
 
 Describe the change and the problem it solves.
 
-## Checklist — Constitution Compliance
+## Checklist: Constitution Compliance
 
 Refer to `.specify/memory/constitution.md` and confirm the following:
 

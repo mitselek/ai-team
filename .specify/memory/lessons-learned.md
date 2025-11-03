@@ -48,6 +48,47 @@ This document captures key insights, best practices, and lessons learned during 
 
 ---
 
+### Gemini CLI for Git Commit Automation
+
+**Context:** Used Gemini CLI to automate git commits, testing fire-and-forget workflow automation.
+
+**What Worked Well:**
+
+- ✅ Successfully read and executed git commands (status, diff, commit)
+- ✅ Generated perfect conventional commit messages
+- ✅ Followed style rules (no emojis, no em-dashes) when specified
+- ✅ Made smart grouping decisions (committed related docs together)
+- ✅ Verified completion ("working tree is clean")
+- ✅ True fire-and-forget - works autonomously in background
+- ✅ Handles both staged and unstaged changes appropriately
+
+**What Didn't Work:**
+
+- ⚠️ Didn't loop automatically for multi-commit scenarios (needs explicit prompting)
+- ⚠️ Terminal output can be confusing (says "done" but keeps working)
+
+**Best Practices Discovered:**
+
+1. **Stage files before running** - Clearer for Gemini to know what to commit
+2. **Use --yolo mode** - Enables autonomous execution without approval prompts
+3. **Redirect to log file** - Makes it easier to track what Gemini did
+4. **Snapshot initial state in prompt** - Prevents confusion from concurrent edits
+5. **Specify style rules explicitly** - Gemini respects formatting constraints
+6. **One logical change per commit task** - Works better than asking for multi-commit loops
+
+**Key Takeaway:** Gemini CLI excels at commit automation with proper prompts. Can reliably handle the full git workflow (status → diff → commit) and generates high-quality conventional commit messages. Best for single-commit tasks or as part of a larger automation chain.
+
+**Recommended Workflow:**
+
+1. Stage related changes: `git add <files>`
+2. Launch Gemini: `gemini --yolo "$(cat .github/prompts/commit4gemini.prompt.md)" > /tmp/gemini-commit.log 2>&1 &`
+3. Continue working while Gemini commits in background
+4. Verify: `git log -1` to see the commit
+
+**Grade: A+** - Reliable, professional output. Ready for production use in automation pipelines.
+
+---
+
 ### Architecture Decisions
 
 **ESMuseum Pattern Adoption:**
@@ -56,13 +97,13 @@ This document captures key insights, best practices, and lessons learned during 
 - ✅ Server/API route structure is clean and intuitive
 - ✅ TypeScript strict mode catches issues early
 - ⚠️ Vitest doesn't handle Nuxt's `~` alias without vite-tsconfig-paths plugin
-- 💡 **Solution:** Use relative imports in server-side code, reserve `~` for client composables only
+- **Solution:** Use relative imports in server-side code, reserve `~` for client composables only
 
 **Test Configuration:**
 
 - ✅ Mocking pino logger with `vi.mock()` solves stream.write errors in tests
 - ✅ Relative imports in tests avoid module resolution issues
-- 💡 Keep test utilities (mocks, fixtures) separate from production code
+- Keep test utilities (mocks, fixtures) separate from production code
 
 ---
 
