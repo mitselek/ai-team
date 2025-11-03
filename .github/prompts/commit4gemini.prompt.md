@@ -26,11 +26,17 @@ Each commit should be atomic and independently meaningful.
 
 ## Commit Message Guidelines
 - Use conventional commits format: `type(scope): description`
-- Types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`, `ci`
+- Types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`, `ci`, `style`
 - Scope: affected area (e.g., `api`, `orchestrator`, `composables`, `tests`)
 - Description: clear, concise summary in imperative mood
 - Body (optional): explain WHAT and WHY (not HOW)
 - Footer (optional): breaking changes, references
+
+**Style Rules:**
+- **NO emojis** in commit messages (only use if truly exceptional)
+- **NO em-dashes (—)** - use regular hyphens (-) or colons (:) instead
+- Keep it professional and parseable by tools
+- Focus on clarity over decoration
 
 ## Example Workflow
 ```bash
@@ -71,7 +77,15 @@ If committing code (not just docs/prompts), verify:
 Skip checks for pure documentation/configuration changes.
 
 ## Execute
-Start by running `git status` to see what needs committing, then create logical commits until the tree is clean.
+After generating the commit message, run:
+```bash
+git commit -m "your commit message here"
+```
+
+## Fire-and-Forget Safety
+This prompt is designed for "fire-and-forget" operation. By capturing the initial git status, you won't be confused by files the user edits while you work. Only commit what was in the tree when you started.
+
+Be thorough but concise. Focus on the value delivered, not implementation details.
 
 **Goal**: Clean working tree with meaningful, atomic commit history.
 **Approach**: Multiple small commits > one large commit
