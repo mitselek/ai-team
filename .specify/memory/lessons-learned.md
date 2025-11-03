@@ -85,7 +85,106 @@ This document captures key insights, best practices, and lessons learned during 
 3. Continue working while Gemini commits in background
 4. Verify: `git log -1` to see the commit
 
-**Grade: A+** - Reliable, professional output. Ready for production use in automation pipelines.
+**Grade: A+** - Reliable, professional output. Ready for production use in automation pipelines. Fire-and-forget workflow proven successful multiple times.
+
+---
+
+### Gemini CLI for Editorial/Multi-File Analysis Tasks
+
+**Context:** Used Gemini CLI to review all markdown files for excessive emoji/em-dash usage and make surgical edits across the codebase.
+
+**What Worked Well:**
+
+- ✅ Successfully scanned and analyzed multiple files across directories
+- ✅ Made contextual judgments (kept appropriate emojis, removed inappropriate em-dashes)
+- ✅ Surgical precision: only edited 2 files that needed changes
+- ✅ Respected guidelines: kept status indicator emojis (✅ ⚠️), removed decorative em-dashes
+- ✅ Proper replacements: em-dash (—) → colon (:) for list introductions
+- ✅ Completed full workflow: scan → analyze → edit → stage → commit
+- ✅ Professional commit message: `docs(style): fix emoji and em-dash usage in documentation`
+- ✅ Verified working tree was clean at completion
+
+**What Didn't Work:**
+
+- ⚠️ Takes significant time (appears stuck but is actually processing)
+- ⚠️ No progress updates during long operations
+- ⚠️ Could be more aggressive (only found 2 instances, though may be correct)
+
+**Best Practices Discovered:**
+
+1. **Be patient** - Tasks involving multiple files take time, don't interrupt
+2. **Run in foreground for first test** - Helps understand how long tasks take
+3. **Clear, objective guidelines** - "Replace em-dashes used as colons" works better than "fix excessive usage"
+4. **Trust the process** - If it seems stuck but process is running, it's likely analyzing
+5. **Provide examples** - Before/after examples in prompt guide Gemini's judgment
+6. **Single commit strategy** - Better than multi-commit for editorial cleanups
+
+**Key Takeaway:** Gemini CLI can handle complex, multi-file editorial tasks requiring contextual judgment. Initial assessment was wrong - it succeeds at subjective tasks when given clear guidelines and sufficient time. The "stuck" appearance is normal processing time for multi-file analysis.
+
+**Example Results:**
+
+- Changed: `## Checklist — Constitution Compliance` → `## Checklist: Constitution Compliance`
+- Changed: `"AI Team" - a self-organizing` → `"AI Team": a self-organizing`
+- Kept: All status indicator emojis (✅ ❌ ⚠️) in lists (correct per guidelines)
+
+**Recommended Workflow:**
+
+1. Write clear editorial guidelines with examples
+2. Run in foreground first to gauge timing: `gemini --yolo "$(cat prompt.md)"`
+3. Let it complete fully (may take 5-10+ minutes for multi-file tasks)
+4. Verify results: `git show HEAD`
+
+**Grade: A-** - Successfully completed complex subjective task. Would be A+ with progress indicators. Proves Gemini CLI is capable beyond pure code generation.
+
+---
+
+### Gemini CLI for Type-Constrained Code Generation (FAILED EXPERIMENT)
+
+**Context:** Launched 4 parallel Gemini tasks to generate Agent System components. Did not explicitly constrain prompts to preserve existing type definitions.
+
+**What Worked Well:**
+
+- ✅ Generated all requested files quickly (composable, APIs, data store, tests)
+- ✅ Code was syntactically correct and followed patterns
+- ✅ Used relative imports as requested
+- ✅ Included proper error handling and logging
+
+**What Didn't Work:**
+
+- ❌ **CRITICAL:** Gemini autonomously rewrote the Agent type definition
+- ❌ Removed orchestration-critical fields (role, seniorId, teamId, systemPrompt, status)
+- ❌ Added fields not in specification (githubAccessToken)
+- ❌ Changed token tracking model (tokenUsed → tokenPool)
+- ❌ Updated dependent code (orchestrator) to match simplified types
+- ❌ Got stuck in infinite edit loop trying to reconcile inconsistencies
+- ❌ Generated tests that referenced non-existent fields (teamId, status)
+- ❌ Required hard reset and loss of all generated work
+
+**Best Practices Discovered:**
+
+1. **Explicitly preserve types** - State "DO NOT modify types/index.ts" in prompts
+2. **Provide full type context** - Copy entire interface into prompt with "use EXACTLY this schema"
+3. **One source of truth** - Reference existing types file, don't redefine in prompt
+4. **Checkpoint frequently** - Check git diff early before Gemini refactors everything
+5. **Kill early if drift detected** - Don't wait for completion if types change
+6. **Separate type design from implementation** - Design types manually first, then generate code
+
+**Key Takeaway:** Gemini CLI will autonomously refactor types if it perceives them as "too complex" or inconsistent with simple prompts. This is catastrophic for architectural integrity. **ALWAYS** explicitly constrain type definitions or exclude types files from modification scope.
+
+**Warning Signs to Watch For:**
+
+- Changes to types/index.ts when that wasn't requested
+- Edit loop errors in logs (trying to find old strings)
+- Very long log files (>50 lines suggests repeated failures)
+- Processes running longer than expected (stuck in retry loops)
+
+**Corrective Actions:**
+
+- Added "preserve existing types" to all future code generation prompts
+- Document Agent interface requirements before generation
+- Use `git diff types/` as early checkpoint
+
+**Grade: F** - Complete architectural drift, required full rollback. Critical lesson learned about AI autonomy boundaries.
 
 ---
 
