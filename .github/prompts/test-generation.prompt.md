@@ -63,6 +63,24 @@ beforeEach(() => {
 })
 ```
 
+## Error Handling in Tests
+
+**API endpoints that return errors** (not throw):
+- Handlers use `setResponseStatus(event, 400)` and `return { error: 'message' }`
+- Tests should check the return value, NOT expect rejection:
+
+```typescript
+const result = await POST(mockEvent)
+expect(result.error).toBeDefined()
+expect(result.error).toContain('Missing required fields')
+expect(setResponseStatus).toHaveBeenCalledWith(mockEvent, 400)
+```
+
+**API endpoints that throw errors**:
+```typescript
+await expect(handler(mockEvent)).rejects.toThrow('Expected error')
+```
+
 ## Test Types
 
 ### API Endpoint Tests (server/api/)
