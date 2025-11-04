@@ -230,6 +230,71 @@ gemini --yolo "$(cat .specify/features/F00X/04-task.prompt.md)" > .specify/logs/
 
 ---
 
+### Gemini CLI Test-Driven Development with Auto-Fix
+
+**Context:** Used test-generation.prompt.md to generate F002 Team System tests. Gemini generated tests, ran them, discovered bugs in implementation, fixed the bugs, and verified all tests passed.
+
+**What Worked Well:**
+
+- ✅ Generated 226 lines, 13 comprehensive tests (GET + POST coverage)
+- ✅ All tests properly structured with mocking (logger, h3, uuid)
+- ✅ **Auto-detected 2 bugs in implementation code**
+- ✅ **Self-corrected during fix attempt** (detected regression in own work)
+- ✅ Ran tests automatically with `vitest run` (non-interactive)
+- ✅ Final result: All 36/36 tests passing
+
+**Bugs Found & Fixed by Gemini:**
+
+1. **Default Values Override Bug**: POST endpoint hardcoded `leaderId: null, tokenAllocation: 0` instead of using `?? null` and `?? 0` operators to allow overrides
+2. **Missing Type Validation**: No validation that team `type` is valid TeamType enum value
+
+**Self-Correction Process:**
+
+1. Generated tests → tests failed
+2. Read implementation code → identified bugs
+3. Fixed bugs → tests still failed (regression introduced)
+4. Detected own mistake (validation order wrong)
+5. Re-read code → fixed logic order
+6. Tests passed ✅
+
+**What Didn't Work:**
+
+- ⚠️ Initial fix introduced regression (validation before required field check)
+- ⚠️ Needed 2 iterations to get fix right
+
+**Best Practices Discovered:**
+
+1. **Tests as specification** - Well-written tests guide AI to correct implementation
+2. **Auto-verification loop** - Gemini runs tests after changes without prompting
+3. **Self-aware error detection** - Gemini recognizes when its fix breaks tests
+4. **Iterative refinement** - Multiple fix attempts are normal and successful
+5. **TDD with AI works** - Generate tests first, let AI fix implementation to match
+
+**Key Takeaway:** Gemini CLI can close the TDD loop autonomously: generate tests → run tests → identify failures → fix code → verify fixes → iterate until green. This creates a **self-correcting development workflow** where tests act as the specification and AI iterates until compliance.
+
+**Recommended Workflow:**
+
+```bash
+# Phase 1: Generate tests FIRST (TDD)
+gemini --yolo "$(cat .github/prompts/test-generation.prompt.md)" "$(cat .specify/features/F00X/tests-arguments.md)"
+
+# Phase 2: Implement features (tests will guide correctness)
+gemini --yolo "$(cat .specify/features/F00X/01-implementation.prompt.md)"
+# If implementation exists and tests fail, Gemini will detect and fix automatically
+
+# Phase 3: Verify
+npm test  # Should be green after Gemini finishes
+```
+
+**Example Output:**
+
+- F002 Teams: 13 tests generated → 2 bugs found → 2 bugs fixed → 13/13 passing
+- Total test suite: 36/36 passing (organizations + orchestrator + agents + teams)
+
+**Grade: A+** - True TDD with autonomous bug detection and fixing. Demonstrates AI can close the development loop when given good test specifications. This is a **game-changing workflow** for rapid, correct development.
+
+---
+
 ### Architecture Decisions
 
 **ESMuseum Pattern Adoption:**
