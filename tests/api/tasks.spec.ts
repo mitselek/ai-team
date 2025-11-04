@@ -148,8 +148,17 @@ describe('Tasks API', () => {
     })
   })
 
+interface NewTaskPayload {
+  title: string
+  description: string
+  assignedToId: string
+  createdById: string
+  organizationId: string
+  priority: string
+}
+
   describe('POST /api/tasks', () => {
-    const validPayload = {
+    const validPayload: NewTaskPayload = {
         title: 'Test Task',
         description: 'Test description',
         assignedToId: 'agent-1',
@@ -161,6 +170,10 @@ describe('Tasks API', () => {
     it('should create a task with all required fields', async () => {
         vi.mocked(readBody).mockResolvedValue(validPayload)
         const result = await POST(mockEvent)
+
+        if ('error' in result) {
+            throw new Error(`Expected task, but got error: ${result.error}`)
+        }
 
         expect(result.id).toBeTypeOf('string')
         expect(result.title).toBe(validPayload.title)
@@ -177,10 +190,13 @@ describe('Tasks API', () => {
     const requiredFields = ['title', 'description', 'assignedToId', 'createdById', 'organizationId', 'priority']
     for (const field of requiredFields) {
         it(`should return 400 when ${field} is missing`, async () => {
-            const payload = { ...validPayload }
-            delete payload[field]
+            const payload: Partial<NewTaskPayload> = { ...validPayload }
+            delete (payload as any)[field]
             vi.mocked(readBody).mockResolvedValue(payload)
             const result = await POST(mockEvent)
+            if (!('error' in result)) {
+                throw new Error('Expected an error object, but got a Task.')
+            }
             expect(result.error).toBe(`Missing required field: ${field}`)
             expect(setResponseStatus).toHaveBeenCalledWith(mockEvent, 400)
         })
@@ -197,6 +213,11 @@ describe('Tasks API', () => {
         const updates = { title: 'New Title', status: 'in-progress' }
         vi.mocked(readBody).mockResolvedValue(updates)
         const result = await PATCH(mockEvent)
+
+        if ('error' in result) {
+            throw new Error(`Expected task, but got error: ${result.error}`)
+        }
+
         expect(result.title).toBe('New Title')
         expect(result.status).toBe('in-progress')
         expect(result.updatedAt.getTime()).toBeGreaterThan(testTask1.updatedAt.getTime())
@@ -206,8 +227,16 @@ describe('Tasks API', () => {
     it('should set completedAt when status changes to completed', async () => {
         vi.mocked(readBody).mockResolvedValue({ status: 'completed' })
         const result = await PATCH(mockEvent)
+
+        if ('error' in result) {
+            throw new Error(`Expected task, but got error: ${result.error}`)
+        }
+
         expect(result.status).toBe('completed')
         expect(result.completedAt).toBeInstanceOf(Date)
+        if (result.completedAt === null) {
+            throw new Error('Expected completedAt to be a Date, but it was null.')
+        }
         expect(result.completedAt.getTime()).toBeGreaterThan(0)
     })
 
@@ -215,6 +244,11 @@ describe('Tasks API', () => {
         tasks[0].status = 'in-progress'
         vi.mocked(readBody).mockResolvedValue({ status: 'blocked' })
         const result = await PATCH(mockEvent)
+
+        if ('error' in result) {
+            throw new Error(`Expected task, but got error: ${result.error}`)
+        }
+
         expect(result.status).toBe('blocked')
         expect(result.completedAt).toBeNull()
     })
@@ -223,6 +257,9 @@ describe('Tasks API', () => {
         vi.mocked(getRouterParam).mockReturnValue('not-found')
         vi.mocked(readBody).mockResolvedValue({ title: 'New Title' })
         const result = await PATCH(mockEvent)
+        if (!('error' in result)) {
+            throw new Error('Expected an error object, but got a Task.')
+        }
         expect(result.error).toBe('Task not found')
         expect(setResponseStatus).toHaveBeenCalledWith(mockEvent, 404)
     })
@@ -244,6 +281,9 @@ describe('Tasks API', () => {
     it('should return 404 when task not found', async () => {
         vi.mocked(getRouterParam).mockReturnValue('not-found')
         const result = await DELETE(mockEvent)
+        if (result === undefined || !('error' in result)) {
+            throw new Error('Expected an error object, but got undefined or a Task.')
+        }
         expect(tasks.length).toBe(1)
         expect(result.error).toBe('Task not found')
         expect(setResponseStatus).toHaveBeenCalledWith(mockEvent, 404)

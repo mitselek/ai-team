@@ -1,6 +1,5 @@
 import { defineEventHandler, getQuery } from 'h3'
 import { tasks } from '../../data/tasks'
-import type { Task } from '../../../types'
 
 export default defineEventHandler((event) => {
   const query = getQuery(event)
