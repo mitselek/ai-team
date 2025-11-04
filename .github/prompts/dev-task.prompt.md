@@ -15,6 +15,7 @@ You are working on the "AI Team" project - a Nuxt 3 application for asynchronous
 
 ### MUST USE
 - **Relative imports only** - No `~` aliases. Use `../../types`, `../../server/utils/logger`, etc.
+- **Type-only imports** - For types/interfaces use `import type { ... }` not `import { ... }`
 - **Existing patterns** - Reference similar files as examples (listed below)
 - **All required fields** - Every object must include ALL fields from its interface
 - **Structured logging** - Import and use `createLogger` from server/utils/logger
@@ -40,6 +41,7 @@ Create ONLY the following file(s):
 
 Before finishing, verify:
 - [ ] All imports use relative paths (../../)
+- [ ] Type imports use `import type { }` syntax (for TypeScript types/interfaces)
 - [ ] All type fields are present (no missing required fields)
 - [ ] Structured logging used (createLogger, correlationId)
 - [ ] Error handling with try-catch
