@@ -51,6 +51,20 @@ This directory contains reusable prompt templates for Gemini CLI - our AI-assist
   - Enables parallel task execution
   - Self-documenting
 
+**`test-generation.prompt.md`** - Test Generation Template
+
+- **Purpose**: Generate comprehensive tests for APIs, composables, or services
+- **Usage**: `gemini --yolo "$(cat .github/prompts/test-generation.prompt.md)" "Generate tests for server/api/agents/index.get.ts covering all filters and edge cases"`
+- **When**: After implementing new features, need test coverage
+- **Key Features**:
+  - Logger mocking (prevents stream.write errors)
+  - Data cleanup patterns (beforeEach)
+  - Type-safe test data examples
+  - Non-interactive execution (vitest run)
+  - Coverage guidelines (success + errors + edge cases)
+  - Reference to existing test patterns
+- **Supports**: API endpoints, composables, services
+
 ### Power Prompts (Uncharted Territory)
 
 **`prompt.prompt.md`** - Prompt Engineering Research & Generation
@@ -109,6 +123,19 @@ cp .github/prompts/dev-task.prompt.md .specify/features/F002-my-feature/01-task.
 # 3. Fill in placeholders
 # 4. Execute
 gemini --yolo "$(cat .specify/features/F002-my-feature/01-task.prompt.md)" &
+```
+
+### Test Generation
+
+```bash
+# Generate tests with specific requirements
+gemini --yolo "$(cat .github/prompts/test-generation.prompt.md)" "Generate tests for server/api/agents/ covering GET with all filters (organizationId, teamId, status) and POST with validation errors for all required fields (name, role, organizationId, teamId, systemPrompt). Include edge cases for empty data and combined filters."
+
+# Or simpler invocation
+gemini --yolo "$(cat .github/prompts/test-generation.prompt.md)" "Create tests for app/composables/useAgent.ts - test all CRUD operations"
+
+# Non-interactive execution (for CI/automation)
+npm test  # Uses vitest run (not watch mode)
 ```
 
 ## Best Practices
