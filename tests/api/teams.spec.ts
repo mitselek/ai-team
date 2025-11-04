@@ -3,6 +3,11 @@ import { setResponseStatus, readBody, getQuery } from 'h3'
 import type { H3Event } from 'h3'
 import { v4 as uuidv4 } from 'uuid'
 
+// Mock uuid
+vi.mock('uuid', () => ({
+  v4: vi.fn(() => 'mock-uuid-1234')
+}))
+
 import GET from '../../server/api/teams/index.get'
 import POST from '../../server/api/teams/index.post'
 import { teams } from '../../server/data/teams'
@@ -34,11 +39,6 @@ vi.mock('h3', async () => {
   }
 })
 
-// Mock uuid
-vi.mock('uuid', () => ({
-  v4: vi.fn(() => 'mock-uuid-1234')
-}))
-
 const mockEvent = {} as H3Event
 
 const testTeam1: Team = {
@@ -67,6 +67,14 @@ const testTeam3: Team = {
   tokenAllocation: 75000,
   type: "library",
 };
+
+interface NewTeamPayload {
+  name: string
+  organizationId: string
+  type: string
+  leaderId?: string | null
+  tokenAllocation?: number
+}
 
 describe('API - /api/teams', () => {
   beforeEach(() => {
@@ -117,7 +125,7 @@ describe('API - /api/teams', () => {
 
   describe('POST', () => {
     it('should create a team with all required fields and return 201', async () => {
-      const newTeamPayload = {
+      const newTeamPayload: NewTeamPayload = {
         name: 'Test Team',
         organizationId: 'org-1',
         type: 'custom'
@@ -126,28 +134,36 @@ describe('API - /api/teams', () => {
 
       const result = await POST(mockEvent)
 
+      if ('error' in result) {
+        throw new Error(`Expected team, but got error: ${result.error}`)
+      }
+
       expect(setResponseStatus).toHaveBeenCalledWith(mockEvent, 201)
       expect(teams.length).toBe(1)
       expect(result).toBeDefined()
     })
 
     it('should auto-generate a uuid for the id', async () => {
-        const newTeamPayload = {
+        const newTeamPayload: NewTeamPayload = {
             name: 'Test Team',
             organizationId: 'org-1',
             type: 'custom'
         }
         vi.mocked(readBody).mockResolvedValue(newTeamPayload)
-        vi.mocked(uuidv4).mockReturnValue('generated-uuid')
+        vi.mocked(uuidv4).mockReturnValue('generated-uuid' as never)
 
         const result = await POST(mockEvent)
+
+        if ('error' in result) {
+            throw new Error(`Expected team, but got error: ${result.error}`)
+        }
 
         expect(result.id).toBe('generated-uuid')
         expect(teams[0].id).toBe('generated-uuid')
     })
 
     it('should apply default leaderId=null and tokenAllocation=0', async () => {
-        const newTeamPayload = {
+        const newTeamPayload: NewTeamPayload = {
             name: 'Test Team',
             organizationId: 'org-1',
             type: 'custom'
@@ -155,6 +171,10 @@ describe('API - /api/teams', () => {
         vi.mocked(readBody).mockResolvedValue(newTeamPayload)
 
         const result = await POST(mockEvent)
+
+        if ('error' in result) {
+            throw new Error(`Expected team, but got error: ${result.error}`)
+        }
 
         expect(result.leaderId).toBeNull()
         expect(result.tokenAllocation).toBe(0)
@@ -163,7 +183,7 @@ describe('API - /api/teams', () => {
     })
 
     it('should return the created team with all 6 fields', async () => {
-        const newTeamPayload = {
+        const newTeamPayload: NewTeamPayload = {
             name: 'Test Team',
             organizationId: 'org-1',
             type: 'custom',
@@ -171,9 +191,13 @@ describe('API - /api/teams', () => {
             tokenAllocation: 500
         }
         vi.mocked(readBody).mockResolvedValue(newTeamPayload)
-        vi.mocked(uuidv4).mockReturnValue('specific-uuid')
+        vi.mocked(uuidv4).mockReturnValue('specific-uuid' as never)
 
         const result = await POST(mockEvent)
+
+        if ('error' in result) {
+            throw new Error(`Expected team, but got error: ${result.error}`)
+        }
 
         expect(result).toEqual({
             id: 'specific-uuid',
@@ -191,16 +215,19 @@ describe('API - /api/teams', () => {
         ['organizationId'],
         ['type']
     ])('should return 400 when %s is missing', async (field) => {
-        const newTeamPayload: any = {
+        const newTeamPayload: Partial<NewTeamPayload> = {
             name: 'Test Team',
             organizationId: 'org-1',
             type: 'custom'
         }
-        delete newTeamPayload[field]
+        delete (newTeamPayload as any)[field]
         vi.mocked(readBody).mockResolvedValue(newTeamPayload)
 
         const result = await POST(mockEvent)
 
+        if (!('error' in result)) {
+            throw new Error('Expected an error object, but got a Team.')
+        }
         expect(setResponseStatus).toHaveBeenCalledWith(mockEvent, 400)
         expect(result.error).toBeDefined()
         expect(result.error).toContain(`Missing required fields: ${field}`)
@@ -208,7 +235,7 @@ describe('API - /api/teams', () => {
     })
 
     it('should return 400 for an invalid team type', async () => {
-        const newTeamPayload = {
+        const newTeamPayload: NewTeamPayload = {
             name: 'Test Team',
             organizationId: 'org-1',
             type: 'invalid-type'
@@ -217,6 +244,9 @@ describe('API - /api/teams', () => {
 
         const result = await POST(mockEvent)
 
+        if (!('error' in result)) {
+            throw new Error('Expected an error object, but got a Team.')
+        }
         expect(setResponseStatus).toHaveBeenCalledWith(mockEvent, 400)
         expect(result.error).toBeDefined()
         expect(result.error).toContain('Invalid team type')
