@@ -75,10 +75,35 @@ beforeEach(() => {
 5. Test server errors (500 status)
 6. Test filtering/query parameters
 
+**Error Handling Pattern**:
+API handlers return error objects, they do NOT throw/reject. Test like this:
+
+```typescript
+// ❌ WRONG - Don't expect rejection
+await expect(POST(mockEvent)).rejects.toThrow()
+
+// ✅ CORRECT - Check return value
+const result = await POST(mockEvent)
+expect(result.error).toBeDefined()
+expect(result.error).toContain('Missing required fields')
+expect(setResponseStatus).toHaveBeenCalledWith(mockEvent, 400)
+```
+
 **Example**:
 ```typescript
 import GET from '../../server/api/resource/index.get'
+import POST from '../../server/api/resource/index.post'
 import { resources } from '../../server/data/resources'
+import { setResponseStatus, readBody } from 'h3'
+
+vi.mock('h3', async () => {
+  const actual = await vi.importActual('h3')
+  return {
+    ...actual,
+    readBody: vi.fn(),
+    setResponseStatus: vi.fn()
+  }
+})
 
 describe('GET /api/resource', () => {
   it('should return empty array when no data exists', () => {
@@ -90,6 +115,16 @@ describe('GET /api/resource', () => {
     resources.push(testItem1, testItem2)
     const result = GET(mockEvent)
     expect(result.length).toBe(2)
+  })
+})
+
+describe('POST /api/resource', () => {
+  it('should return 400 when name is missing', async () => {
+    vi.mocked(readBody).mockResolvedValue({ /* missing name */ })
+    const result = await POST(mockEvent)
+    expect(result.error).toBeDefined()
+    expect(result.error).toContain('name')
+    expect(setResponseStatus).toHaveBeenCalledWith(mockEvent, 400)
   })
 })
 ```
@@ -199,7 +234,12 @@ npm test -- --coverage
 npm test -- --watch
 ```
 
-**Note**: The `npm test` script in package.json should use `vitest run` (not `vitest`) to ensure non-interactive execution.
+**CRITICAL - Test Execution**: 
+- **ALWAYS run tests after generation** to verify they work: `npm test`
+- The `npm test` script uses `vitest run` which is **non-interactive** (no user input required)
+- **NEVER use watch mode**: Don't run `npm test -- --watch` or `vitest` without `run`
+- Tests should complete automatically without prompts
+- If tests fail, fix the issues and run again until all pass
 
 ## Validation Checklist
 
@@ -234,6 +274,8 @@ Before finishing, verify:
 - ❌ Don't test implementation details (test behavior, not internals)
 - ❌ Don't duplicate test setup (use beforeEach)
 - ❌ Don't write flaky tests (avoid timing issues, random data)
+- ❌ Don't expect API handlers to throw/reject (they return error objects)
+- ❌ Don't use interactive test modes (always use `npm test` not `npm test -- --watch`)
 
 ## Reference Files
 
