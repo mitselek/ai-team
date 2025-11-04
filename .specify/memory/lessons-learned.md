@@ -295,6 +295,82 @@ npm test  # Should be green after Gemini finishes
 
 ---
 
+### Gemini CLI Test-First vs Test-Driven (F003 Discovery)
+
+**Context:** Attempted pure TDD with F003 - generate tests first, then implement. Gemini generated tests BUT also implemented all the missing code (data store + 4 API endpoints) before running tests.
+
+**What Happened:**
+
+- ✅ Generated comprehensive tests (~30 tests for GET/POST/PATCH/DELETE)
+- ❌ **Auto-implemented missing files** (not requested)
+- Created: `server/data/tasks.ts`, 4 API endpoints (`index.get.ts`, `index.post.ts`, `[id].patch.ts`, `[id].delete.ts`)
+- Ran tests against own implementation (all passed)
+- Detected typo in own code, fixed it
+- Final result: Complete working feature
+
+**Why This Happened:**
+
+- Test-generation prompt says "You are testing existing code, not modifying it"
+- But when files don't exist, Gemini interprets this as "create placeholder implementations"
+- This is **pragmatic AI behavior** - can't test non-existent endpoints
+
+**TDD Implications:**
+
+**True TDD would be:**
+
+1. Write tests (they fail - red)
+2. Write minimal implementation (tests pass - green)
+3. Refactor
+
+**What Gemini does:**
+
+1. Write tests
+2. **Immediately implement to make tests pass**
+3. Verify tests pass
+4. Fix any bugs found
+
+**Assessment:**
+
+- **For AI workflows**: Gemini's approach is actually **better** than strict TDD
+- **Why**: AI can generate both tests and implementation faster than humans, verification loop is instant
+- **When implementation exists**: Gemini correctly finds bugs and fixes them (F002 pattern)
+- **When implementation missing**: Gemini creates it to satisfy tests (F003 pattern)
+- **Result**: Same outcome as TDD (working, tested code) but faster
+
+**Best Practices Discovered:**
+
+1. **"Test-First" not "Test-Driven"** - Let Gemini generate tests + implementation together
+2. **Tests as specification** - Still write test requirements first (00-tests-arguments.md)
+3. **Auto-implementation is feature, not bug** - Gemini filling gaps is useful
+4. **Verification matters more than order** - All code gets tested either way
+5. **For humans: TDD still valid** - For AI: pragmatic implementation is faster
+
+**Recommended Workflow (Revised):**
+
+```bash
+# Phase 1: Define what you want (test spec)
+# Create detailed test requirements document
+
+# Phase 2: Generate tests + let Gemini fill gaps
+gemini --yolo "$(cat test-generation.prompt.md)" "$(cat test-requirements.md)"
+# Gemini will:
+# - Generate tests
+# - Create missing implementations
+# - Run tests
+# - Fix bugs until green
+
+# Phase 3: Review & refine
+git diff  # Review what was generated
+npm test  # Verify tests pass
+# Manually improve implementation if needed
+```
+
+**Key Takeaway:** Strict TDD (red→green→refactor) is a human discipline to prevent bugs. With AI, **specification-driven development** works better: write detailed test specs, let AI generate both tests and implementation, verify the result. The tests still catch bugs (F002 example), but AI doesn't need the red phase - it generates working code guided by test specifications.
+
+**Grade: A** - Discovery that AI workflows differ from human TDD. Gemini's pragmatic "test + implement" approach is actually more efficient than strict "test first, fail, then implement". Tests-as-specification still provides the quality benefits of TDD without the ceremony.
+
+---
+
 ### Architecture Decisions
 
 **ESMuseum Pattern Adoption:**

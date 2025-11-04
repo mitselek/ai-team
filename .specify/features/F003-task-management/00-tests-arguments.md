@@ -5,6 +5,7 @@
 ### 1. GET API Endpoint (`server/api/tasks/index.get.ts`)
 
 **Test Coverage:**
+
 - Returns empty array when no tasks exist
 - Returns all tasks when no filters applied
 - Filters by organizationId correctly
@@ -18,51 +19,52 @@
 
 ```typescript
 const testTask1: Task = {
-  id: 'task-1',
-  title: 'Implement feature X',
-  description: 'Build the new feature for org-1',
-  assignedToId: 'agent-1',
-  createdById: 'agent-2',
-  organizationId: 'org-1',
-  status: 'pending',
-  priority: 'high',
-  createdAt: new Date('2025-01-01'),
-  updatedAt: new Date('2025-01-01'),
-  completedAt: null
-}
+  id: "task-1",
+  title: "Implement feature X",
+  description: "Build the new feature for org-1",
+  assignedToId: "agent-1",
+  createdById: "agent-2",
+  organizationId: "org-1",
+  status: "pending",
+  priority: "high",
+  createdAt: new Date("2025-01-01"),
+  updatedAt: new Date("2025-01-01"),
+  completedAt: null,
+};
 
 const testTask2: Task = {
-  id: 'task-2',
-  title: 'Review code',
-  description: 'Review PR #123',
-  assignedToId: 'agent-2',
-  createdById: 'agent-1',
-  organizationId: 'org-1',
-  status: 'in-progress',
-  priority: 'medium',
-  createdAt: new Date('2025-01-02'),
-  updatedAt: new Date('2025-01-02'),
-  completedAt: null
-}
+  id: "task-2",
+  title: "Review code",
+  description: "Review PR #123",
+  assignedToId: "agent-2",
+  createdById: "agent-1",
+  organizationId: "org-1",
+  status: "in-progress",
+  priority: "medium",
+  createdAt: new Date("2025-01-02"),
+  updatedAt: new Date("2025-01-02"),
+  completedAt: null,
+};
 
 const testTask3: Task = {
-  id: 'task-3',
-  title: 'Deploy to production',
-  description: 'Deploy version 2.0',
-  assignedToId: 'agent-1',
-  createdById: 'agent-3',
-  organizationId: 'org-2',
-  status: 'completed',
-  priority: 'urgent',
-  createdAt: new Date('2025-01-03'),
-  updatedAt: new Date('2025-01-05'),
-  completedAt: new Date('2025-01-05')
-}
+  id: "task-3",
+  title: "Deploy to production",
+  description: "Deploy version 2.0",
+  assignedToId: "agent-1",
+  createdById: "agent-3",
+  organizationId: "org-2",
+  status: "completed",
+  priority: "urgent",
+  createdAt: new Date("2025-01-03"),
+  updatedAt: new Date("2025-01-05"),
+  completedAt: new Date("2025-01-05"),
+};
 ```
 
 ### 2. POST API Endpoint (`server/api/tasks/index.post.ts`)
 
 **Test Coverage:**
+
 - Creates task with all required fields
 - Returns 400 when title missing
 - Returns 400 when description missing
@@ -102,6 +104,7 @@ completedAt: null
 ### 3. PATCH API Endpoint (`server/api/tasks/[id].patch.ts`)
 
 **Test Coverage:**
+
 - Updates task fields successfully
 - Auto-updates updatedAt to current time
 - Sets completedAt when status changes to 'completed'
@@ -130,6 +133,7 @@ PATCH { title: 'New Title' }
 ### 4. DELETE API Endpoint (`server/api/tasks/[id].delete.ts`)
 
 **Test Coverage:**
+
 - Deletes task successfully
 - Returns 404 when task not found
 - Returns 204 on success
@@ -139,21 +143,26 @@ PATCH { title: 'New Title' }
 
 ```typescript
 export interface Task {
-  id: string
-  title: string
-  description: string
-  assignedToId: string
-  createdById: string
-  organizationId: string
-  status: TaskStatus
-  priority: TaskPriority
-  createdAt: Date
-  updatedAt: Date
-  completedAt: Date | null
+  id: string;
+  title: string;
+  description: string;
+  assignedToId: string;
+  createdById: string;
+  organizationId: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  createdAt: Date;
+  updatedAt: Date;
+  completedAt: Date | null;
 }
 
-export type TaskStatus = 'pending' | 'in-progress' | 'blocked' | 'completed' | 'cancelled'
-export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
+export type TaskStatus =
+  | "pending"
+  | "in-progress"
+  | "blocked"
+  | "completed"
+  | "cancelled";
+export type TaskPriority = "low" | "medium" | "high" | "urgent";
 ```
 
 ## Test File Location
@@ -163,6 +172,7 @@ export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
 ## Expected Test Count
 
 ~30 tests total:
+
 - 8 GET endpoint tests
 - 14 POST endpoint tests
 - 8 PATCH endpoint tests
