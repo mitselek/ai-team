@@ -135,9 +135,17 @@ describe('Agent API Endpoints', () => {
     })
   })
 
+interface NewAgentPayload {
+  name: string
+  role: string
+  organizationId: string
+  teamId: string
+  systemPrompt: string
+}
+
   describe('POST /api/agents', () => {
     it('should create agent with all required fields', async () => {
-      const newAgentPayload = {
+      const newAgentPayload: NewAgentPayload = {
         name: 'New Valid Agent',
         role: 'manager',
         organizationId: 'org-1',
@@ -147,6 +155,10 @@ describe('Agent API Endpoints', () => {
       vi.mocked(readBody).mockResolvedValue(newAgentPayload)
 
       const result = await POST(mockEvent)
+
+      if ('error' in result) {
+        throw new Error(`Expected agent, but got error: ${result.error}`)
+      }
 
       expect(result).toBeDefined()
       expect(result.id).toBeDefined()
@@ -158,18 +170,21 @@ describe('Agent API Endpoints', () => {
     const requiredFields = ['name', 'role', 'organizationId', 'teamId', 'systemPrompt']
     requiredFields.forEach((field) => {
       it(`should return 400 when ${field} is missing`, async () => {
-        const payload = {
+        const payload: Partial<NewAgentPayload> = {
           name: 'Test Agent',
           role: 'worker',
           organizationId: 'org-1',
           teamId: 'team-1',
           systemPrompt: 'A prompt'
         }
-        delete payload[field]
+        delete (payload as any)[field]
         vi.mocked(readBody).mockResolvedValue(payload)
 
         const result = await POST(mockEvent)
 
+        if (!('error' in result)) {
+          throw new Error('Expected an error object, but got an Agent.')
+        }
         expect(result.error).toBeDefined()
         expect(result.error).toContain(`Missing required fields: ${field}`)
         expect(setResponseStatus).toHaveBeenCalledWith(mockEvent, 400)
@@ -177,7 +192,7 @@ describe('Agent API Endpoints', () => {
     })
 
     it('should use defaults for seniorId (null) and tokenAllocation (10000)', async () => {
-      const newAgentPayload = {
+      const newAgentPayload: NewAgentPayload = {
         name: 'New Agent',
         role: 'worker',
         organizationId: 'org-1',
@@ -187,13 +202,17 @@ describe('Agent API Endpoints', () => {
       vi.mocked(readBody).mockResolvedValue(newAgentPayload)
 
       const result = await POST(mockEvent)
+
+      if ('error' in result) {
+        throw new Error(`Expected agent, but got error: ${result.error}`)
+      }
 
       expect(result.seniorId).toBeNull()
       expect(result.tokenAllocation).toBe(10000)
     })
 
     it('should set auto-generated fields correctly', async () => {
-      const newAgentPayload = {
+      const newAgentPayload: NewAgentPayload = {
         name: 'New Agent',
         role: 'worker',
         organizationId: 'org-1',
@@ -203,6 +222,10 @@ describe('Agent API Endpoints', () => {
       vi.mocked(readBody).mockResolvedValue(newAgentPayload)
 
       const result = await POST(mockEvent)
+
+      if ('error' in result) {
+        throw new Error(`Expected agent, but got error: ${result.error}`)
+      }
 
       expect(result.tokenUsed).toBe(0)
       expect(result.status).toBe('active')
