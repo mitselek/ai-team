@@ -188,6 +188,48 @@ This document captures key insights, best practices, and lessons learned during 
 
 ---
 
+### Gemini CLI Workspace Scope Restrictions
+
+**Context:** Attempted to launch 4 parallel F002 tasks by running Gemini from the feature subdirectory (`.specify/features/F002-team-system/`). Expected files to be created in project root directories (`server/`, `app/`, etc.).
+
+**What Worked Well:**
+
+- ✅ Parallel launch syntax works: multiple `gemini --yolo` in single command with `&`
+- ✅ Background execution with log redirection successful
+- ✅ Error messages clearly indicate workspace restriction
+
+**What Didn't Work:**
+
+- ❌ Gemini created files inside feature folder (`.specify/features/F002-team-system/server/data/teams.ts`)
+- ❌ Cannot write outside the directory where Gemini is executed
+- ❌ Error: "Search path resolves outside the allowed workspace directories"
+- ❌ Tasks 2-4 failed completely due to missing file dependencies
+
+**Best Practices Discovered:**
+
+1. **Run Gemini from project root** - Always execute from top-level directory
+2. **Use absolute/relative paths in prompts** - Reference files from project root
+3. **Parallel launch pattern** - Single command works: `gemini cmd1 & gemini cmd2 & gemini cmd3 & gemini cmd4 &`
+4. **Verify workspace scope** - Check which directory Gemini considers "workspace"
+5. **Log file organization** - Keep logs in `.specify/logs/` with descriptive names
+
+**Key Takeaway:** Gemini CLI enforces workspace restrictions based on execution directory. For cross-directory file creation (e.g., creating `server/api/` from feature prompts), always run from project root. The parallel launch pattern works perfectly when executed from correct location.
+
+**Recommended Workflow:**
+
+```bash
+# From project root (NOT from feature folder)
+cd /home/user/project
+gemini --yolo "$(cat .specify/features/F00X/01-task.prompt.md)" > .specify/logs/F00X-01.log 2>&1 &
+gemini --yolo "$(cat .specify/features/F00X/02-task.prompt.md)" > .specify/logs/F00X-02.log 2>&1 &
+gemini --yolo "$(cat .specify/features/F00X/03-task.prompt.md)" > .specify/logs/F00X-03.log 2>&1 &
+gemini --yolo "$(cat .specify/features/F00X/04-task.prompt.md)" > .specify/logs/F00X-04.log 2>&1 &
+```
+
+**Grade: A** - Fast discovery of limitation, clear error messages, parallel pattern validated.
+
+---
+
 ### Architecture Decisions
 
 **ESMuseum Pattern Adoption:**
