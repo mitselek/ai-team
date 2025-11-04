@@ -7,58 +7,58 @@ This document defines the formal iterative workflow for building the AI Team sys
 ## Master Control Loop
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│ PHASE 1: PLAN                                               │
-│ - Review SYSTEM_PROMPT.md priorities                        │
-│ - Select next feature(s) from MVP scope                     │
-│ - Define acceptance criteria                                │
-└────────────────────┬────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────┐
+│ PHASE 1: PLAN                                          │
+│ - Review SYSTEM_PROMPT.md priorities                   │
+│ - Select next feature(s) from MVP scope                │
+│ - Define acceptance criteria                           │
+└────────────────────┬───────────────────────────────────┘
                      │
                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│ PHASE 2: SPECIFY                                            │
-│ - Create feature folder (.specify/features/F00X/)          │
-│ - Write test requirements (00-tests-arguments.md)          │
-│ - Create task prompts (01-NN-*.prompt.md)                  │
-│ - Document expected outputs and validation criteria        │
-└────────────────────┬────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────┐
+│ PHASE 2: SPECIFY                                       │
+│ - Create feature folder (.specify/features/F00X/)      │
+│ - Write test requirements (00-tests-arguments.md)      │
+│ - Create task prompts (01-NN-*.prompt.md)              │
+│ - Document expected outputs and validation criteria    │
+└────────────────────┬───────────────────────────────────┘
                      │
                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│ PHASE 3: EXECUTE                                            │
-│ - Launch Gemini test generation (specification-driven)     │
-│ - Launch Gemini implementation tasks (parallel)            │
-│ - Wait for completion (5-10 mins typical)                  │
-│ - DO NOT INTERRUPT (patience is key)                       │
-└────────────────────┬────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────┐
+│ PHASE 3: EXECUTE                                       │
+│ - Launch Gemini test generation (specification-driven) │
+│ - Launch Gemini implementation tasks (parallel)        │
+│ - Wait for completion (5-10 mins typical)              │
+│ - DO NOT INTERRUPT (patience is key)                   │
+└────────────────────┬───────────────────────────────────┘
                      │
                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│ PHASE 4: ASSESS                                             │
-│ - Verify all Gemini processes finished                     │
-│ - Check generated files exist                              │
-│ - Run quality checks (typecheck, lint, test)               │
-│ - Review code diffs for correctness                        │
-│ - Identify any bugs or issues                              │
-└────────────────────┬────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────┐
+│ PHASE 4: ASSESS                                        │
+│ - Verify all Gemini processes finished                 │
+│ - Check generated files exist                          │
+│ - Run quality checks (typecheck, lint, test)           │
+│ - Review code diffs for correctness                    │
+│ - Identify any bugs or issues                          │
+└────────────────────┬───────────────────────────────────┘
                      │
                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│ PHASE 5: LEARN                                              │
-│ - Document new patterns in lessons-learned.md              │
-│ - Update prompt templates with improvements                │
-│ - Grade Gemini performance (A+ to F)                       │
-│ - Note efficiency gains or bottlenecks                     │
-└────────────────────┬────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────┐
+│ PHASE 5: LEARN                                         │
+│ - Document new patterns in lessons-learned.md          │
+│ - Update prompt templates with improvements            │
+│ - Grade Gemini performance (A+ to F)                   │
+│ - Note efficiency gains or bottlenecks                 │
+└────────────────────┬───────────────────────────────────┘
                      │
                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│ PHASE 6: COMMIT                                             │
-│ - Stage all feature files                                  │
-│ - Launch Gemini commit automation (fire-and-forget)        │
-│ - Wait for commit to complete                              │
-│ - Verify git log shows proper commit message               │
-└────────────────────┬────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────┐
+│ PHASE 6: COMMIT                                        │
+│ - Stage all feature files                              │
+│ - Launch Gemini commit automation (fire-and-forget)    │
+│ - Wait for commit to complete                          │
+│ - Verify git log shows proper commit message           │
+└────────────────────┬───────────────────────────────────┘
                      │
                      ▼
                   [REPEAT]
@@ -97,13 +97,13 @@ Complexity: Medium (team type validation, leader assignment)
 
 ## Phase 2: SPECIFY
 
-### Inputs
+**Inputs:**
 
 - Feature selection from Phase 1
 - Type definitions from `types/index.ts`
 - Existing code patterns
 
-### Activities
+**Activities:**
 
 1. Create feature folder: `.specify/features/F00X-feature-name/`
 2. Write `README.md` with objectives, scope, execution plan
@@ -111,7 +111,7 @@ Complexity: Medium (team type validation, leader assignment)
 4. Create implementation prompts: `01-task.prompt.md`, `02-task.prompt.md`, etc.
 5. Use `dev-task.prompt.md` as template for implementation prompts
 
-### Outputs
+**Outputs:**
 
 - Feature folder with all planning documents
 - Test specifications (detailed requirements)
@@ -135,7 +135,7 @@ Complexity: Medium (team type validation, leader assignment)
 
 ### Example Structure
 
-```
+```text
 .specify/features/F004-core-team-init/
 ├── README.md                      # Feature overview
 ├── 00-tests-arguments.md          # Test requirements
@@ -145,14 +145,14 @@ Complexity: Medium (team type validation, leader assignment)
 
 ## Phase 3: EXECUTE
 
-### Inputs
+**Inputs:**
 
 - Task prompts from Phase 2
 - Test-generation template (`.github/prompts/test-generation.prompt.md`)
 
-### Activities
+**Activities:**
 
-**Step 1: Test Generation (Specification-Driven)**
+**Step 1: Test Generation (Specification-Driven)**  
 
 ```bash
 cd /home/user/project  # ALWAYS from project root
@@ -161,7 +161,7 @@ gemini --yolo "$(cat .github/prompts/test-generation.prompt.md)" \
   > .specify/logs/F00X-tests-$(date +%H%M%S).log 2>&1 &
 ```
 
-**Step 2: Implementation (Parallel)**
+**Step 2: Implementation (Parallel)**  
 
 ```bash
 # Launch all independent tasks in parallel
@@ -172,7 +172,7 @@ gemini --yolo "$(cat .specify/features/F00X/02-task.prompt.md)" \
 # ... repeat for all tasks
 ```
 
-**Step 3: Wait**
+**Step 3: Wait**  
 
 - Typical duration: 5-10 minutes
 - DO NOT interrupt processes
@@ -196,15 +196,15 @@ gemini --yolo "$(cat .specify/features/F00X/02-task.prompt.md)" \
 
 ## Phase 4: ASSESS
 
-### Inputs
+**Inputs:**
 
 - Gemini log files (`.specify/logs/`)
 - Generated code files
 - Test results
 
-### Activities
+**Activities:**
 
-**Step 1: Verify Completion**
+**Step 1: Verify Completion**  
 
 ```bash
 # Check all processes finished
@@ -216,7 +216,7 @@ ls -lh server/api/feature/*.ts tests/api/feature.spec.ts
 wc -l <files>  # Get line counts
 ```
 
-**Step 2: Run Quality Checks**
+**Step 2: Run Quality Checks**  
 
 ```bash
 npm run typecheck  # TypeScript errors?
@@ -224,14 +224,14 @@ npm run lint       # Linting issues?
 npm test           # All tests passing?
 ```
 
-**Step 3: Review Code**
+**Step 3: Review Code**  
 
 ```bash
 git diff           # What changed?
 git status --short # What's new?
 ```
 
-**Step 4: Check Logs**
+**Step 4: Check Logs**  
 
 ```bash
 tail -50 .specify/logs/F00X-*.log  # Any errors or warnings?
@@ -268,15 +268,15 @@ tail -50 .specify/logs/F00X-*.log  # Any errors or warnings?
 
 ## Phase 5: LEARN
 
-### Inputs
+**Inputs:**
 
 - Assessment results from Phase 4
 - Gemini log files
 - Code review findings
 
-### Activities
+**Activities:**
 
-**Step 1: Document Patterns**
+**Step 1: Document Patterns**  
 
 Add entry to `.specify/memory/lessons-learned.md`:
 
@@ -305,7 +305,7 @@ Add entry to `.specify/memory/lessons-learned.md`:
 **Grade: [A+ to F]** - [Brief reasoning]
 ```
 
-**Step 2: Update Templates**
+**Step 2: Update Templates**  
 
 If new constraints discovered:
 
@@ -313,7 +313,7 @@ If new constraints discovered:
 - Update `.github/prompts/test-generation.prompt.md`
 - Add to "Critical Constraints" or "MUST USE" sections
 
-**Step 3: Grade Performance**
+**Step 3: Grade Performance**  
 
 - **A+**: Perfect execution, no issues
 - **A**: Excellent, minor fixable issues
@@ -345,14 +345,14 @@ If new constraints discovered:
 
 ## Phase 6: COMMIT
 
-### Inputs
+**Inputs:**
 
 - All staged changes from Phase 4
 - Updated lessons from Phase 5
 
-### Activities
+**Activities:**
 
-**Step 1: Stage Files**
+**Step 1: Stage Files**  
 
 ```bash
 git add <feature-files>              # Implementation
@@ -361,7 +361,7 @@ git add .specify/features/F00X/      # Feature planning
 git add .specify/memory/lessons-learned.md  # If updated
 ```
 
-**Step 2: Launch Commit Automation**
+**Step 2: Launch Commit Automation**  
 
 ```bash
 cd /home/user/project
@@ -369,7 +369,7 @@ gemini --yolo "$(cat .github/prompts/commit4gemini.prompt.md)" \
   > gemini-commit-$(date +%Y%m%d-%H%M%S).log 2>&1 &
 ```
 
-**Step 3: Wait & Verify**
+**Step 3: Wait & Verify**  
 
 ```bash
 # Wait ~1-2 minutes
@@ -488,7 +488,7 @@ rm <new-files-that-are-wrong>
 
 ### If Tests Fail After Implementation
 
-**Gemini usually auto-fixes during generation**
+**Gemini usually auto-fixes during generation**  
 
 If not:
 
@@ -499,7 +499,7 @@ If not:
 
 ### If Types Drift
 
-**CRITICAL - Stop immediately**
+**CRITICAL - Stop immediately**  
 
 ```bash
 git diff types/index.ts

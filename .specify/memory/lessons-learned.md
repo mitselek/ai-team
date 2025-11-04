@@ -371,6 +371,94 @@ npm test  # Verify tests pass
 
 ---
 
+### Gemini CLI Redundant Parallel Tasks (F004 Discovery)
+
+**Context:** Launched 2 parallel Gemini processes for F004: (1) test-generation.prompt.md + test specs, (2) implementation prompt for utility function. Expected: tests from process 1, implementation from process 2.
+
+**What Happened:**
+
+- ✅ **Process 1 (test generation)**: Created both utility file AND tests in TDD fashion
+- Created: `server/utils/initializeOrganization.ts` (84 lines)
+- Created: `tests/utils/initializeOrganization.spec.ts` (143 lines, 13 tests)
+- Ran tests: All 13 passing ✅
+- Completed successfully in ~2 minutes
+- ❌ **Process 2 (implementation)**: Found files already existed, tried to "improve" them
+- Attempted multiple edits to both files (failed - no matching strings)
+- Hit API errors when trying to make unnecessary changes
+- Got stuck in error loop, ran for 10+ minutes
+- Had to manually kill process
+
+**Why This Happened:**
+
+- **Test-generation pattern**: When Gemini generates tests for non-existent code, it pragmatically creates the implementation too (F003 lesson applies)
+- **Redundant process**: Second "implementation" task had nothing to do
+- **Stuck behavior**: With no real work needed, Gemini tried to make "improvements" and hit errors
+
+**Logs Evidence:**
+
+```text
+Process 1: "Created utility function... created tests... ran tests... all passed."
+Process 2: "Error: Failed to edit, 0 occurrences found... Error generating JSON... MaxListenersExceeded..."
+```
+
+**What Worked Well:**
+
+- ✅ First process delivered complete working feature (227 lines total)
+- ✅ All 13 tests passing
+- ✅ Proper idempotency, logging, all 6 team types
+- ✅ Zero manual fixes needed (except teams.spec.ts cleanup unrelated to F004)
+
+**What Didn't Work:**
+
+- ❌ Second parallel process was completely unnecessary
+- ❌ Wasted compute time (10+ minutes stuck)
+- ❌ Had to manually intervene to kill processes
+- ⚠️ API rate limit errors when nothing to do
+
+**Best Practices Discovered:**
+
+1. **One process for test-first features** - Test generation alone handles everything
+2. **Parallel only for independent tasks** - Multiple API routes, not tests + implementation of same thing
+3. **Kill stuck processes** - If no file changes in 5 mins and API errors in logs, stop it
+4. **Check logs early** - First process completed message = second process likely redundant
+5. **Don't over-parallelize** - More processes ≠ faster when tasks overlap
+
+**Recommended Workflow Revision:**
+
+**For utility functions / simple features:**
+
+```bash
+# BEFORE (incorrect):
+gemini --yolo "test-generation.prompt" & 
+gemini --yolo "implementation.prompt" &  # REDUNDANT
+
+# AFTER (correct):
+gemini --yolo "test-generation.prompt"  # Creates tests + implementation
+```
+
+**For multi-file features (like CRUD APIs):**
+
+```bash
+# Good parallelization:
+gemini --yolo "01-get-endpoint.prompt" &
+gemini --yolo "02-post-endpoint.prompt" &
+gemini --yolo "03-patch-endpoint.prompt" &
+gemini --yolo "04-delete-endpoint.prompt" &
+# Then: gemini --yolo "test-generation.prompt" for all endpoints
+```
+
+**Key Takeaway:** With specification-driven development, the test-generation process creates BOTH tests and implementation. Don't launch redundant "implementation" tasks - they'll have nothing to do and may get stuck trying to make unnecessary changes. Parallel execution works for truly independent tasks (multiple API endpoints), not for tests + implementation of the same feature.
+
+**Workflow Pattern:**
+
+- **Utility/Composable**: 1 test-generation task → done
+- **CRUD API**: 4 endpoint tasks + 1 test task → done
+- **Complex Feature**: Break into independent pieces, each with own test-generation
+
+**Grade: A** - Fast discovery of redundancy pattern. Reinforces F003 lesson about specification-driven development. Now understand when to parallelize (independent features) vs when to serialize (tests create implementation).
+
+---
+
 ### Architecture Decisions
 
 **ESMuseum Pattern Adoption:**
