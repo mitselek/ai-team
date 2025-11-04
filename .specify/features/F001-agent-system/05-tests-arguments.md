@@ -1,4 +1,4 @@
-Generate comprehensive tests for the Agent System API endpoints in `tests/api/agents.spec.ts`.
+# F002 Agent System - Test Requirements
 
 ## Specific Requirements
 
