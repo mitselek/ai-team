@@ -31,14 +31,21 @@ export default defineEventHandler(async (event) => {
     return { error: `Missing required fields: ${missingFields.join(', ')}` }
   }
 
+  const validTeamTypes = ["hr", "toolsmith", "library", "vault", "tools-library", "nurse", "custom"];
+  if (!validTeamTypes.includes(body.type!)) {
+    log.warn({ type: body.type }, 'Invalid team type provided');
+    setResponseStatus(event, 400);
+    return { error: 'Invalid team type' };
+  }
+
   try {
     const newTeam: Team = {
       id: uuidv4(),
       name: body.name!,
       organizationId: body.organizationId!,
       type: body.type!,
-      leaderId: null,
-      tokenAllocation: 0,
+      leaderId: body.leaderId ?? null,
+      tokenAllocation: body.tokenAllocation ?? 0,
     }
 
     teams.push(newTeam)
