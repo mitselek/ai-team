@@ -220,7 +220,7 @@ describe('API - /api/teams', () => {
             organizationId: 'org-1',
             type: 'custom'
         }
-        delete (newTeamPayload as any)[field]
+        delete newTeamPayload[field as keyof NewTeamPayload]
         vi.mocked(readBody).mockResolvedValue(newTeamPayload)
 
         const result = await POST(mockEvent)
