@@ -62,3 +62,27 @@ Before finishing, verify:
 - If you see inconsistencies, note them but don't fix them
 - Stay within the scope defined above
 - Use uuid v4 for ID generation: `import { v4 as uuidv4 } from 'uuid'`
+
+## Output Formatting (MANDATORY)
+
+All output (status, reasoning, steps) MUST be cleanly formatted:
+
+- Use blank lines to separate conceptual blocks
+- One sentence or bullet per line for lists / steps
+- No run-on paragraphs longer than 3 sentences
+- Begin major phases with a clear heading like: `== Planning ==`, `== Implementation ==`
+- Use fenced code blocks for any commands or code
+	```bash
+	npm run typecheck
+	npm run lint
+	npm test -- --run
+	```
+- Wrap lines at ~100 characters; insert newlines rather than overflowing
+- Explicit progress structure:
+	- Action: <what is being done>
+	- Result: <observed outcome>
+	- Next: <next planned step>
+- Do not compress multiple unrelated actions into a single line
+- Avoid trailing spaces, avoid inline JSON unless necessary
+
+Failure to follow these formatting rules reduces readability; prioritize structured, line-separated output.

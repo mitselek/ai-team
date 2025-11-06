@@ -38,6 +38,26 @@ Each commit should be atomic and independently meaningful.
 - Keep it professional and parseable by tools
 - Focus on clarity over decoration
 
+## Output & Logging Format
+
+To keep logs readable and easy to scan, follow these formatting rules for all output:
+
+- Print each action on its own line; never concatenate sentences without a space or newline
+- Separate logical sections with a blank line
+- Use bullet or numbered lists for multi-step explanations (one item per line)
+- Use fenced code blocks for commands; put each command on its own line
+	- Example:
+		```bash
+		git status
+		git add path/to/file
+		git commit -m "docs: update prompt"
+		```
+- Keep lines under ~100 characters when possible; wrap to the next line rather than running on
+- Prefer this structure for progress messages:
+	- Action: <what you are doing>
+	- Result: <what happened>
+	- Next: <what you will do next>
+
 ## Example Workflow
 ```bash
 # First check what's pending

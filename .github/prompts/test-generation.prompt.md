@@ -310,3 +310,21 @@ Look at these existing tests for patterns:
 - Keep tests isolated (no dependencies between tests)
 - Mock external dependencies (logger, HTTP calls, file system)
 - Test one thing per test (single assertion focus)
+
+## Output Formatting (MANDATORY)
+
+When describing what you are doing, and when printing any logs or reasoning, follow these rules:
+
+- Each step on its own line; add a blank line between unrelated steps
+- Prefer bullet lists for multi-part outputs
+- Use fenced code blocks for any code or commands, one command per line
+  ```bash
+  npm test
+  npm test -- --coverage
+  ```
+- Keep lines under ~100 characters and wrap as needed
+- Use a simple structure:
+  - Action: <what is being done>
+  - Result: <what happened>
+  - Next: <what you will do next>
+- Avoid run-on sentences without spaces or newlines
