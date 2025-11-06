@@ -16,7 +16,7 @@ You are building a **Model Context Protocol (MCP) server**. MCP servers expose t
 
 **Key Principles**:
 
-- Follow the [MCP specification](https://modelcontextprotocol.io/) strictly
+- Follow the MCP specification at <https://modelcontextprotocol.io/> strictly
 - Implement proper error handling and input validation
 - Provide clear tool descriptions and JSON schemas
 - Support multiple transport layers (stdio, SSE, HTTP)
