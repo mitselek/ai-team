@@ -2,6 +2,52 @@
 
 This document captures key insights, best practices, and lessons learned during the development of AI Team.
 
+## Date: 2025-11-06
+
+### Gemini Output Formatting for Readability
+
+**Context:** During F005 Dashboard UI implementation, Gemini-generated code had poor readability in terminal logs due to missing newlines between logical sections (imports, types, functions).
+
+**What Worked Well:**
+
+- Identified pattern after single feature implementation
+- Applied fix retroactively to all core prompt templates
+- Simple solution: explicit formatting guidelines in prompts
+
+**What Didn't Work:**
+
+- Initial prompts lacked output formatting requirements
+- Compressed code output made debugging harder
+
+**Best Practices Discovered:**
+
+1. **Add formatting section to prompts** - Include explicit newline/spacing requirements
+2. **Fenced code blocks** - Request proper markdown with language identifiers
+3. **Structured logs** - Enforce delimiters between logical code sections
+4. **Retroactive improvements** - Update all prompt templates when pattern discovered
+
+**Prompt Templates Updated:**
+
+- `.claude/prompts/commit.md`
+- `.claude/prompts/dev-task.md`
+- `.claude/prompts/test-generation.md`
+
+**Added Section:**
+
+```markdown
+## Output Formatting
+
+- **Newlines between sections:** Always separate imports, type definitions, functions, and code blocks with blank lines.
+- **Fenced code blocks:** Use proper markdown fences with language identifiers (```typescript, ```bash, etc.).
+- **Structured logs:** When logging operations, use clear delimiters and consistent formatting.
+```
+
+**Key Takeaway:** AI-generated code needs explicit formatting requirements in prompts. Without them, output is functionally correct but human-unreadable. Simple formatting guidelines dramatically improve log readability and debugging efficiency.
+
+**Grade: A** - Quick discovery, easy fix, broad application. Future Gemini output will be properly formatted.
+
+---
+
 ## Date: 2025-11-04
 
 ### Gemini CLI for Parallel Code Generation
@@ -10,11 +56,11 @@ This document captures key insights, best practices, and lessons learned during 
 
 **What Worked Well:**
 
-- ✅ Parallel execution significantly accelerated development (~500 lines in minutes)
-- ✅ Generated code quality was good: proper TypeScript, error handling, structured logging
-- ✅ Followed requested patterns consistently
-- ✅ Complex implementations (GitHub wiki via Git DB API) were sophisticated
-- ✅ `--yolo` mode worked well for initial generation when you plan to review
+- Parallel execution significantly accelerated development (~500 lines in minutes)
+- Generated code quality was good: proper TypeScript, error handling, structured logging
+- Followed requested patterns consistently
+- Complex implementations (GitHub wiki via Git DB API) were sophisticated
+- `--yolo` mode worked well for initial generation when you plan to review
 
 **What Didn't Work:**
 

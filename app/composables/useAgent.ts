@@ -1,8 +1,8 @@
 
 import { useState } from '#app'
 import { v4 as uuidv4 } from 'uuid'
-import type { Agent, AgentStatus } from '../../types'
-import { logger } from '../../app/utils/logger'
+import type { Agent, AgentStatus } from '~~/types'
+import { logger } from '~/utils/logger'
 import { agents as agentsData } from '../../server/data/agents'
 
 export const useAgent = () => {

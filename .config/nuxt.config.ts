@@ -1,11 +1,23 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  // Use `app/` as the source directory so pages live in app/pages, composables in app/composables, etc.
+  srcDir: 'app',
   modules: [
     '@nuxt/eslint',
-    '@nuxtjs/tailwindcss',
     '@vueuse/nuxt',
     'nuxt-icons'
   ],
+
+  css: [
+    '~/assets/css/main.css'
+  ],
+
+  postcss: {
+    plugins: {
+      tailwindcss: {},
+      autoprefixer: {}
+    }
+  },
 
   ssr: true,
   devtools: { enabled: true },
