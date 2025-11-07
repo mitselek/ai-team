@@ -9,7 +9,7 @@ export default defineNuxtConfig({
   ],
 
   css: [
-    '~/assets/css/main.css'
+    '@/assets/tailwind.css'
   ],
 
   postcss: {
@@ -57,6 +57,5 @@ export default defineNuxtConfig({
       stylistic: true
     }
   },
-
-  compatibilityDate: '2025-11-03'
+  compatibilityDate: '2024-11-01'
 })

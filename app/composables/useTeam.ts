@@ -1,7 +1,7 @@
 
 import { useState } from '#app'
 import { v4 as uuidv4 } from 'uuid'
-import type { Team, TeamType } from '~~/types'
+import type { Team, TeamType } from '@@/types'
 import { logger } from '../utils/logger'
 import { teams as teamsData } from '../../server/data/teams'
 

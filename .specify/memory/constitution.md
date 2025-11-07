@@ -127,6 +127,7 @@ Version: 1.0.0 | Ratified: 2025-11-03 | Last Amended: 2025-11-03
 
 - Framework: Nuxt 3 (Vue 3, TypeScript strict)
 - Styling: Tailwind CSS (Nuxt module)
+- Styling Policy: Use `@nuxtjs/tailwindcss` with config at `.config/tailwind.config.{js,ts}` and CSS entry `app/assets/tailwind.css`. Manual PostCSS fallback (custom plugin chain without the Nuxt module) is permitted only for a documented build incompatibility; it must include a rationale in `.specify/memory/lessons-learned.md` and be reverted (return to module) within 24h or converted into an approved exception.
 - Visualization: D3.js
 - HTTP: ofetch/axios (server-side), native fetch (client)
 - GitHub Integration: @octokit/rest
@@ -149,6 +150,12 @@ Evaluate before adding:
 5. Security posture
 
 Document decisions for significant additions in `.specify/features/` or `.specify/memory/`.
+
+**Note on documentation structure:**
+
+- `.specify/memory/lessons-learned.md` for development insights and AI workflow patterns
+- `.claude/` for AI tooling configuration only (prompts, settings)
+- `docs/` for user-facing product documentation
 
 ### Upgrade Policy
 

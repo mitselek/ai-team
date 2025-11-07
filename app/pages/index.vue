@@ -122,7 +122,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import type { Organization, Team, Agent, AgentStatus } from '~~/types'
+import type { Organization, Team, Agent, AgentStatus } from '@@/types'
 import { useOrganization } from '../composables/useOrganization'
 import { useTeam } from '../composables/useTeam'
 import { useAgent } from '../composables/useAgent'

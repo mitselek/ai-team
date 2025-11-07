@@ -167,8 +167,8 @@ interface NewAgentPayload {
       expect(agents.length).toBe(1)
     })
 
-    const requiredFields = ['name', 'role', 'organizationId', 'teamId', 'systemPrompt']
-    requiredFields.forEach((field) => {
+  const requiredFields: Array<keyof NewAgentPayload> = ['name', 'role', 'organizationId', 'teamId', 'systemPrompt']
+  requiredFields.forEach((field) => {
       it(`should return 400 when ${field} is missing`, async () => {
         const payload: Partial<NewAgentPayload> = {
           name: 'Test Agent',
@@ -177,7 +177,7 @@ interface NewAgentPayload {
           teamId: 'team-1',
           systemPrompt: 'A prompt'
         }
-        delete (payload as any)[field]
+  delete payload[field]
         vi.mocked(readBody).mockResolvedValue(payload)
 
         const result = await POST(mockEvent)

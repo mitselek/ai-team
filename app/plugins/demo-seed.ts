@@ -2,7 +2,7 @@ import { defineNuxtPlugin } from '#app'
 import { useOrganization } from '../composables/useOrganization'
 import { useTeam } from '../composables/useTeam'
 import { useAgent } from '../composables/useAgent'
-import type { AgentStatus, TeamType } from '~~/types'
+import type { AgentStatus, TeamType } from '@@/types'
 import { logger } from '../utils/logger'
 
 /**

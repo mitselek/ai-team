@@ -187,11 +187,11 @@ interface NewTaskPayload {
         expect(setResponseStatus).toHaveBeenCalledWith(mockEvent, 201)
     })
 
-    const requiredFields = ['title', 'description', 'assignedToId', 'createdById', 'organizationId', 'priority']
+  const requiredFields: Array<keyof NewTaskPayload> = ['title', 'description', 'assignedToId', 'createdById', 'organizationId', 'priority']
     for (const field of requiredFields) {
         it(`should return 400 when ${field} is missing`, async () => {
             const payload: Partial<NewTaskPayload> = { ...validPayload }
-            delete (payload as any)[field]
+            delete payload[field]
             vi.mocked(readBody).mockResolvedValue(payload)
             const result = await POST(mockEvent)
             if (!('error' in result)) {

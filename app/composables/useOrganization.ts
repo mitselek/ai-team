@@ -1,7 +1,7 @@
 import { useState } from '#app'
 import { v4 as uuidv4 } from 'uuid'
-import type { Organization } from '~~/types'
-import { logger } from '~/utils/logger'
+import type { Organization } from '@@/types'
+import { logger } from '@/utils/logger'
 
 export const useOrganization = () => {
   const organizations = useState<Organization[]>('organizations', () => [])

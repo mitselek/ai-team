@@ -3,7 +3,7 @@
  * Avoids direct console usage; provides consistent interface with context.
  *
  * Usage:
- *   import { logger } from '~/utils/logger'
+ *   import { logger } from '@/utils/logger'
  *   logger.warn({ agentId, taskId }, 'Task delegation timeout')
  *   logger.error({ orgId, error }, 'Failed to create organization')
  */
