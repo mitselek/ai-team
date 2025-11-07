@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build-and-test:
@@ -27,11 +27,17 @@ jobs:
       - name: Generate types
         run: npm run postinstall --if-present
 
+      - name: Prettier check
+        run: npm run format:check --if-present
+
       - name: Type check
         run: npm run typecheck --if-present
 
       - name: Lint
         run: npm run lint --if-present
+
+      - name: Stylelint
+        run: npm run lint:css --if-present
 
       - name: Run tests
         run: npm test --if-present

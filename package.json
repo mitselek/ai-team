@@ -8,6 +8,9 @@
     "node": ">=20.0.0"
   },
   "scripts": {
+    "prepare": "husky",
+    "format": "prettier --cache --write .",
+    "format:check": "prettier --check .",
     "dev": "nuxt dev",
     "build": "nuxt build",
     "generate": "nuxt generate",
@@ -34,6 +37,10 @@
     "vue": "^3.5.13"
   },
   "devDependencies": {
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.8",
     "@nuxt/test-utils": "^3.19.2",
     "@types/d3": "^7.4.3",
     "@types/uuid": "^10.0.0",
@@ -51,5 +58,16 @@
     "typescript": "^5.7.3",
     "vitest": "^3.2.4",
     "vue-tsc": "^2.0.0"
+  },
+  "lint-staged": {
+    "**/*.{js,ts,vue}": [
+      "eslint --fix"
+    ],
+    "app/**/*.{css,vue}": [
+      "stylelint --fix"
+    ],
+    "**/*.{js,ts,vue,css,md,json,yml,yaml}": [
+      "prettier --write"
+    ]
   }
 }
