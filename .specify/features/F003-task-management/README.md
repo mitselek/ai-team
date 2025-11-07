@@ -91,7 +91,7 @@ export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
 
 ## Execution
 
-**Phase 1: Tests First (TDD)**
+### Phase 1: Tests First (TDD)
 
 ```bash
 # Generate tests FIRST
@@ -99,7 +99,7 @@ cd /home/michelek/Documents/github/ai-team
 gemini --yolo "$(cat .github/prompts/test-generation.prompt.md)" "$(cat .specify/features/F003-task-management/00-tests-arguments.md)" > .specify/logs/F003-tests.log 2>&1 &
 ```
 
-**Phase 2: Implementation (Parallel)**
+### Phase 2: Implementation (Parallel)
 
 ```bash
 # After tests are written, implement in parallel

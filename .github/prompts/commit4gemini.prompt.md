@@ -37,7 +37,7 @@ Each commit should be atomic and independently meaningful.
 - Body (optional): explain WHAT and WHY (not HOW)
 - Footer (optional): breaking changes, references
 
-**Style Rules:**
+### Style Rules
 
 - **NO emojis** in commit messages (only use if truly exceptional)
 - **NO em-dashes (—)** - use regular hyphens (-) or colons (:) instead

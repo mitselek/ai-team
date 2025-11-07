@@ -1,0 +1,18 @@
+{
+  // Markdownlint configuration
+  "default": true,
+  // Allow long lines (handled pragmatically in docs)
+  "MD013": false,
+  // Emphasis heading converted rule stays enabled
+  "MD036": true,
+  // Duplicate headings: allow different nesting, we'll still contextualize many
+  "MD024": {
+    "siblings_only": true
+  },
+  // Allow <br> usage for soft breaks
+  "MD033": {
+    "allowed_elements": ["br"]
+  },
+  // Ordered list style consistency
+  "MD029": { "style": "ordered" }
+}

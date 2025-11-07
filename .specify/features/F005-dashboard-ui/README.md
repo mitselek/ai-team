@@ -34,13 +34,13 @@ Create a foundational dashboard UI in `pages/index.vue` that displays token spen
 
 ## Dependencies
 
-**Required (Complete):**
+### Required (Complete)
 
 - F001 Agent System ✅ (composable, types, data)
 - F002 Team System ✅ (composable, types, data)
 - F004 Core Team Init ✅ (default teams created)
 
-**Uses:**
+### Uses
 
 - `app/composables/useOrganization.ts`
 - `app/composables/useTeam.ts`
@@ -53,7 +53,7 @@ Create a foundational dashboard UI in `pages/index.vue` that displays token spen
 
 **File:** `app/pages/index.vue`
 
-**Requirements:**
+### Requirements
 
 1. **Organization Selector**
    - Dropdown showing all organizations (from `useOrganization().listOrganizations()`)
@@ -92,7 +92,7 @@ Create a foundational dashboard UI in `pages/index.vue` that displays token spen
    - Color coding for status/usage levels
    - Progress bars for token usage visualization
 
-**Component Structure:**
+### Component Structure
 
 ```vue
 <template>
@@ -236,7 +236,7 @@ gemini --yolo "$(cat .specify/features/F005-dashboard-ui/01-dashboard-page.promp
 
 ## Notes
 
-**Design Philosophy:**
+### Design Philosophy
 
 - Start simple, iterate to excellence
 - Function over form (but make it pretty)
@@ -244,7 +244,7 @@ gemini --yolo "$(cat .specify/features/F005-dashboard-ui/01-dashboard-page.promp
 - Mobile-first responsive design
 - Accessibility considerations (semantic HTML)
 
-**Future Enhancements (Post-F005):**
+### Future Enhancements (Post-F005)
 
 - D3.js force-directed graph (F006)
 - Real-time token usage updates

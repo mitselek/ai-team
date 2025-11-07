@@ -129,7 +129,7 @@ All core types are defined in `types/index.ts`. **NEVER modify this file** witho
 import type { Agent, Organization, Team, Task, Tool } from '~/types'
 ```
 
-**Key Types:**
+#### Key Types
 
 - `Agent`: id, name, role, seniorId, teamId, systemPrompt, tokenAllocation/Used, status (active|bored|stuck|paused)
 - `Organization`: id, name, githubRepoUrl, tokenPool, rootAgentId
@@ -211,7 +211,7 @@ The project follows strict development standards defined in `.specify/memory/con
 
 This project uses Gemini CLI for parallel development. See `.specify/WORKFLOW.md` for the full 6-phase workflow (Plan → Specify → Execute → Assess → Learn → Commit).
 
-**Key patterns:**
+#### Key patterns
 
 - Specification-driven: Write detailed test requirements first
 - Parallel execution: Run independent tasks concurrently
@@ -321,7 +321,7 @@ if (delegateToId) {
 
 ## Current State (MVP)
 
-**Implemented:**
+#### Implemented
 
 - Basic org/team/agent hierarchy (in-memory)
 - Type system and API structure
@@ -331,14 +331,14 @@ if (delegateToId) {
 - Core team initialization utility
 - Structured logging
 
-**In Progress:**
+#### In Progress
 
 - GitHub integration for persistence
 - Frontend visualization (D3.js force-directed graph)
 - Tool governance workflow
 - Agent execution engine
 
-**Not Yet Started:**
+#### Not Yet Started
 
 - LLM provider integration
 - Agent interview process

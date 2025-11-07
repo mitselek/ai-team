@@ -6,9 +6,11 @@ This document captures key insights, best practices, and lessons learned during 
 
 ### Gemini CLI Autonomous Implementation from Structured Prompts
 
-**Context:** Created a structured prompt (`docs/prompts/add-post-office-team.md`) following constitutional guidelines, then asked Gemini CLI to execute it with an additional requirement (Postmaster role).
+#### Context
 
-**What Worked Well:**
+Created a structured prompt (`docs/prompts/add-post-office-team.md`) following constitutional guidelines, then asked Gemini CLI to execute it with an additional requirement (Postmaster role).
+
+#### Autonomous Implementation – Successes
 
 - ✅ **Full workflow automation**: Read context → updated types → modified seed data → ran lint → ran typecheck → committed → cleaned up
 - ✅ **Constitutional compliance**: No emojis in commit, proper conventional format, clear body with checklist
@@ -18,14 +20,14 @@ This document captures key insights, best practices, and lessons learned during 
 - ✅ **Autonomous cleanup**: Deleted the prompt file after use (pragmatic but unexpected)
 - ✅ **Fast execution**: Complete workflow in ~3-4 minutes (read → implement → verify → commit)
 
-**What Didn't Work:**
+#### Autonomous Implementation – Gaps
 
 - ❌ **Token budget overrun**: Agent allocations (1.25M) exceeded team pool (1M) by 250K
 - ⚠️ **No arithmetic validation**: Gemini didn't sum/verify that agent allocations ≤ team allocation
 - ⚠️ **Overeager cleanup**: Deleted source prompt file without permission (may want to preserve for reuse)
 - ⚠️ **Literal prompt following**: Added 4 agents as suggested in examples, didn't adjust totals when adding Postmaster
 
-**Implementation Details:**
+#### Autonomous Implementation – Implementation Details
 
 Post Office Team (1M tokens allocated):
 
@@ -35,7 +37,7 @@ Post Office Team (1M tokens allocated):
 - Archivist: 200K (reduced from 300K)
 - **Total after fix**: 1,000,000 tokens ✅
 
-**Best Practices Discovered:**
+#### Autonomous Implementation – Practices
 
 1. **Add budget validation to prompts** - Include explicit verification step: "Ensure sum of agent allocations equals team allocation"
 2. **Preserve source materials** - Add "Do NOT delete prompt files" if you want to keep them for future reference
@@ -44,9 +46,9 @@ Post Office Team (1M tokens allocated):
 5. **Structured prompts work** - Constitution-aware, step-by-step prompts guide Gemini to correct behavior
 6. **Quality gates are essential** - Lint/typecheck steps caught would-be syntax errors
 
-**Prompt Engineering Insights:**
+#### Autonomous Implementation – Prompt Engineering Insights
 
-**What made this successful:**
+#### Autonomous Implementation – Drivers of Success
 
 - Clear constitutional references (Type Safety, Observable Development, etc.)
 - Step-by-step implementation workflow (1. types, 2. seed, 3. verify, 4. commit)
@@ -55,7 +57,7 @@ Post Office Team (1M tokens allocated):
 - Constitutional commit message template
 - Markdown formatting requirements (propagated recursively)
 
-**What to add next time:**
+#### Autonomous Implementation – Next Time Improvements
 
 ```markdown
 ### Budget Validation (Add this step)
@@ -68,7 +70,9 @@ Before committing:
 - Document final allocations in commit message
 ```
 
-**Key Takeaway:** Gemini CLI can execute complex, multi-step workflows autonomously when given structured, constitution-aware prompts. It excels at following procedures and running validation gates, but requires explicit instructions for arithmetic/logic constraints. The workflow pattern of "read context → implement → verify → commit" works reliably, but cleanup behavior may be too aggressive.
+#### Autonomous Implementation – Key Takeaway
+
+Gemini CLI can execute complex, multi-step workflows autonomously when given structured, constitution-aware prompts. It excels at following procedures and running validation gates, but requires explicit instructions for arithmetic/logic constraints. The workflow pattern of "read context → implement → verify → commit" works reliably, but cleanup behavior may be too aggressive.
 
 **Recommended Workflow:**
 
@@ -90,7 +94,7 @@ git diff HEAD~1 HEAD  # Review changes
 npm test  # Verify tests still pass
 ```
 
-**Post-Execution Checklist:**
+#### Autonomous Implementation – Post-Execution Checklist
 
 - [ ] Verify arithmetic constraints (budgets, totals, counts)
 - [ ] Check if source prompts were deleted (restore from git if needed)
@@ -98,22 +102,22 @@ npm test  # Verify tests still pass
 - [ ] Validate quality gates passed (lint, typecheck, tests)
 - [ ] Check for unintended side effects (extra files, deletions)
 
-**Grade**: A-
+#### Autonomous Implementation – Grade: A-
 
-**Why A-:**
+#### Autonomous Implementation – Why A-
 
 - Perfect workflow execution and constitutional compliance
 - Clean, working code with proper verification
 - Fast, autonomous completion
 - Professional commit message
 
-**Why not A+:**
+#### Autonomous Implementation – Why not A+
 
 - Arithmetic validation gap (budget overrun)
 - Overeager cleanup (deleted source prompt)
 - No self-correction on constraint violations
 
-**Comparison to Previous Lessons:**
+#### Autonomous Implementation – Comparison to Previous Lessons
 
 - **Better than F002** (Type-Constrained Generation): Gemini preserved types this time because prompt explicitly said so
 - **Similar to F003** (Test-First vs Test-Driven): Pragmatic implementation, fills gaps autonomously
@@ -128,33 +132,35 @@ This reinforces that **structured, constitution-aware prompts** are the key to r
 
 ### Gemini Output Formatting for Readability
 
-**Context:** During F005 Dashboard UI implementation, Gemini-generated code had poor readability in terminal logs due to missing newlines between logical sections (imports, types, functions).
+#### Output Formatting – Context
 
-**What Worked Well:**
+During F005 Dashboard UI implementation, Gemini-generated code had poor readability in terminal logs due to missing newlines between logical sections (imports, types, functions).
+
+#### Output Formatting – Successes
 
 - Identified pattern after single feature implementation
 - Applied fix retroactively to all core prompt templates
 - Simple solution: explicit formatting guidelines in prompts
 
-**What Didn't Work:**
+#### Output Formatting – Gaps
 
 - Initial prompts lacked output formatting requirements
 - Compressed code output made debugging harder
 
-**Best Practices Discovered:**
+#### Output Formatting – Practices
 
 1. **Add formatting section to prompts** - Include explicit newline/spacing requirements
 2. **Fenced code blocks** - Request proper markdown with language identifiers
 3. **Structured logs** - Enforce delimiters between logical code sections
 4. **Retroactive improvements** - Update all prompt templates when pattern discovered
 
-**Prompt Templates Updated:**
+#### Output Formatting – Prompt Templates Updated
 
 - `.claude/prompts/commit.md`
 - `.claude/prompts/dev-task.md`
 - `.claude/prompts/test-generation.md`
 
-**Added Section:**
+#### Output Formatting – Added Section
 
 ```markdown
 ## Output Formatting
@@ -164,9 +170,13 @@ This reinforces that **structured, constitution-aware prompts** are the key to r
 - **Structured logs:** When logging operations, use clear delimiters and consistent formatting.
 ```
 
-**Key Takeaway:** AI-generated code needs explicit formatting requirements in prompts. Without them, output is functionally correct but human-unreadable. Simple formatting guidelines dramatically improve log readability and debugging efficiency.
+#### Output Formatting – Key Takeaway
 
-**Grade: A** - Quick discovery, easy fix, broad application. Future Gemini output will be properly formatted.
+AI-generated code needs explicit formatting requirements in prompts. Without them, output is functionally correct but human-unreadable. Simple formatting guidelines dramatically improve log readability and debugging efficiency.
+
+#### Output Formatting – Grade: A
+
+Quick discovery, easy fix, broad application. Future Gemini output will be properly formatted.
 
 ---
 
@@ -174,7 +184,9 @@ This reinforces that **structured, constitution-aware prompts** are the key to r
 
 ### Gemini CLI for Parallel Code Generation
 
-**Context:** Used Gemini CLI to generate 4 foundational components simultaneously (composable, API routes, services).
+#### Context
+
+Used Gemini CLI to generate 4 foundational components simultaneously (composable, API routes, services).
 
 **What Worked Well:**
 
@@ -203,7 +215,7 @@ This reinforces that **structured, constitution-aware prompts** are the key to r
 
 **Key Takeaway:** Gemini CLI is excellent for rapid prototyping and parallel scaffolding. Expect to spend 20-30% of time reviewing and fixing type/import issues, but still net positive on productivity.
 
-**Recommended Workflow:**
+#### Recommended Workflow
 
 1. Launch parallel Gemini tasks for independent components
 2. Let them run in background while continuing other work

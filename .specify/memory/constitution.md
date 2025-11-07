@@ -151,7 +151,7 @@ Evaluate before adding:
 
 Document decisions for significant additions in `.specify/features/` or `.specify/memory/`.
 
-**Note on documentation structure:**
+### Documentation Structure
 
 - `.specify/memory/lessons-learned.md` for development insights and AI workflow patterns
 - `.claude/` for AI tooling configuration only (prompts, settings)

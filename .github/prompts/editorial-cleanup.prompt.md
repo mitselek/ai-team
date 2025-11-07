@@ -50,7 +50,7 @@ Review all markdown documentation files and fix excessive/unnecessary usage of:
 
 ## Example Edits
 
-**Before:**
+### Before
 
 ```markdown
 ## 🎉 Amazing Feature! 🚀
@@ -64,7 +64,7 @@ This is super cool — it does three things — first, second, and third.
 - ✅ Easy to use 😊
 ```
 
-**After:**
+### After
 
 ```markdown
 ## Amazing Feature

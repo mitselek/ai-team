@@ -4,7 +4,7 @@
 
 ### 1. GET API Endpoint (`server/api/tasks/index.get.ts`)
 
-**Test Coverage:**
+#### Test Coverage
 
 - Returns empty array when no tasks exist
 - Returns all tasks when no filters applied
@@ -15,7 +15,7 @@
 - Filters by priority correctly
 - Combines multiple filters (e.g., organizationId + status)
 
-**Test Data:**
+#### Test Data
 
 ```typescript
 const testTask1: Task = {
@@ -63,7 +63,7 @@ const testTask3: Task = {
 
 ### 2. POST API Endpoint (`server/api/tasks/index.post.ts`)
 
-**Test Coverage:**
+#### Test Coverage
 
 - Creates task with all required fields
 - Returns 400 when title missing
@@ -80,7 +80,7 @@ const testTask3: Task = {
 - Returns 201 status on success
 - Created task has ALL 11 fields
 
-**Validation Tests:**
+#### Validation Tests
 
 ```typescript
 // Required fields
@@ -103,7 +103,7 @@ completedAt: null
 
 ### 3. PATCH API Endpoint (`server/api/tasks/[id].patch.ts`)
 
-**Test Coverage:**
+#### Test Coverage
 
 - Updates task fields successfully
 - Auto-updates updatedAt to current time
@@ -114,7 +114,7 @@ completedAt: null
 - Partial updates work (only provided fields change)
 - Can update title, description, assignedToId, status, priority
 
-**Update Logic Tests:**
+#### Update Logic Tests
 
 ```typescript
 // Status change to 'completed'
@@ -132,7 +132,7 @@ PATCH { title: 'New Title' }
 
 ### 4. DELETE API Endpoint (`server/api/tasks/[id].delete.ts`)
 
-**Test Coverage:**
+#### Test Coverage
 
 - Deletes task successfully
 - Returns 404 when task not found
