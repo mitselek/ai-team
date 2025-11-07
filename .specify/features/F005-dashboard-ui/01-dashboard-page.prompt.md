@@ -1,4 +1,4 @@
-```prompt
+````prompt
 # Development Task: Dashboard UI Component
 
 You are working on the "AI Team" project - a Nuxt 3 application for asynchronous AI agent orchestration.
@@ -65,7 +65,7 @@ export interface Agent {
 }
 
 export type AgentStatus = 'active' | 'bored' | 'stuck' | 'paused'
-```
+````
 
 ## Composable APIs (Use These - DO NOT Modify)
 
@@ -73,14 +73,14 @@ export type AgentStatus = 'active' | 'bored' | 'stuck' | 'paused'
 
 ```typescript
 const {
-  organizations,           // Ref<Organization[]> - all orgs
-  currentOrganization,     // Ref<Organization | null> - selected org
-  createOrganization,      // (name, githubRepoUrl, tokenPool) => Organization
-  getOrganization,         // (id) => Organization | undefined
-  listOrganizations,       // () => Organization[]
-  updateOrganization,      // (id, updates) => Organization | undefined
-  setCurrentOrganization,  // (id) => void
-  deleteOrganization       // (id) => void
+  organizations, // Ref<Organization[]> - all orgs
+  currentOrganization, // Ref<Organization | null> - selected org
+  createOrganization, // (name, githubRepoUrl, tokenPool) => Organization
+  getOrganization, // (id) => Organization | undefined
+  listOrganizations, // () => Organization[]
+  updateOrganization, // (id, updates) => Organization | undefined
+  setCurrentOrganization, // (id) => void
+  deleteOrganization // (id) => void
 } = useOrganization()
 ```
 
@@ -88,11 +88,11 @@ const {
 
 ```typescript
 const {
-  createTeam,    // (teamData: Omit<Team, 'id'>) => Promise<Team>
-  getTeam,       // (id: string) => Team | undefined
-  listTeams,     // (filters?: {organizationId?, type?}) => Team[]
-  updateTeam,    // (id: string, updates: Partial<Team>) => Promise<Team | undefined>
-  deleteTeam     // (id: string) => Promise<boolean>
+  createTeam, // (teamData: Omit<Team, 'id'>) => Promise<Team>
+  getTeam, // (id: string) => Team | undefined
+  listTeams, // (filters?: {organizationId?, type?}) => Team[]
+  updateTeam, // (id: string, updates: Partial<Team>) => Promise<Team | undefined>
+  deleteTeam // (id: string) => Promise<boolean>
 } = useTeam()
 ```
 
@@ -100,11 +100,11 @@ const {
 
 ```typescript
 const {
-  createAgent,  // (name, role, orgId, teamId, systemPrompt, seniorId?, tokenAllocation?) => Agent
-  getAgent,     // (id: string) => Agent | undefined
-  listAgents,   // (filters?: {organizationId?, teamId?, status?}) => Agent[]
-  updateAgent,  // (id: string, updates: Partial<Agent>) => Agent | undefined
-  deleteAgent   // (id: string) => void
+  createAgent, // (name, role, orgId, teamId, systemPrompt, seniorId?, tokenAllocation?) => Agent
+  getAgent, // (id: string) => Agent | undefined
+  listAgents, // (filters?: {organizationId?, teamId?, status?}) => Agent[]
+  updateAgent, // (id: string, updates: Partial<Agent>) => Agent | undefined
+  deleteAgent // (id: string) => void
 } = useAgent()
 ```
 
@@ -148,6 +148,7 @@ Use computed properties for calculations.
 **Display condition**: Only visible when the parent team card is expanded
 
 **Implementation**:
+
 - For each expanded team, call `listAgents({teamId: team.id})` to get team members
 - Display each agent as a row showing:
   - Agent name and role
@@ -219,15 +220,15 @@ Use computed properties for calculations.
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Header with Org Selector -->
-    <header class="bg-gray-900 text-white p-6 mb-8">
-      <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <header class="mb-8 bg-gray-900 p-6 text-white">
+      <div class="mx-auto flex max-w-7xl items-center justify-between">
         <h1 class="text-3xl font-bold">AI Team Dashboard</h1>
         <div class="flex items-center gap-4">
           <label class="text-sm">Organization:</label>
-          <select 
-            v-model="currentOrgId" 
+          <select
+            v-model="currentOrgId"
             @change="handleOrgChange"
-            class="px-4 py-2 rounded bg-gray-800 text-white border border-gray-700"
+            class="rounded border border-gray-700 bg-gray-800 px-4 py-2 text-white"
           >
             <option v-for="org in allOrgs" :key="org.id" :value="org.id">
               {{ org.name }}
@@ -238,21 +239,21 @@ Use computed properties for calculations.
     </header>
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4">
+    <div class="mx-auto max-w-7xl px-4">
       <!-- Token Overview Cards -->
-      <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <section class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <!-- 4 cards here -->
       </section>
 
       <!-- Teams Section -->
       <section class="space-y-4">
-        <h2 class="text-2xl font-semibold mb-4">Teams</h2>
-        <div v-for="team in orgTeams" :key="team.id" class="bg-white rounded-lg shadow">
+        <h2 class="mb-4 text-2xl font-semibold">Teams</h2>
+        <div v-for="team in orgTeams" :key="team.id" class="rounded-lg bg-white shadow">
           <!-- Team header (clickable) -->
-          <div @click="toggleTeam(team.id)" class="p-6 cursor-pointer hover:bg-gray-50">
+          <div @click="toggleTeam(team.id)" class="cursor-pointer p-6 hover:bg-gray-50">
             <!-- Team info -->
           </div>
-          
+
           <!-- Agents (shown when expanded) -->
           <div v-if="expandedTeams.has(team.id)" class="border-t border-gray-200 p-6">
             <div v-for="agent in getTeamAgents(team.id)" :key="agent.id" class="...">
@@ -280,9 +281,7 @@ const expandedTeams = ref<Set<string>>(new Set())
 // Computed properties
 const allOrgs = computed<Organization[]>(() => organizations.value)
 
-const currentOrg = computed<Organization | null>(() => 
-  currentOrganization.value
-)
+const currentOrg = computed<Organization | null>(() => currentOrganization.value)
 
 const orgTeams = computed<Team[]>(() => {
   if (!currentOrgId.value) return []
@@ -296,12 +295,12 @@ const allAgentsInOrg = computed<Agent[]>(() => {
 
 const tokenStats = computed(() => {
   if (!currentOrg.value) return { total: 0, allocated: 0, used: 0, remaining: 0 }
-  
+
   const total = currentOrg.value.tokenPool
   const allocated = orgTeams.value.reduce((sum, team) => sum + team.tokenAllocation, 0)
   const used = allAgentsInOrg.value.reduce((sum, agent) => sum + agent.tokenUsed, 0)
   const remaining = total - used
-  
+
   return { total, allocated, used, remaining }
 })
 
@@ -343,11 +342,16 @@ const getUsageColor = (percentage: number): string => {
 
 const getStatusColor = (status: string): string => {
   switch (status) {
-    case 'active': return 'bg-green-100 text-green-800'
-    case 'bored': return 'bg-yellow-100 text-yellow-800'
-    case 'stuck': return 'bg-red-100 text-red-800'
-    case 'paused': return 'bg-gray-100 text-gray-800'
-    default: return 'bg-gray-100 text-gray-800'
+    case 'active':
+      return 'bg-green-100 text-green-800'
+    case 'bored':
+      return 'bg-yellow-100 text-yellow-800'
+    case 'stuck':
+      return 'bg-red-100 text-red-800'
+    case 'paused':
+      return 'bg-gray-100 text-gray-800'
+    default:
+      return 'bg-gray-100 text-gray-800'
   }
 }
 
@@ -403,5 +407,7 @@ Create ONLY: `app/pages/index.vue`
 **Estimated lines**: 250-350 lines (template ~150, script ~100-150, includes comments)
 
 **Grade expectation**: A (straightforward Vue component, data already available)
+
+```
 
 ```

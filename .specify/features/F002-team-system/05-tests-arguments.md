@@ -16,31 +16,31 @@
 
 ```typescript
 const testTeam1: Team = {
-  id: "team-1",
-  name: "Toolsmiths",
-  organizationId: "org-1",
-  leaderId: "agent-1",
+  id: 'team-1',
+  name: 'Toolsmiths',
+  organizationId: 'org-1',
+  leaderId: 'agent-1',
   tokenAllocation: 100000,
-  type: "toolsmith",
-};
+  type: 'toolsmith'
+}
 
 const testTeam2: Team = {
-  id: "team-2",
-  name: "HR Team",
-  organizationId: "org-1",
+  id: 'team-2',
+  name: 'HR Team',
+  organizationId: 'org-1',
   leaderId: null,
   tokenAllocation: 50000,
-  type: "hr",
-};
+  type: 'hr'
+}
 
 const testTeam3: Team = {
-  id: "team-3",
-  name: "Library Team",
-  organizationId: "org-2",
-  leaderId: "agent-2",
+  id: 'team-3',
+  name: 'Library Team',
+  organizationId: 'org-2',
+  leaderId: 'agent-2',
   tokenAllocation: 75000,
-  type: "library",
-};
+  type: 'library'
+}
 ```
 
 ### 2. POST API Endpoint (`server/api/teams/index.post.ts`)
@@ -79,22 +79,22 @@ tokenAllocation: 0
 
 ```typescript
 export interface Team {
-  id: string;
-  name: string;
-  organizationId: string;
-  leaderId: string | null;
-  tokenAllocation: number;
-  type: TeamType;
+  id: string
+  name: string
+  organizationId: string
+  leaderId: string | null
+  tokenAllocation: number
+  type: TeamType
 }
 
 export type TeamType =
-  | "hr"
-  | "toolsmith"
-  | "library"
-  | "vault"
-  | "tools-library"
-  | "nurse"
-  | "custom";
+  | 'hr'
+  | 'toolsmith'
+  | 'library'
+  | 'vault'
+  | 'tools-library'
+  | 'nurse'
+  | 'custom'
 ```
 
 ## Test File Location

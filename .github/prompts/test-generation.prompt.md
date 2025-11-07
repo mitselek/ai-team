@@ -13,11 +13,13 @@ Generate comprehensive tests for the specified files/functionality based on the 
 ## Critical Constraints
 
 ### DO NOT MODIFY
+
 - **types/index.ts** - Use type definitions EXACTLY as defined
 - **Implementation files** - You are testing existing code, not modifying it
 - **Test setup files** - Do not modify tests/setup.ts
 
 ### MUST USE
+
 - **Relative imports only** - No `~` aliases. Use `../../` paths
 - **Type-only imports** - For types/interfaces use `import type { ... }`
 - **Vitest** - Use describe, it, expect, beforeEach, afterEach, vi
@@ -66,6 +68,7 @@ beforeEach(() => {
 ## Error Handling in Tests
 
 **API endpoints that return errors** (not throw):
+
 - Handlers use `setResponseStatus(event, 400)` and `return { error: 'message' }`
 - Tests should check the return value, NOT expect rejection:
 
@@ -77,6 +80,7 @@ expect(setResponseStatus).toHaveBeenCalledWith(mockEvent, 400)
 ```
 
 **API endpoints that throw errors**:
+
 ```typescript
 await expect(handler(mockEvent)).rejects.toThrow('Expected error')
 ```
@@ -86,6 +90,7 @@ await expect(handler(mockEvent)).rejects.toThrow('Expected error')
 ### API Endpoint Tests (server/api/)
 
 **Test Structure**:
+
 1. Import the handler directly (not via HTTP)
 2. Mock H3 functions if needed (readBody, setResponseStatus, getQuery)
 3. Test success cases
@@ -108,6 +113,7 @@ expect(setResponseStatus).toHaveBeenCalledWith(mockEvent, 400)
 ```
 
 **Example**:
+
 ```typescript
 import GET from '../../server/api/resource/index.get'
 import POST from '../../server/api/resource/index.post'
@@ -138,7 +144,9 @@ describe('GET /api/resource', () => {
 
 describe('POST /api/resource', () => {
   it('should return 400 when name is missing', async () => {
-    vi.mocked(readBody).mockResolvedValue({ /* missing name */ })
+    vi.mocked(readBody).mockResolvedValue({
+      /* missing name */
+    })
     const result = await POST(mockEvent)
     expect(result.error).toBeDefined()
     expect(result.error).toContain('name')
@@ -150,6 +158,7 @@ describe('POST /api/resource', () => {
 ### Composable Tests (app/composables/)
 
 **Test Structure**:
+
 1. Test CRUD operations
 2. Test state management (useState)
 3. Test error handling
@@ -157,6 +166,7 @@ describe('POST /api/resource', () => {
 5. Verify data persistence in state
 
 **Example**:
+
 ```typescript
 import { useResource } from '../../app/composables/useResource'
 
@@ -173,6 +183,7 @@ describe('useResource', () => {
 ### Service Tests (server/services/)
 
 **Test Structure**:
+
 1. Test core business logic
 2. Test edge cases
 3. Test error conditions
@@ -180,6 +191,7 @@ describe('useResource', () => {
 5. Test integration between functions
 
 **Example**:
+
 ```typescript
 import { someFunction } from '../../server/services/myservice'
 
@@ -194,18 +206,21 @@ describe('someFunction', () => {
 ## Test Coverage Guidelines
 
 ### Minimum Coverage
+
 - **Success cases** - At least 1 happy path test per function/endpoint
 - **Error cases** - Test all validation errors
 - **Edge cases** - Empty data, null values, boundary conditions
 - **All code paths** - Every if/else branch should be tested
 
 ### API Endpoints
+
 - GET: Empty state, with data, all filters, combined filters
 - POST: Valid creation, all required field validations, optional fields, defaults
 - PATCH/PUT: Valid update, validation errors, not found
 - DELETE: Successful delete, not found
 
 ### Composables
+
 - Create, Read, Update, Delete operations
 - Filter/query functions
 - State updates
@@ -252,7 +267,8 @@ npm test -- --coverage
 npm test -- --watch
 ```
 
-**CRITICAL - Test Execution**: 
+**CRITICAL - Test Execution**:
+
 - **ALWAYS run tests after generation** to verify they work: `npm test`
 - The `npm test` script uses `vitest run` which is **non-interactive** (no user input required)
 - **NEVER use watch mode**: Don't run `npm test -- --watch` or `vitest` without `run`
@@ -262,6 +278,7 @@ npm test -- --watch
 ## Validation Checklist
 
 Before finishing, verify:
+
 - [ ] File created at correct path (tests/api/, tests/composables/, tests/services/)
 - [ ] All imports use relative paths (../../)
 - [ ] Type imports use `import type { }` syntax
@@ -298,6 +315,7 @@ Before finishing, verify:
 ## Reference Files
 
 Look at these existing tests for patterns:
+
 - `tests/api/organizations.spec.ts` - API endpoint testing pattern
 - `tests/services/orchestrator.spec.ts` - Service testing with mocks
 - `tests/setup.ts` - Global test configuration

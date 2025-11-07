@@ -9,10 +9,12 @@ Create a Vue composable for agent management with CRUD operations, following the
 ## Critical Constraints
 
 ### DO NOT MODIFY
+
 - **types/index.ts** - Use Agent interface EXACTLY as defined with ALL fields
 - Any other existing files
 
 ### MUST USE
+
 - **Relative imports only** - No `~` aliases
   - Types: `import type { Agent } from '../../types'`
   - Logger: `import { logger } from '../../app/utils/logger'`
@@ -46,6 +48,7 @@ export type AgentStatus = 'active' | 'bored' | 'stuck' | 'paused'
 ## Reference Files
 
 Follow this pattern EXACTLY:
+
 - `app/composables/useOrganization.ts` - Copy structure and style
 
 ## Expected Output
@@ -53,12 +56,12 @@ Follow this pattern EXACTLY:
 Create ONLY: `app/composables/useAgent.ts`
 
 Required functions:
+
 1. **createAgent**(name, role, organizationId, teamId, systemPrompt, seniorId?, tokenAllocation?): Agent
    - Generate id with uuidv4()
    - Set defaults: tokenUsed=0, status='active', createdAt=new Date(), lastActiveAt=new Date()
    - Push to agents.value array
    - Return created agent
-   
 2. **getAgent**(id): Agent | undefined
    - Find by id
    - Return agent or undefined
@@ -81,6 +84,7 @@ All functions wrapped in try-catch with logger.error on exceptions.
 ## Validation Checklist
 
 Before finishing, verify:
+
 - [ ] All imports use relative paths (../../)
 - [ ] All Agent fields included when creating (id, name, role, seniorId, teamId, organizationId, systemPrompt, tokenAllocation, tokenUsed, status, createdAt, lastActiveAt)
 - [ ] Uses useState for SSR-safe state management

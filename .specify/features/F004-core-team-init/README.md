@@ -31,7 +31,14 @@ export interface Team {
   type: TeamType
 }
 
-export type TeamType = 'hr' | 'toolsmith' | 'library' | 'vault' | 'tools-library' | 'nurse' | 'custom'
+export type TeamType =
+  | 'hr'
+  | 'toolsmith'
+  | 'library'
+  | 'vault'
+  | 'tools-library'
+  | 'nurse'
+  | 'custom'
 ```
 
 ### Implementation Tasks

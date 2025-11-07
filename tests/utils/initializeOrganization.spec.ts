@@ -50,42 +50,42 @@ describe('initializeDefaultTeams', () => {
   // 2. Team Type Coverage Tests
   it("should create HR team with type 'hr'", () => {
     const createdTeams = initializeDefaultTeams(orgId)
-    const hrTeam = createdTeams.find(t => t.type === 'hr')
+    const hrTeam = createdTeams.find((t) => t.type === 'hr')
     expect(hrTeam).toBeDefined()
     expect(hrTeam?.name).toBe('Human Resources')
   })
 
   it("should create Toolsmith team with type 'toolsmith'", () => {
     const createdTeams = initializeDefaultTeams(orgId)
-    const toolsmithTeam = createdTeams.find(t => t.type === 'toolsmith')
+    const toolsmithTeam = createdTeams.find((t) => t.type === 'toolsmith')
     expect(toolsmithTeam).toBeDefined()
     expect(toolsmithTeam?.name).toBe('Toolsmiths')
   })
 
   it("should create Library team with type 'library'", () => {
     const createdTeams = initializeDefaultTeams(orgId)
-    const libraryTeam = createdTeams.find(t => t.type === 'library')
+    const libraryTeam = createdTeams.find((t) => t.type === 'library')
     expect(libraryTeam).toBeDefined()
     expect(libraryTeam?.name).toBe('Knowledge Library')
   })
 
   it("should create Vault team with type 'vault'", () => {
     const createdTeams = initializeDefaultTeams(orgId)
-    const vaultTeam = createdTeams.find(t => t.type === 'vault')
+    const vaultTeam = createdTeams.find((t) => t.type === 'vault')
     expect(vaultTeam).toBeDefined()
     expect(vaultTeam?.name).toBe('Vault')
   })
 
   it("should create Tools Library team with type 'tools-library'", () => {
     const createdTeams = initializeDefaultTeams(orgId)
-    const toolsLibraryTeam = createdTeams.find(t => t.type === 'tools-library')
+    const toolsLibraryTeam = createdTeams.find((t) => t.type === 'tools-library')
     expect(toolsLibraryTeam).toBeDefined()
     expect(toolsLibraryTeam?.name).toBe('Tools Library')
   })
 
   it("should create Nurse team with type 'nurse'", () => {
     const createdTeams = initializeDefaultTeams(orgId)
-    const nurseTeam = createdTeams.find(t => t.type === 'nurse')
+    const nurseTeam = createdTeams.find((t) => t.type === 'nurse')
     expect(nurseTeam).toBeDefined()
     expect(nurseTeam?.name).toBe('The Nurse')
   })
@@ -93,12 +93,12 @@ describe('initializeDefaultTeams', () => {
   // 3. Token Allocation Tests
   it('should set appropriate token allocations for each team', () => {
     const createdTeams = initializeDefaultTeams(orgId)
-    expect(createdTeams.find(t => t.type === 'hr')?.tokenAllocation).toBe(50000)
-    expect(createdTeams.find(t => t.type === 'toolsmith')?.tokenAllocation).toBe(100000)
-    expect(createdTeams.find(t => t.type === 'library')?.tokenAllocation).toBe(75000)
-    expect(createdTeams.find(t => t.type === 'vault')?.tokenAllocation).toBe(25000)
-    expect(createdTeams.find(t => t.type === 'tools-library')?.tokenAllocation).toBe(50000)
-    expect(createdTeams.find(t => t.type === 'nurse')?.tokenAllocation).toBe(50000)
+    expect(createdTeams.find((t) => t.type === 'hr')?.tokenAllocation).toBe(50000)
+    expect(createdTeams.find((t) => t.type === 'toolsmith')?.tokenAllocation).toBe(100000)
+    expect(createdTeams.find((t) => t.type === 'library')?.tokenAllocation).toBe(75000)
+    expect(createdTeams.find((t) => t.type === 'vault')?.tokenAllocation).toBe(25000)
+    expect(createdTeams.find((t) => t.type === 'tools-library')?.tokenAllocation).toBe(50000)
+    expect(createdTeams.find((t) => t.type === 'nurse')?.tokenAllocation).toBe(50000)
   })
 
   // 4. Field Completeness Tests
@@ -114,7 +114,9 @@ describe('initializeDefaultTeams', () => {
       expect(team.tokenAllocation).toEqual(expect.any(Number))
       expect(team.tokenAllocation).toBeGreaterThan(0)
       expect(team.type).toEqual(expect.any(String))
-      expect(['hr', 'toolsmith', 'library', 'vault', 'tools-library', 'nurse', 'custom']).toContain(team.type)
+      expect(['hr', 'toolsmith', 'library', 'vault', 'tools-library', 'nurse', 'custom']).toContain(
+        team.type
+      )
     }
   })
 
@@ -123,7 +125,7 @@ describe('initializeDefaultTeams', () => {
     initializeDefaultTeams(orgId)
     const secondCallTeams = initializeDefaultTeams(orgId)
 
-    const orgTeams = teams.filter(t => t.organizationId === orgId)
+    const orgTeams = teams.filter((t) => t.organizationId === orgId)
     expect(orgTeams).toHaveLength(6)
     expect(secondCallTeams).toHaveLength(6)
   })
@@ -133,10 +135,10 @@ describe('initializeDefaultTeams', () => {
     const org2Teams = initializeDefaultTeams(orgId2)
 
     expect(org1Teams).toHaveLength(6)
-    org1Teams.forEach(team => expect(team.organizationId).toBe(orgId))
+    org1Teams.forEach((team) => expect(team.organizationId).toBe(orgId))
 
     expect(org2Teams).toHaveLength(6)
-    org2Teams.forEach(team => expect(team.organizationId).toBe(orgId2))
+    org2Teams.forEach((team) => expect(team.organizationId).toBe(orgId2))
 
     expect(teams).toHaveLength(12)
   })

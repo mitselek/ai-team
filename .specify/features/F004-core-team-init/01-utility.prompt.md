@@ -21,7 +21,14 @@ export interface Team {
   type: TeamType
 }
 
-export type TeamType = 'hr' | 'toolsmith' | 'library' | 'vault' | 'tools-library' | 'nurse' | 'custom'
+export type TeamType =
+  | 'hr'
+  | 'toolsmith'
+  | 'library'
+  | 'vault'
+  | 'tools-library'
+  | 'nurse'
+  | 'custom'
 ```
 
 ## Implementation Requirements
@@ -37,10 +44,10 @@ import { logger } from '../../app/utils/logger'
 /**
  * Initialize the 6 core teams for an organization.
  * Creates: HR, Toolsmith, Library, Vault, Tools Library, and Nurse teams.
- * 
+ *
  * This function is idempotent - calling it multiple times for the same
  * organization will not create duplicate teams.
- * 
+ *
  * @param organizationId - The ID of the organization to initialize teams for
  * @returns Array of created Team objects
  */
@@ -127,6 +134,7 @@ Create these 6 teams in order:
 ⚠️ **DO NOT MODIFY** `types/index.ts` - Reference types only, never change them
 
 ⚠️ **Import Pattern**: Use relative imports:
+
 ```typescript
 import type { Team, TeamType } from '../../types'
 import { teams } from '../data/teams'
@@ -136,11 +144,13 @@ import { logger } from '../../app/utils/logger'
 ⚠️ **UUID Generation**: Use `crypto.randomUUID()` for IDs (built-in Node.js)
 
 ⚠️ **Data Store**: Mutate the imported `teams` array to persist teams:
+
 ```typescript
 teams.push(newTeam)
 ```
 
 ⚠️ **All Team Fields**: Every created team MUST have all 6 fields:
+
 - `id`, `name`, `organizationId`, `leaderId`, `tokenAllocation`, `type`
 
 ⚠️ **Idempotency**: Check existing teams before creating to prevent duplicates

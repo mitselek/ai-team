@@ -56,21 +56,18 @@ Create a foundational dashboard UI in `pages/index.vue` that displays token spen
 **Requirements:**
 
 1. **Organization Selector**
-
    - Dropdown showing all organizations (from `useOrganization().listOrganizations()`)
    - Select to switch current organization
    - Display selected org name prominently
    - Show org tokenPool prominently
 
 2. **Token Spending Overview**
-
    - Organization total token pool (Organization.tokenPool)
    - Total allocated to teams (sum of Team.tokenAllocation for org)
    - Total used by agents (sum of Agent.tokenUsed for org)
    - Remaining pool calculation
 
 3. **Teams Section**
-
    - List all teams for selected organization (from `useTeam().listTeams({organizationId})`)
    - For each team show:
      - Team name and type
@@ -80,7 +77,6 @@ Create a foundational dashboard UI in `pages/index.vue` that displays token spen
      - Expand/collapse to show agents
 
 4. **Agents Section (within team)**
-
    - When team expanded, show all agents (from `useAgent().listAgents({teamId})`)
    - For each agent show:
      - Agent name and role

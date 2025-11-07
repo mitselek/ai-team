@@ -30,21 +30,21 @@ Use this EXACT Agent interface (all 12 fields required):
 
 ```typescript
 export interface Agent {
-  id: string;
-  name: string;
-  role: string;
-  seniorId: string | null;
-  teamId: string;
-  organizationId: string;
-  systemPrompt: string;
-  tokenAllocation: number;
-  tokenUsed: number;
-  status: AgentStatus;
-  createdAt: Date;
-  lastActiveAt: Date;
+  id: string
+  name: string
+  role: string
+  seniorId: string | null
+  teamId: string
+  organizationId: string
+  systemPrompt: string
+  tokenAllocation: number
+  tokenUsed: number
+  status: AgentStatus
+  createdAt: Date
+  lastActiveAt: Date
 }
 
-export type AgentStatus = "active" | "bored" | "stuck" | "paused";
+export type AgentStatus = 'active' | 'bored' | 'stuck' | 'paused'
 ```
 
 ## Reference Files
@@ -60,19 +60,19 @@ Every test agent object must have ALL 12 fields:
 
 ```typescript
 const testAgent: Agent = {
-  id: "agent-1",
-  name: "Test Agent",
-  role: "worker",
+  id: 'agent-1',
+  name: 'Test Agent',
+  role: 'worker',
   seniorId: null,
-  teamId: "team-1",
-  organizationId: "org-1",
-  systemPrompt: "You are a test agent",
+  teamId: 'team-1',
+  organizationId: 'org-1',
+  systemPrompt: 'You are a test agent',
   tokenAllocation: 10000,
   tokenUsed: 0,
-  status: "active",
+  status: 'active',
   createdAt: new Date(),
-  lastActiveAt: new Date(),
-};
+  lastActiveAt: new Date()
+}
 ```
 
 ## Implementation Notes

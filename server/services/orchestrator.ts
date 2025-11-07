@@ -1,4 +1,3 @@
-
 import { createLogger } from '../utils/logger'
 import type { Agent, Task, Organization } from '../../types'
 
@@ -14,7 +13,7 @@ export class AgentTaskQueue {
   private tasks: Task[] = []
   private agentId: string
 
-  constructor (agentId: string) {
+  constructor(agentId: string) {
     this.agentId = agentId
   }
 
@@ -22,7 +21,7 @@ export class AgentTaskQueue {
    * Adds a task to the end of the queue.
    * @param task - The task to add.
    */
-  enqueue (task: Task): void {
+  enqueue(task: Task): void {
     if (task.assignedToId !== this.agentId) {
       logger.warn(
         { agentId: this.agentId, taskId: task.id, assignedTo: task.assignedToId },
@@ -37,7 +36,7 @@ export class AgentTaskQueue {
    * Removes and returns the task at the front of the queue.
    * @returns The task at the front of the queue, or undefined if the queue is empty.
    */
-  dequeue (): Task | undefined {
+  dequeue(): Task | undefined {
     const task = this.tasks.shift()
     if (task) {
       logger.info({ agentId: this.agentId, taskId: task.id }, 'Task dequeued')
@@ -49,7 +48,7 @@ export class AgentTaskQueue {
    * Returns the task at the front of the queue without removing it.
    * @returns The task at the front of the queue, or undefined if the queue is empty.
    */
-  peek (): Task | undefined {
+  peek(): Task | undefined {
     return this.tasks[0]
   }
 
@@ -57,7 +56,7 @@ export class AgentTaskQueue {
    * Checks if the queue is empty.
    * @returns True if the queue is empty, false otherwise.
    */
-  isEmpty (): boolean {
+  isEmpty(): boolean {
     return this.tasks.length === 0
   }
 
@@ -65,7 +64,7 @@ export class AgentTaskQueue {
    * Gets the number of tasks in the queue.
    * @returns The number of tasks.
    */
-  size (): number {
+  size(): number {
     return this.tasks.length
   }
 }
@@ -78,11 +77,11 @@ export class AgentTaskQueue {
  * @param agents - A list of all available agents in the organization.
  * @returns The ID of the agent to delegate to, or null if no delegation is needed.
  */
-export function assessDelegation (task: Task, agent: Agent, agents: Agent[]): string | null {
+export function assessDelegation(task: Task, agent: Agent, agents: Agent[]): string | null {
   // Example logic: Delegate if the agent is a manager and there are more suitable agents.
   // A real implementation would involve competency checks, workload balancing, etc.
   if (agent.role === 'manager') {
-    const subordinate = agents.find(a => a.seniorId === agent.id && a.status === 'active')
+    const subordinate = agents.find((a) => a.seniorId === agent.id && a.status === 'active')
     if (subordinate) {
       logger.info(
         { taskId: task.id, fromAgentId: agent.id, toAgentId: subordinate.id },
@@ -101,7 +100,7 @@ export function assessDelegation (task: Task, agent: Agent, agents: Agent[]): st
  * @param agent - The agent to check.
  * @returns True if the agent is bored, false otherwise.
  */
-export function detectBoredom (agent: Agent): boolean {
+export function detectBoredom(agent: Agent): boolean {
   const now = new Date()
   const lastActive = agent.lastActiveAt
   const isBored = now.getTime() - lastActive.getTime() > BOREDOM_THRESHOLD_MS
@@ -118,7 +117,7 @@ export function detectBoredom (agent: Agent): boolean {
  * @param task - The task to check.
  * @returns True if the task is stuck, false otherwise.
  */
-export function detectStuck (task: Task): boolean {
+export function detectStuck(task: Task): boolean {
   if (task.status !== 'in-progress') {
     return false
   }
@@ -141,11 +140,11 @@ export function detectStuck (task: Task): boolean {
  * @param tokensUsed - The number of tokens used in the operation.
  * @returns An object with the updated agent and organization.
  */
-export function trackTokenUsage (
+export function trackTokenUsage(
   agent: Agent,
   organization: Organization,
   tokensUsed: number
-): { updatedAgent: Agent, updatedOrganization: Organization } {
+): { updatedAgent: Agent; updatedOrganization: Organization } {
   const updatedAgent = {
     ...agent,
     tokenUsed: agent.tokenUsed + tokensUsed
@@ -168,10 +167,7 @@ export function trackTokenUsage (
   )
 
   if (updatedOrganization.tokenPool < 0) {
-    logger.fatal(
-      { organizationId: organization.id },
-      'Organization token pool exhausted'
-    )
+    logger.fatal({ organizationId: organization.id }, 'Organization token pool exhausted')
   }
 
   return { updatedAgent, updatedOrganization }

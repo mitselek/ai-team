@@ -9,10 +9,12 @@ Create an in-memory storage array for agents, following the exact same pattern a
 ## Critical Constraints
 
 ### DO NOT MODIFY
+
 - **types/index.ts** - All type definitions are final. Use Agent interface EXACTLY as defined.
 - Any other existing files
 
 ### MUST USE
+
 - Relative import: `import type { Agent } from '../../types'`
 - Empty array initialization: `export const agents: Agent[] = []`
 - JSDoc comment explaining purpose and TODO for persistence
@@ -41,6 +43,7 @@ export type AgentStatus = 'active' | 'bored' | 'stuck' | 'paused'
 ## Reference Files
 
 Look at this file and copy its EXACT pattern:
+
 - `server/data/organizations.ts` - Follow this structure exactly
 
 ## Expected Output
@@ -48,6 +51,7 @@ Look at this file and copy its EXACT pattern:
 Create ONLY: `server/data/agents.ts`
 
 Expected structure (~6 lines):
+
 ```typescript
 import type { Agent } from '../../types'
 
@@ -61,6 +65,7 @@ export const agents: Agent[] = []
 ## Validation Checklist
 
 Before finishing, verify:
+
 - [ ] File created at `server/data/agents.ts`
 - [ ] Uses relative import `../../types`
 - [ ] Exports empty `Agent[]` array

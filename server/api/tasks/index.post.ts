@@ -6,7 +6,14 @@ import type { Task, TaskPriority } from '../../../types'
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
-  const requiredFields = ['title', 'description', 'assignedToId', 'createdById', 'organizationId', 'priority']
+  const requiredFields = [
+    'title',
+    'description',
+    'assignedToId',
+    'createdById',
+    'organizationId',
+    'priority'
+  ]
   for (const field of requiredFields) {
     if (!body[field]) {
       setResponseStatus(event, 400)
@@ -26,7 +33,7 @@ export default defineEventHandler(async (event) => {
     status: 'pending',
     completedAt: null,
     createdAt: now,
-    updatedAt: now,
+    updatedAt: now
   }
 
   tasks.push(newTask)

@@ -15,22 +15,22 @@ Generate comprehensive tests for the `initializeDefaultTeams` utility function t
 ```typescript
 // From types/index.ts - DO NOT MODIFY
 export interface Team {
-  id: string;
-  name: string;
-  organizationId: string;
-  leaderId: string | null;
-  tokenAllocation: number;
-  type: TeamType;
+  id: string
+  name: string
+  organizationId: string
+  leaderId: string | null
+  tokenAllocation: number
+  type: TeamType
 }
 
 export type TeamType =
-  | "hr"
-  | "toolsmith"
-  | "library"
-  | "vault"
-  | "tools-library"
-  | "nurse"
-  | "custom";
+  | 'hr'
+  | 'toolsmith'
+  | 'library'
+  | 'vault'
+  | 'tools-library'
+  | 'nurse'
+  | 'custom'
 ```
 
 ## Required Test Coverage
@@ -128,29 +128,29 @@ export type TeamType =
 ### Setup
 
 ```typescript
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import type { Team } from "../../types";
-import { initializeDefaultTeams } from "../../server/utils/initializeOrganization";
-import { teams } from "../../server/data/teams";
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import type { Team } from '../../types'
+import { initializeDefaultTeams } from '../../server/utils/initializeOrganization'
+import { teams } from '../../server/data/teams'
 
 // Mock logger
-vi.mock("../../app/utils/logger", () => ({
+vi.mock('../../app/utils/logger', () => ({
   logger: {
     info: vi.fn(),
     error: vi.fn(),
     warn: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+    debug: vi.fn()
+  }
+}))
 
-describe("initializeDefaultTeams", () => {
+describe('initializeDefaultTeams', () => {
   beforeEach(() => {
     // Clear teams array before each test
-    teams.length = 0;
-  });
+    teams.length = 0
+  })
 
   // Tests here
-});
+})
 ```
 
 ### Test Pattern
@@ -175,22 +175,22 @@ Each test should:
 ⚠️ **Import Syntax**: Use relative imports and type-only imports for TypeScript types:
 
 ```typescript
-import type { Team, TeamType } from "../../types";
-import { initializeDefaultTeams } from "../../server/utils/initializeOrganization";
+import type { Team, TeamType } from '../../types'
+import { initializeDefaultTeams } from '../../server/utils/initializeOrganization'
 ```
 
 ⚠️ **Data Store**: Import and manipulate `teams` array from `server/data/teams.ts`:
 
 ```typescript
-import { teams } from "../../server/data/teams";
+import { teams } from '../../server/data/teams'
 ```
 
 ⚠️ **Logger Mocking**: Always mock logger in tests:
 
 ```typescript
-vi.mock("../../app/utils/logger", () => ({
-  logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
-}));
+vi.mock('../../app/utils/logger', () => ({
+  logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() }
+}))
 ```
 
 ⚠️ **State Cleanup**: Use `beforeEach(() => { teams.length = 0 })` to ensure clean state

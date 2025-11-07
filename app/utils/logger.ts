@@ -12,7 +12,7 @@ interface LogContext {
   [key: string]: unknown
 }
 
-function formatMessage (ctx: LogContext | undefined, msg: string): string {
+function formatMessage(ctx: LogContext | undefined, msg: string): string {
   if (!ctx) return msg
   const ctxStr = JSON.stringify(ctx)
   return `${msg} | ${ctxStr}`
@@ -22,7 +22,7 @@ export const logger = {
   /**
    * Log a warning (user-visible or degraded state).
    */
-  warn (ctxOrMsg: LogContext | string, msg?: string) {
+  warn(ctxOrMsg: LogContext | string, msg?: string) {
     if (typeof ctxOrMsg === 'string') {
       console.warn(`[WARN] ${ctxOrMsg}`)
     } else {
@@ -33,7 +33,7 @@ export const logger = {
   /**
    * Log an error (failure or exception).
    */
-  error (ctxOrMsg: LogContext | string, msg?: string) {
+  error(ctxOrMsg: LogContext | string, msg?: string) {
     if (typeof ctxOrMsg === 'string') {
       console.error(`[ERROR] ${ctxOrMsg}`)
     } else {
@@ -44,7 +44,7 @@ export const logger = {
   /**
    * Log info (for development/debug builds only; no-op in production).
    */
-  info (ctxOrMsg: LogContext | string, msg?: string) {
+  info(ctxOrMsg: LogContext | string, msg?: string) {
     if (import.meta.env.DEV) {
       if (typeof ctxOrMsg === 'string') {
         console.warn(`[INFO] ${ctxOrMsg}`)

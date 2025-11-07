@@ -14,11 +14,11 @@ export default defineEventHandler((event) => {
   let filteredTeams = teams
 
   if (organizationId) {
-    filteredTeams = filteredTeams.filter(team => team.organizationId === organizationId)
+    filteredTeams = filteredTeams.filter((team) => team.organizationId === organizationId)
   }
 
   if (type) {
-    filteredTeams = filteredTeams.filter(team => team.type === type as TeamType)
+    filteredTeams = filteredTeams.filter((team) => team.type === (type as TeamType))
   }
 
   return filteredTeams

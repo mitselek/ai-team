@@ -24,7 +24,7 @@ vi.mock('../../server/utils/logger', () => ({
 describe('AgentTaskQueue', () => {
   it('should enqueue and dequeue tasks in FIFO order', () => {
     const queue = new AgentTaskQueue('agent-1')
-    
+
     const task1: Task = {
       id: 'task-1',
       title: 'First Task',
@@ -55,7 +55,7 @@ describe('AgentTaskQueue', () => {
 
     queue.enqueue(task1)
     queue.enqueue(task2)
-    
+
     expect(queue.size()).toBe(2)
     expect(queue.dequeue()?.id).toBe('task-1')
     expect(queue.dequeue()?.id).toBe('task-2')

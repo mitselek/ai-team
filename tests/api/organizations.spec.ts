@@ -51,7 +51,7 @@ describe('Organizations API', () => {
     organizations.push(org1, org2)
 
     expect(organizations).toHaveLength(2)
-    expect(organizations.find(o => o.id === 'org-1')?.name).toBe('First Org')
-    expect(organizations.find(o => o.id === 'org-2')?.tokenPool).toBe(500000)
+    expect(organizations.find((o) => o.id === 'org-1')?.name).toBe('First Org')
+    expect(organizations.find((o) => o.id === 'org-2')?.tokenPool).toBe(500000)
   })
 })

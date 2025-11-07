@@ -14,15 +14,15 @@ export default defineEventHandler((event) => {
   let filteredAgents = agents
 
   if (organizationId) {
-    filteredAgents = filteredAgents.filter(agent => agent.organizationId === organizationId)
+    filteredAgents = filteredAgents.filter((agent) => agent.organizationId === organizationId)
   }
 
   if (teamId) {
-    filteredAgents = filteredAgents.filter(agent => agent.teamId === teamId)
+    filteredAgents = filteredAgents.filter((agent) => agent.teamId === teamId)
   }
 
   if (status) {
-    filteredAgents = filteredAgents.filter(agent => agent.status === status as AgentStatus)
+    filteredAgents = filteredAgents.filter((agent) => agent.status === (status as AgentStatus))
   }
 
   return filteredAgents

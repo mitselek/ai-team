@@ -12,6 +12,6 @@ export default defineEventHandler(() => {
 
   return {
     status: 200,
-    body: organizations,
+    body: organizations
   }
 })

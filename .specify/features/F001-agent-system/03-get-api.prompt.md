@@ -9,10 +9,12 @@ Create a GET API endpoint to list agents with optional query filters (organizati
 ## Critical Constraints
 
 ### DO NOT MODIFY
+
 - **types/index.ts** - Use Agent interface EXACTLY as defined
 - Any other existing files
 
 ### MUST USE
+
 - **Relative imports only** - No `~` aliases
   - Logger: `import { createLogger } from '../../utils/logger'`
   - Data: `import { agents } from '../../data/agents'`
@@ -45,6 +47,7 @@ export type AgentStatus = 'active' | 'bored' | 'stuck' | 'paused'
 ## Reference Files
 
 Follow this pattern EXACTLY:
+
 - `server/api/organizations/index.get.ts` - Copy structure and style
 
 ## Expected Output
@@ -52,6 +55,7 @@ Follow this pattern EXACTLY:
 Create ONLY: `server/api/agents/index.get.ts`
 
 Implementation details:
+
 1. Create logger with name 'api.agents.get'
 2. Define event handler with defineEventHandler
 3. Extract query params: organizationId, teamId, status
@@ -63,6 +67,7 @@ Implementation details:
 6. Return filtered agents array
 
 Expected structure (~30 lines):
+
 ```typescript
 import { defineEventHandler, getQuery } from 'h3'
 import { createLogger } from '../../utils/logger'
@@ -79,15 +84,15 @@ export default defineEventHandler((event) => {
   let filteredAgents = agents
 
   if (organizationId) {
-    filteredAgents = filteredAgents.filter(agent => agent.organizationId === organizationId)
+    filteredAgents = filteredAgents.filter((agent) => agent.organizationId === organizationId)
   }
 
   if (teamId) {
-    filteredAgents = filteredAgents.filter(agent => agent.teamId === teamId)
+    filteredAgents = filteredAgents.filter((agent) => agent.teamId === teamId)
   }
 
   if (status) {
-    filteredAgents = filteredAgents.filter(agent => agent.status === status)
+    filteredAgents = filteredAgents.filter((agent) => agent.status === status)
   }
 
   return filteredAgents
@@ -97,6 +102,7 @@ export default defineEventHandler((event) => {
 ## Validation Checklist
 
 Before finishing, verify:
+
 - [ ] File created at `server/api/agents/index.get.ts`
 - [ ] All imports use relative paths (../../)
 - [ ] Uses createLogger with descriptive name

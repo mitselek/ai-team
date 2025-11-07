@@ -44,21 +44,21 @@ Instead of one big "create agent system" task, break into 4 focused tasks:
 
 ```typescript
 export interface Agent {
-  id: string;
-  name: string;
-  role: string;
-  seniorId: string | null;
-  teamId: string;
-  organizationId: string;
-  systemPrompt: string;
-  tokenAllocation: number;
-  tokenUsed: number;
-  status: AgentStatus;
-  createdAt: Date;
-  lastActiveAt: Date;
+  id: string
+  name: string
+  role: string
+  seniorId: string | null
+  teamId: string
+  organizationId: string
+  systemPrompt: string
+  tokenAllocation: number
+  tokenUsed: number
+  status: AgentStatus
+  createdAt: Date
+  lastActiveAt: Date
 }
 
-export type AgentStatus = "active" | "bored" | "stuck" | "paused";
+export type AgentStatus = 'active' | 'bored' | 'stuck' | 'paused'
 ```
 
 ## Complete Task 1 Example
@@ -86,21 +86,21 @@ Create an in-memory storage array for agents, following the same pattern as serv
 
 ```typescript
 export interface Agent {
-  id: string;
-  name: string;
-  role: string;
-  seniorId: string | null;
-  teamId: string;
-  organizationId: string;
-  systemPrompt: string;
-  tokenAllocation: number;
-  tokenUsed: number;
-  status: AgentStatus;
-  createdAt: Date;
-  lastActiveAt: Date;
+  id: string
+  name: string
+  role: string
+  seniorId: string | null
+  teamId: string
+  organizationId: string
+  systemPrompt: string
+  tokenAllocation: number
+  tokenUsed: number
+  status: AgentStatus
+  createdAt: Date
+  lastActiveAt: Date
 }
 
-export type AgentStatus = "active" | "bored" | "stuck" | "paused";
+export type AgentStatus = 'active' | 'bored' | 'stuck' | 'paused'
 ```
 ````
 

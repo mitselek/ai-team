@@ -19,46 +19,46 @@
 
 ```typescript
 const testTask1: Task = {
-  id: "task-1",
-  title: "Implement feature X",
-  description: "Build the new feature for org-1",
-  assignedToId: "agent-1",
-  createdById: "agent-2",
-  organizationId: "org-1",
-  status: "pending",
-  priority: "high",
-  createdAt: new Date("2025-01-01"),
-  updatedAt: new Date("2025-01-01"),
-  completedAt: null,
-};
+  id: 'task-1',
+  title: 'Implement feature X',
+  description: 'Build the new feature for org-1',
+  assignedToId: 'agent-1',
+  createdById: 'agent-2',
+  organizationId: 'org-1',
+  status: 'pending',
+  priority: 'high',
+  createdAt: new Date('2025-01-01'),
+  updatedAt: new Date('2025-01-01'),
+  completedAt: null
+}
 
 const testTask2: Task = {
-  id: "task-2",
-  title: "Review code",
-  description: "Review PR #123",
-  assignedToId: "agent-2",
-  createdById: "agent-1",
-  organizationId: "org-1",
-  status: "in-progress",
-  priority: "medium",
-  createdAt: new Date("2025-01-02"),
-  updatedAt: new Date("2025-01-02"),
-  completedAt: null,
-};
+  id: 'task-2',
+  title: 'Review code',
+  description: 'Review PR #123',
+  assignedToId: 'agent-2',
+  createdById: 'agent-1',
+  organizationId: 'org-1',
+  status: 'in-progress',
+  priority: 'medium',
+  createdAt: new Date('2025-01-02'),
+  updatedAt: new Date('2025-01-02'),
+  completedAt: null
+}
 
 const testTask3: Task = {
-  id: "task-3",
-  title: "Deploy to production",
-  description: "Deploy version 2.0",
-  assignedToId: "agent-1",
-  createdById: "agent-3",
-  organizationId: "org-2",
-  status: "completed",
-  priority: "urgent",
-  createdAt: new Date("2025-01-03"),
-  updatedAt: new Date("2025-01-05"),
-  completedAt: new Date("2025-01-05"),
-};
+  id: 'task-3',
+  title: 'Deploy to production',
+  description: 'Deploy version 2.0',
+  assignedToId: 'agent-1',
+  createdById: 'agent-3',
+  organizationId: 'org-2',
+  status: 'completed',
+  priority: 'urgent',
+  createdAt: new Date('2025-01-03'),
+  updatedAt: new Date('2025-01-05'),
+  completedAt: new Date('2025-01-05')
+}
 ```
 
 ### 2. POST API Endpoint (`server/api/tasks/index.post.ts`)
@@ -143,26 +143,21 @@ PATCH { title: 'New Title' }
 
 ```typescript
 export interface Task {
-  id: string;
-  title: string;
-  description: string;
-  assignedToId: string;
-  createdById: string;
-  organizationId: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  createdAt: Date;
-  updatedAt: Date;
-  completedAt: Date | null;
+  id: string
+  title: string
+  description: string
+  assignedToId: string
+  createdById: string
+  organizationId: string
+  status: TaskStatus
+  priority: TaskPriority
+  createdAt: Date
+  updatedAt: Date
+  completedAt: Date | null
 }
 
-export type TaskStatus =
-  | "pending"
-  | "in-progress"
-  | "blocked"
-  | "completed"
-  | "cancelled";
-export type TaskPriority = "low" | "medium" | "high" | "urgent";
+export type TaskStatus = 'pending' | 'in-progress' | 'blocked' | 'completed' | 'cancelled'
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
 ```
 
 ## Test File Location

@@ -152,7 +152,7 @@ Complexity: Medium (team type validation, leader assignment)
 
 **Activities:**
 
-**Step 1: Test Generation (Specification-Driven)**  
+**Step 1: Test Generation (Specification-Driven)**
 
 ```bash
 cd /home/user/project  # ALWAYS from project root
@@ -161,7 +161,7 @@ gemini --yolo "$(cat .github/prompts/test-generation.prompt.md)" \
   > .specify/logs/F00X-tests-$(date +%H%M%S).log 2>&1 &
 ```
 
-**Step 2: Implementation (Parallel)**  
+**Step 2: Implementation (Parallel)**
 
 ```bash
 # Launch all independent tasks in parallel
@@ -172,7 +172,7 @@ gemini --yolo "$(cat .specify/features/F00X/02-task.prompt.md)" \
 # ... repeat for all tasks
 ```
 
-**Step 3: Wait**  
+**Step 3: Wait**
 
 - Typical duration: 5-10 minutes
 - DO NOT interrupt processes
@@ -204,7 +204,7 @@ gemini --yolo "$(cat .specify/features/F00X/02-task.prompt.md)" \
 
 **Activities:**
 
-**Step 1: Verify Completion**  
+**Step 1: Verify Completion**
 
 ```bash
 # Check all processes finished
@@ -216,7 +216,7 @@ ls -lh server/api/feature/*.ts tests/api/feature.spec.ts
 wc -l <files>  # Get line counts
 ```
 
-**Step 2: Run Quality Checks**  
+**Step 2: Run Quality Checks**
 
 ```bash
 npm run typecheck  # TypeScript errors?
@@ -224,14 +224,14 @@ npm run lint       # Linting issues?
 npm test           # All tests passing?
 ```
 
-**Step 3: Review Code**  
+**Step 3: Review Code**
 
 ```bash
 git diff           # What changed?
 git status --short # What's new?
 ```
 
-**Step 4: Check Logs**  
+**Step 4: Check Logs**
 
 ```bash
 tail -50 .specify/logs/F00X-*.log  # Any errors or warnings?
@@ -276,7 +276,7 @@ tail -50 .specify/logs/F00X-*.log  # Any errors or warnings?
 
 **Activities:**
 
-**Step 1: Document Patterns**  
+**Step 1: Document Patterns**
 
 Add entry to `.specify/memory/lessons-learned.md`:
 
@@ -305,7 +305,7 @@ Add entry to `.specify/memory/lessons-learned.md`:
 **Grade: [A+ to F]** - [Brief reasoning]
 ```
 
-**Step 2: Update Templates**  
+**Step 2: Update Templates**
 
 If new constraints discovered:
 
@@ -313,7 +313,7 @@ If new constraints discovered:
 - Update `.github/prompts/test-generation.prompt.md`
 - Add to "Critical Constraints" or "MUST USE" sections
 
-**Step 3: Grade Performance**  
+**Step 3: Grade Performance**
 
 - **A+**: Perfect execution, no issues
 - **A**: Excellent, minor fixable issues
@@ -352,7 +352,7 @@ If new constraints discovered:
 
 **Activities:**
 
-**Step 1: Stage Files**  
+**Step 1: Stage Files**
 
 ```bash
 git add <feature-files>              # Implementation
@@ -361,7 +361,7 @@ git add .specify/features/F00X/      # Feature planning
 git add .specify/memory/lessons-learned.md  # If updated
 ```
 
-**Step 2: Launch Commit Automation**  
+**Step 2: Launch Commit Automation**
 
 ```bash
 cd /home/user/project
@@ -369,7 +369,7 @@ gemini --yolo "$(cat .github/prompts/commit4gemini.prompt.md)" \
   > gemini-commit-$(date +%Y%m%d-%H%M%S).log 2>&1 &
 ```
 
-**Step 3: Wait & Verify**  
+**Step 3: Wait & Verify**
 
 ```bash
 # Wait ~1-2 minutes
@@ -488,7 +488,7 @@ rm <new-files-that-are-wrong>
 
 ### If Tests Fail After Implementation
 
-**Gemini usually auto-fixes during generation**  
+**Gemini usually auto-fixes during generation**
 
 If not:
 
@@ -499,7 +499,7 @@ If not:
 
 ### If Types Drift
 
-**CRITICAL - Stop immediately**  
+**CRITICAL - Stop immediately**
 
 ```bash
 git diff types/index.ts
@@ -520,20 +520,17 @@ Then:
 ### Proven Workflows
 
 1. **Specification-Driven Development** (Grade A+)
-
    - Write detailed test requirements
    - Let Gemini generate tests + implementation
    - Tests guide correctness
    - Result: Working, tested code
 
 2. **Parallel Implementation** (Grade A)
-
    - Independent tasks in parallel
    - 4-6 concurrent processes
    - Saves 70% time vs sequential
 
 3. **Fire-and-Forget Commits** (Grade A+)
-
    - Stage changes, launch Gemini
    - Continue planning next feature
    - Commit completes in background

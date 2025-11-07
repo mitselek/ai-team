@@ -43,7 +43,7 @@ export const useOrganization = () => {
    * @returns The organization with the specified ID, or undefined if not found.
    */
   const getOrganization = (id: string): Organization | undefined => {
-    return organizations.value.find(org => org.id === id)
+    return organizations.value.find((org) => org.id === id)
   }
 
   /**
@@ -64,7 +64,7 @@ export const useOrganization = () => {
     id: string,
     updates: Partial<Omit<Organization, 'id' | 'createdAt'>>
   ): Organization | undefined => {
-    const orgIndex = organizations.value.findIndex(org => org.id === id)
+    const orgIndex = organizations.value.findIndex((org) => org.id === id)
     if (orgIndex === -1) {
       logger.warn({ organizationId: id }, 'Attempted to update non-existent organization')
       return undefined

@@ -9,10 +9,12 @@ Create a POST API endpoint to create new agents with validation, following the p
 ## Critical Constraints
 
 ### DO NOT MODIFY
+
 - **types/index.ts** - Use Agent interface EXACTLY as defined with ALL 12 fields
 - Any other existing files
 
 ### MUST USE
+
 - **Relative imports only** - No `~` aliases
   - Logger: `import { createLogger, newCorrelationId } from '../../utils/logger'`
   - Types: `import type { Agent } from '../../../types'`
@@ -47,6 +49,7 @@ export type AgentStatus = 'active' | 'bored' | 'stuck' | 'paused'
 ## Reference Files
 
 Follow this pattern EXACTLY:
+
 - `server/api/organizations/index.post.ts` - Copy structure, validation, error handling
 
 ## Expected Output
@@ -54,11 +57,13 @@ Follow this pattern EXACTLY:
 Create ONLY: `server/api/agents/index.post.ts`
 
 Required validation:
+
 - **Required fields**: name, role, organizationId, teamId, systemPrompt
 - **Optional fields**: seniorId (nullable), tokenAllocation (default: 10000)
 - **Auto-generated**: id (uuidv4), tokenUsed (0), status ('active'), createdAt (new Date()), lastActiveAt (new Date())
 
 Implementation flow:
+
 1. Create correlationId and child logger
 2. Log request received
 3. Parse body with readBody, catch parse errors → 400
@@ -69,11 +74,13 @@ Implementation flow:
 8. Return 201 with created agent
 
 Error handling:
+
 - Parse error → 400 "Invalid request body"
 - Missing fields → 400 "Missing required fields: [list]"
 - Unexpected error → 500 "Internal Server Error"
 
 Expected structure (~70 lines):
+
 ```typescript
 import { defineEventHandler, readBody, setResponseStatus } from 'h3'
 import { v4 as uuidv4 } from 'uuid'
@@ -99,8 +106,14 @@ export default defineEventHandler(async (event) => {
   }
 
   // Validate required fields
-  const requiredFields: (keyof Agent)[] = ['name', 'role', 'organizationId', 'teamId', 'systemPrompt']
-  const missingFields = requiredFields.filter(field => !body[field])
+  const requiredFields: (keyof Agent)[] = [
+    'name',
+    'role',
+    'organizationId',
+    'teamId',
+    'systemPrompt'
+  ]
+  const missingFields = requiredFields.filter((field) => !body[field])
 
   if (missingFields.length > 0) {
     log.warn({ missingFields }, 'Missing required fields')
@@ -121,7 +134,7 @@ export default defineEventHandler(async (event) => {
       tokenUsed: 0,
       status: 'active',
       createdAt: new Date(),
-      lastActiveAt: new Date(),
+      lastActiveAt: new Date()
     }
 
     agents.push(newAgent)
@@ -141,6 +154,7 @@ export default defineEventHandler(async (event) => {
 ## Validation Checklist
 
 Before finishing, verify:
+
 - [ ] File created at `server/api/agents/index.post.ts`
 - [ ] All imports use relative paths (../../ or ../../../)
 - [ ] Uses correlationId for request tracking

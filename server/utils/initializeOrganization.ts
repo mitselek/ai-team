@@ -32,16 +32,19 @@ export function initializeDefaultTeams(organizationId: string): Team[] {
   childLogger.info({ organizationId }, 'Starting core team initialization check')
 
   // Idempotency Check: Check if teams for this organization already exist
-  const existingOrgTeams = teams.filter(t => t.organizationId === organizationId)
-  const existingCoreTeams = existingOrgTeams.filter(t =>
-    coreTeamDefinitions.some(def => def.type === t.type)
+  const existingOrgTeams = teams.filter((t) => t.organizationId === organizationId)
+  const existingCoreTeams = existingOrgTeams.filter((t) =>
+    coreTeamDefinitions.some((def) => def.type === t.type)
   )
 
   if (existingCoreTeams.length === coreTeamDefinitions.length) {
-    childLogger.info({ organizationId }, 'Core teams already exist for this organization. Skipping creation.')
+    childLogger.info(
+      { organizationId },
+      'Core teams already exist for this organization. Skipping creation.'
+    )
     return existingCoreTeams.sort((a, b) => {
-      const aIndex = coreTeamDefinitions.findIndex(def => def.type === a.type)
-      const bIndex = coreTeamDefinitions.findIndex(def => def.type === b.type)
+      const aIndex = coreTeamDefinitions.findIndex((def) => def.type === a.type)
+      const bIndex = coreTeamDefinitions.findIndex((def) => def.type === b.type)
       return aIndex - bIndex
     })
   }
@@ -52,8 +55,11 @@ export function initializeDefaultTeams(organizationId: string): Team[] {
 
   for (const definition of coreTeamDefinitions) {
     // Double-check if this specific team type already exists to be safe
-    if (existingOrgTeams.some(t => t.type === definition.type)) {
-      childLogger.warn({ organizationId, teamType: definition.type }, `Core team with type '${definition.type}' already exists. Skipping.`)
+    if (existingOrgTeams.some((t) => t.type === definition.type)) {
+      childLogger.warn(
+        { organizationId, teamType: definition.type },
+        `Core team with type '${definition.type}' already exists. Skipping.`
+      )
       continue
     }
 
@@ -68,18 +74,27 @@ export function initializeDefaultTeams(organizationId: string): Team[] {
 
     teams.push(newTeam)
     createdTeams.push(newTeam)
-    childLogger.info({ organizationId, teamId: newTeam.id, teamName: newTeam.name, teamType: newTeam.type }, `Created ${definition.name} team`)
+    childLogger.info(
+      { organizationId, teamId: newTeam.id, teamName: newTeam.name, teamType: newTeam.type },
+      `Created ${definition.name} team`
+    )
   }
 
-  childLogger.info({ organizationId, teamCount: createdTeams.length }, 'Core team initialization complete')
+  childLogger.info(
+    { organizationId, teamCount: createdTeams.length },
+    'Core team initialization complete'
+  )
 
   // Return all core teams for the org, including any that existed before
-  return teams.filter(t =>
-    t.organizationId === organizationId &&
-    coreTeamDefinitions.some(def => def.type === t.type)
-  ).sort((a, b) => {
-    const aIndex = coreTeamDefinitions.findIndex(def => def.type === a.type)
-    const bIndex = coreTeamDefinitions.findIndex(def => def.type === b.type)
-    return aIndex - bIndex
-  })
+  return teams
+    .filter(
+      (t) =>
+        t.organizationId === organizationId &&
+        coreTeamDefinitions.some((def) => def.type === t.type)
+    )
+    .sort((a, b) => {
+      const aIndex = coreTeamDefinitions.findIndex((def) => def.type === a.type)
+      const bIndex = coreTeamDefinitions.findIndex((def) => def.type === b.type)
+      return aIndex - bIndex
+    })
 }

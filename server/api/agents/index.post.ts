@@ -22,8 +22,14 @@ export default defineEventHandler(async (event) => {
   }
 
   // Validate required fields
-  const requiredFields: (keyof Agent)[] = ['name', 'role', 'organizationId', 'teamId', 'systemPrompt']
-  const missingFields = requiredFields.filter(field => !body[field])
+  const requiredFields: (keyof Agent)[] = [
+    'name',
+    'role',
+    'organizationId',
+    'teamId',
+    'systemPrompt'
+  ]
+  const missingFields = requiredFields.filter((field) => !body[field])
 
   if (missingFields.length > 0) {
     log.warn({ missingFields }, 'Missing required fields')
@@ -44,7 +50,7 @@ export default defineEventHandler(async (event) => {
       tokenUsed: 0,
       status: 'active',
       createdAt: new Date(),
-      lastActiveAt: new Date(),
+      lastActiveAt: new Date()
     }
 
     agents.push(newAgent)

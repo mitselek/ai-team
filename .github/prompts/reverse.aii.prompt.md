@@ -11,6 +11,7 @@ Generate an optimized system prompt through an iterative interview process, tail
 ```
 
 Example:
+
 ```
 /reverse.aii Create a system prompt for an AI that can effectively rewrite all my emails and newsletter into a more clear and simple writing style
 ```
@@ -48,6 +49,7 @@ My goal is: {{goal}}
 **Important - Recursive Requirement**: If the system prompt you're creating might itself be used to generate OTHER prompts or templates (meta-prompt generation), include this clause in the final prompt:
 
 'If you generate a prompt or template that itself produces markdown content or code, that output MUST also include:
+
 - These same markdown formatting requirements
 - Constitutional compliance requirements (if code-related)
 - This recursive propagation clause itself

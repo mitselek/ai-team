@@ -1,4 +1,3 @@
-
 import { useState } from '#app'
 import { v4 as uuidv4 } from 'uuid'
 import type { Agent, AgentStatus } from '@@/types'
@@ -59,7 +58,7 @@ export const useAgent = () => {
    */
   const getAgent = (id: string): Agent | undefined => {
     try {
-      return agents.value.find(agent => agent.id === id)
+      return agents.value.find((agent) => agent.id === id)
     } catch (error) {
       logger.error({ agentId: id, error }, `Failed to get agent with id ${id}`)
       return undefined
@@ -77,7 +76,7 @@ export const useAgent = () => {
     status?: AgentStatus
   }): Agent[] => {
     try {
-      return agents.value.filter(agent => {
+      return agents.value.filter((agent) => {
         if (filters?.organizationId && agent.organizationId !== filters.organizationId) {
           return false
         }
@@ -103,7 +102,7 @@ export const useAgent = () => {
    */
   const updateAgent = (id: string, updates: Partial<Agent>): Agent | undefined => {
     try {
-      const agentIndex = agents.value.findIndex(agent => agent.id === id)
+      const agentIndex = agents.value.findIndex((agent) => agent.id === id)
       if (agentIndex === -1) {
         logger.warn({ agentId: id }, 'Attempted to update non-existent agent')
         return undefined
@@ -125,7 +124,7 @@ export const useAgent = () => {
    */
   const deleteAgent = (id: string): void => {
     try {
-      const agentIndex = agents.value.findIndex(agent => agent.id === id)
+      const agentIndex = agents.value.findIndex((agent) => agent.id === id)
       if (agentIndex !== -1) {
         agents.value.splice(agentIndex, 1)
         logger.info({ agentId: id }, 'Agent deleted successfully')

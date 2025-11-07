@@ -9,11 +9,13 @@ You are working on the "AI Team" project - a Nuxt 3 application for asynchronous
 ## Critical Constraints
 
 ### DO NOT MODIFY
+
 - **types/index.ts** - All type definitions are final. Use EXACTLY as defined.
 - **Constitution principles** - Read .specify/memory/constitution.md and follow all 12 principles
 - **Existing test patterns** - Match the style in tests/api/organizations.spec.ts and tests/services/orchestrator.spec.ts
 
 ### MUST USE
+
 - **Relative imports only** - No `~` aliases. Use `../../types`, `../../server/utils/logger`, etc.
 - **Type-only imports** - For types/interfaces use `import type { ... }` not `import { ... }`
 - **Existing patterns** - Reference similar files as examples (listed below)
@@ -24,7 +26,7 @@ You are working on the "AI Team" project - a Nuxt 3 application for asynchronous
 ## Type Definitions to Use
 
 ```typescript
-[TYPES_TO_INCLUDE]
+;[TYPES_TO_INCLUDE]
 ```
 
 ## Reference Files
@@ -40,6 +42,7 @@ Create ONLY the following file(s):
 ## Validation Checklist
 
 Before finishing, verify:
+
 - [ ] All imports use relative paths (../../)
 - [ ] Type imports use `import type { }` syntax (for TypeScript types/interfaces)
 - [ ] All type fields are present (no missing required fields)
@@ -72,16 +75,16 @@ All output (status, reasoning, steps) MUST be cleanly formatted:
 - No run-on paragraphs longer than 3 sentences
 - Begin major phases with a clear heading like: `== Planning ==`, `== Implementation ==`
 - Use fenced code blocks for any commands or code
-	```bash
-	npm run typecheck
-	npm run lint
-	npm test -- --run
-	```
+  ```bash
+  npm run typecheck
+  npm run lint
+  npm test -- --run
+  ```
 - Wrap lines at ~100 characters; insert newlines rather than overflowing
 - Explicit progress structure:
-	- Action: <what is being done>
-	- Result: <observed outcome>
-	- Next: <next planned step>
+  - Action: <what is being done>
+  - Result: <observed outcome>
+  - Next: <next planned step>
 - Do not compress multiple unrelated actions into a single line
 - Avoid trailing spaces, avoid inline JSON unless necessary
 

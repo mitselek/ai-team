@@ -55,16 +55,16 @@ Given the user's input describing the desired MCP server, follow this workflow:
 ### Phase 2: Server Architecture Design
 
 1. **Define tool catalog**:
-   
+
    For each tool:
    - **Name**: Clear, descriptive tool name (e.g., `search_files`, `create_issue`)
    - **Description**: What the tool does, when to use it
    - **Input Schema**: JSON Schema defining required/optional parameters
    - **Handler**: Implementation function with error handling
    - **Permissions**: Read-only, write, admin-level access
-   
+
    Example tool specification:
-   
+
    ```typescript
    {
      name: "search_repositories",
@@ -82,15 +82,15 @@ Given the user's input describing the desired MCP server, follow this workflow:
    ```
 
 2. **Define resource catalog**:
-   
+
    For each resource:
    - **URI Pattern**: Resource identifier (e.g., `file:///path/to/file`, `db://table/id`)
    - **MIME Type**: Content type (text/plain, application/json, etc.)
    - **Description**: What data the resource provides
    - **Access Control**: Who can read this resource
-   
+
    Example resource:
-   
+
    ```typescript
    {
      uri: "config://server/settings",
@@ -100,15 +100,15 @@ Given the user's input describing the desired MCP server, follow this workflow:
    ```
 
 3. **Define prompt catalog** (optional):
-   
+
    For each prompt template:
    - **Name**: Prompt identifier
    - **Description**: When to use this prompt
    - **Arguments**: Dynamic values to fill in
    - **Template**: The actual prompt text
-   
+
    Example prompt:
-   
+
    ```typescript
    {
      name: "code_review",
@@ -130,9 +130,9 @@ Given the user's input describing the desired MCP server, follow this workflow:
 ### Phase 3: Implementation
 
 1. **Project structure**:
-   
+
    Create organized file structure:
-   
+
    ```
    mcp-server-[name]/
    ├── src/
@@ -157,119 +157,121 @@ Given the user's input describing the desired MCP server, follow this workflow:
    ```
 
 2. **Server initialization** (TypeScript example):
-   
+
    ```typescript
-   import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-   import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-   import { 
+   import { Server } from '@modelcontextprotocol/sdk/server/index.js'
+   import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+   import {
      CallToolRequestSchema,
      ListToolsRequestSchema,
-     ListResourcesRequestSchema 
-   } from "@modelcontextprotocol/sdk/types.js";
-   
+     ListResourcesRequestSchema
+   } from '@modelcontextprotocol/sdk/types.js'
+
    // Create server instance
    const server = new Server(
      {
-       name: "mcp-server-[name]",
-       version: "1.0.0",
+       name: 'mcp-server-[name]',
+       version: '1.0.0'
      },
      {
        capabilities: {
          tools: {},
          resources: {},
          prompts: {}
-       },
+       }
      }
-   );
-   
+   )
+
    // Register handlers
    server.setRequestHandler(ListToolsRequestSchema, async () => ({
-     tools: [/* tool definitions */]
-   }));
-   
+     tools: [
+       /* tool definitions */
+     ]
+   }))
+
    server.setRequestHandler(CallToolRequestSchema, async (request) => {
-     const { name, arguments: args } = request.params;
+     const { name, arguments: args } = request.params
      // Route to appropriate tool handler
-   });
-   
+   })
+
    // Start server
-   const transport = new StdioServerTransport();
-   await server.connect(transport);
+   const transport = new StdioServerTransport()
+   await server.connect(transport)
    ```
 
 3. **Tool implementation pattern**:
-   
+
    Each tool handler should:
    - Validate inputs against schema
    - Perform the operation with error handling
    - Return structured results
    - Log operations for debugging
-   
+
    ```typescript
-   async function searchRepositories(args: { 
-     query: string; 
-     language?: string; 
-     limit?: number 
-   }) {
+   async function searchRepositories(args: { query: string; language?: string; limit?: number }) {
      try {
        // Validate required parameters
        if (!args.query || args.query.trim() === '') {
-         throw new Error("Query parameter is required");
+         throw new Error('Query parameter is required')
        }
-       
+
        // Perform operation
        const results = await githubAPI.searchRepos({
          q: args.query,
          language: args.language,
          per_page: Math.min(args.limit || 10, 100)
-       });
-       
+       })
+
        // Return structured response
        return {
-         content: [{
-           type: "text",
-           text: JSON.stringify(results, null, 2)
-         }]
-       };
+         content: [
+           {
+             type: 'text',
+             text: JSON.stringify(results, null, 2)
+           }
+         ]
+       }
      } catch (error) {
        // Handle errors gracefully
        return {
-         content: [{
-           type: "text",
-           text: `Error: ${error.message}`
-         }],
+         content: [
+           {
+             type: 'text',
+             text: `Error: ${error.message}`
+           }
+         ],
          isError: true
-       };
+       }
      }
    }
    ```
 
 4. **Configuration management**:
-   
+
    Use environment variables for sensitive data:
-   
+
    ```typescript
    // config.ts
    export const config = {
      apiKey: process.env.API_KEY,
-     apiUrl: process.env.API_URL || "https://api.default.com",
-     logLevel: process.env.LOG_LEVEL || "info",
-     maxRetries: parseInt(process.env.MAX_RETRIES || "3")
-   };
-   
+     apiUrl: process.env.API_URL || 'https://api.default.com',
+     logLevel: process.env.LOG_LEVEL || 'info',
+     maxRetries: parseInt(process.env.MAX_RETRIES || '3')
+   }
+
    // Validate required config on startup
    if (!config.apiKey) {
-     throw new Error("API_KEY environment variable is required");
+     throw new Error('API_KEY environment variable is required')
    }
    ```
-   
+
    Create `.env.example`:
-   
+
    ```bash
    # API Configuration
    API_KEY=your_api_key_here
    API_URL=https://api.example.com
-   
+
    # Server Configuration
    LOG_LEVEL=info
    MAX_RETRIES=3
@@ -278,248 +280,257 @@ Given the user's input describing the desired MCP server, follow this workflow:
 ### Phase 4: Testing
 
 1. **Unit tests for tools**:
-   
+
    ```typescript
-   import { describe, it, expect, beforeEach, vi } from 'vitest';
-   import { searchRepositories } from '../src/tools/search';
-   
+   import { describe, it, expect, beforeEach, vi } from 'vitest'
+   import { searchRepositories } from '../src/tools/search'
+
    describe('searchRepositories tool', () => {
      beforeEach(() => {
-       vi.clearAllMocks();
-     });
-     
+       vi.clearAllMocks()
+     })
+
      it('should search repositories with query', async () => {
-       const result = await searchRepositories({ query: 'typescript' });
-       expect(result.content[0].text).toContain('typescript');
-     });
-     
+       const result = await searchRepositories({ query: 'typescript' })
+       expect(result.content[0].text).toContain('typescript')
+     })
+
      it('should handle missing query parameter', async () => {
-       const result = await searchRepositories({ query: '' });
-       expect(result.isError).toBe(true);
-       expect(result.content[0].text).toContain('required');
-     });
-     
+       const result = await searchRepositories({ query: '' })
+       expect(result.isError).toBe(true)
+       expect(result.content[0].text).toContain('required')
+     })
+
      it('should respect limit parameter', async () => {
-       const result = await searchRepositories({ 
-         query: 'react', 
-         limit: 5 
-       });
+       const result = await searchRepositories({
+         query: 'react',
+         limit: 5
+       })
        // Verify result count <= 5
-     });
-     
+     })
+
      it('should handle API errors gracefully', async () => {
        // Mock API failure
-       vi.mocked(githubAPI.searchRepos).mockRejectedValue(
-         new Error('API rate limit exceeded')
-       );
-       
-       const result = await searchRepositories({ query: 'test' });
-       expect(result.isError).toBe(true);
-       expect(result.content[0].text).toContain('rate limit');
-     });
-   });
+       vi.mocked(githubAPI.searchRepos).mockRejectedValue(new Error('API rate limit exceeded'))
+
+       const result = await searchRepositories({ query: 'test' })
+       expect(result.isError).toBe(true)
+       expect(result.content[0].text).toContain('rate limit')
+     })
+   })
    ```
 
 2. **Integration tests**:
-   
+
    Test full MCP protocol flow:
-   
+
    ```typescript
-   import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-   import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-   
+   import { Client } from '@modelcontextprotocol/sdk/client/index.js'
+   import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
+
    describe('MCP Server Integration', () => {
-     let client: Client;
-     
+     let client: Client
+
      beforeAll(async () => {
        const transport = new StdioClientTransport({
-         command: "node",
-         args: ["dist/index.js"]
-       });
-       
-       client = new Client({
-         name: "test-client",
-         version: "1.0.0"
-       }, {
-         capabilities: {}
-       });
-       
-       await client.connect(transport);
-     });
-     
+         command: 'node',
+         args: ['dist/index.js']
+       })
+
+       client = new Client(
+         {
+           name: 'test-client',
+           version: '1.0.0'
+         },
+         {
+           capabilities: {}
+         }
+       )
+
+       await client.connect(transport)
+     })
+
      it('should list available tools', async () => {
-       const response = await client.listTools();
-       expect(response.tools.length).toBeGreaterThan(0);
-       expect(response.tools[0]).toHaveProperty('name');
-       expect(response.tools[0]).toHaveProperty('inputSchema');
-     });
-     
+       const response = await client.listTools()
+       expect(response.tools.length).toBeGreaterThan(0)
+       expect(response.tools[0]).toHaveProperty('name')
+       expect(response.tools[0]).toHaveProperty('inputSchema')
+     })
+
      it('should execute tool successfully', async () => {
        const result = await client.callTool({
-         name: "search_repositories",
-         arguments: { query: "typescript" }
-       });
-       
-       expect(result.content).toBeDefined();
-       expect(result.isError).toBeFalsy();
-     });
-   });
+         name: 'search_repositories',
+         arguments: { query: 'typescript' }
+       })
+
+       expect(result.content).toBeDefined()
+       expect(result.isError).toBeFalsy()
+     })
+   })
    ```
 
 3. **Schema validation tests**:
-   
+
    Verify all tool schemas are valid JSON Schema:
-   
+
    ```typescript
-   import Ajv from 'ajv';
-   import { tools } from '../src/tools';
-   
+   import Ajv from 'ajv'
+   import { tools } from '../src/tools'
+
    describe('Tool Schema Validation', () => {
-     const ajv = new Ajv();
-     
+     const ajv = new Ajv()
+
      it('should have valid JSON schemas for all tools', () => {
-       tools.forEach(tool => {
-         const valid = ajv.validateSchema(tool.inputSchema);
-         expect(valid).toBe(true);
-       });
-     });
-   });
+       tools.forEach((tool) => {
+         const valid = ajv.validateSchema(tool.inputSchema)
+         expect(valid).toBe(true)
+       })
+     })
+   })
    ```
 
 ### Phase 5: Documentation
 
 1. **README.md structure**:
-   
+
    ```markdown
    # MCP Server: [Name]
-   
+
    [Brief description of what this server does]
-   
+
    ## Installation
-   
+
    \`\`\`bash
    npm install -g mcp-server-[name]
+
    # or
+
    npx mcp-server-[name]
    \`\`\`
-   
+
    ## Configuration
-   
+
    Create a `.env` file or set environment variables:
-   
+
    \`\`\`bash
    API_KEY=your_key_here
    API_URL=https://api.example.com
    \`\`\`
-   
+
    ## Usage
-   
+
    ### With Claude Desktop
-   
+
    Add to your `claude_desktop_config.json`:
-   
+
    \`\`\`json
    {
-     "mcpServers": {
-       "[name]": {
-         "command": "npx",
-         "args": ["-y", "mcp-server-[name]"],
-         "env": {
-           "API_KEY": "your_key_here"
-         }
-       }
-     }
+   "mcpServers": {
+   "[name]": {
+   "command": "npx",
+   "args": ["-y", "mcp-server-[name]"],
+   "env": {
+   "API_KEY": "your_key_here"
+   }
+   }
+   }
    }
    \`\`\`
-   
+
    ### With Claude Code
-   
+
    \`\`\`bash
    claude mcp add --transport stdio [name] npx mcp-server-[name]
    \`\`\`
-   
+
    ## Available Tools
-   
+
    ### tool_name
-   
+
    Description of what this tool does.
-   
+
    **Parameters**:
+
    - `param1` (required): Description
    - `param2` (optional): Description
-   
+
    **Example**:
-   
+
    \`\`\`
    Use the tool_name tool to search for repositories matching "typescript"
    \`\`\`
-   
+
    ## Available Resources
-   
+
    ### resource://uri/pattern
-   
+
    Description of what this resource provides.
-   
+
    ## Development
-   
+
    \`\`\`bash
+
    # Install dependencies
+
    npm install
-   
+
    # Run tests
+
    npm test
-   
+
    # Build
+
    npm run build
-   
+
    # Run locally
+
    npm start
    \`\`\`
-   
+
    ## Security
-   
+
    - All API keys are passed via environment variables
    - Input validation on all tool parameters
    - Rate limiting on API calls
    - Audit logging of all operations
-   
+
    ## Troubleshooting
-   
+
    [Common issues and solutions]
-   
+
    ## License
-   
+
    MIT
    ```
 
 2. **Inline documentation**:
-   
+
    Add JSDoc comments to all public functions:
-   
-   ```typescript
+
+   ````typescript
    /**
     * Search GitHub repositories by query string
-    * 
+    *
     * @param args - Search parameters
     * @param args.query - Search query string (required)
     * @param args.language - Filter by programming language (optional)
     * @param args.limit - Maximum number of results (default: 10, max: 100)
     * @returns Search results with repository metadata
     * @throws {Error} If query is empty or API request fails
-    * 
+    *
     * @example
     * ```typescript
-    * const results = await searchRepositories({ 
-    *   query: "typescript", 
+    * const results = await searchRepositories({
+    *   query: "typescript",
     *   language: "TypeScript",
-    *   limit: 5 
+    *   limit: 5
     * });
     * ```
     */
    async function searchRepositories(args: SearchArgs) {
      // Implementation
    }
-   ```
+   ````
 
 ### Phase 6: Validation & Output
 

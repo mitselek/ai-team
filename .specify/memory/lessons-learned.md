@@ -30,7 +30,7 @@ This document captures key insights, best practices, and lessons learned during 
 Post Office Team (1M tokens allocated):
 
 - Postmaster: 200K (reduced from 250K)
-- Dispatcher: 350K (reduced from 400K)  
+- Dispatcher: 350K (reduced from 400K)
 - Notifier: 250K (reduced from 300K)
 - Archivist: 200K (reduced from 300K)
 - **Total after fix**: 1,000,000 tokens ✅
@@ -160,7 +160,7 @@ This reinforces that **structured, constitution-aware prompts** are the key to r
 ## Output Formatting
 
 - **Newlines between sections:** Always separate imports, type definitions, functions, and code blocks with blank lines.
-- **Fenced code blocks:** Use proper markdown fences with language identifiers (```typescript, ```bash, etc.).
+- **Fenced code blocks:** Use proper markdown fences with language identifiers (`typescript, `bash, etc.).
 - **Structured logs:** When logging operations, use clear delimiters and consistent formatting.
 ```
 
@@ -597,7 +597,7 @@ Process 2: "Error: Failed to edit, 0 occurrences found... Error generating JSON.
 
 ```bash
 # BEFORE (incorrect):
-gemini --yolo "test-generation.prompt" & 
+gemini --yolo "test-generation.prompt" &
 gemini --yolo "implementation.prompt" &  # REDUNDANT
 
 # AFTER (correct):

@@ -73,21 +73,21 @@ All tasks use this complete Agent interface:
 
 ```typescript
 export interface Agent {
-  id: string;
-  name: string;
-  role: string;
-  seniorId: string | null;
-  teamId: string;
-  organizationId: string;
-  systemPrompt: string;
-  tokenAllocation: number;
-  tokenUsed: number;
-  status: AgentStatus;
-  createdAt: Date;
-  lastActiveAt: Date;
+  id: string
+  name: string
+  role: string
+  seniorId: string | null
+  teamId: string
+  organizationId: string
+  systemPrompt: string
+  tokenAllocation: number
+  tokenUsed: number
+  status: AgentStatus
+  createdAt: Date
+  lastActiveAt: Date
 }
 
-export type AgentStatus = "active" | "bored" | "stuck" | "paused";
+export type AgentStatus = 'active' | 'bored' | 'stuck' | 'paused'
 ```
 
 ## Acceptance Criteria

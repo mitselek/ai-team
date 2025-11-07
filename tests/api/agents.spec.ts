@@ -135,13 +135,13 @@ describe('Agent API Endpoints', () => {
     })
   })
 
-interface NewAgentPayload {
-  name: string
-  role: string
-  organizationId: string
-  teamId: string
-  systemPrompt: string
-}
+  interface NewAgentPayload {
+    name: string
+    role: string
+    organizationId: string
+    teamId: string
+    systemPrompt: string
+  }
 
   describe('POST /api/agents', () => {
     it('should create agent with all required fields', async () => {
@@ -167,8 +167,14 @@ interface NewAgentPayload {
       expect(agents.length).toBe(1)
     })
 
-  const requiredFields: Array<keyof NewAgentPayload> = ['name', 'role', 'organizationId', 'teamId', 'systemPrompt']
-  requiredFields.forEach((field) => {
+    const requiredFields: Array<keyof NewAgentPayload> = [
+      'name',
+      'role',
+      'organizationId',
+      'teamId',
+      'systemPrompt'
+    ]
+    requiredFields.forEach((field) => {
       it(`should return 400 when ${field} is missing`, async () => {
         const payload: Partial<NewAgentPayload> = {
           name: 'Test Agent',
@@ -177,7 +183,7 @@ interface NewAgentPayload {
           teamId: 'team-1',
           systemPrompt: 'A prompt'
         }
-  delete payload[field]
+        delete payload[field]
         vi.mocked(readBody).mockResolvedValue(payload)
 
         const result = await POST(mockEvent)

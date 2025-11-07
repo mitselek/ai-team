@@ -7,7 +7,7 @@ import type { Logger, LoggerOptions, TransportSingleOptions } from 'pino'
  *   const logger = createLogger('orchestrator')
  *   logger.info({ orgId, agentId, taskId }, 'delegation started')
  */
-export function createLogger (name?: string): Logger {
+export function createLogger(name?: string): Logger {
   const isProd = process.env.NODE_ENV === 'production'
 
   const options: LoggerOptions = {
@@ -39,14 +39,14 @@ export function createLogger (name?: string): Logger {
 /**
  * Helper to create a child logger with persistent fields.
  */
-export function withContext (logger: Logger, ctx: Record<string, unknown>): Logger {
+export function withContext(logger: Logger, ctx: Record<string, unknown>): Logger {
   return logger.child(ctx)
 }
 
 /**
  * Generate a correlation id for tracing a request/task flow.
  */
-export function newCorrelationId (): string {
+export function newCorrelationId(): string {
   // Node 18+ supports crypto.randomUUID
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? (crypto as unknown as { randomUUID: () => string }).randomUUID()

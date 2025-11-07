@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
     log.error({ error }, 'Failed to parse request body')
     return {
       status: 400,
-      body: { error: 'Invalid request body' },
+      body: { error: 'Invalid request body' }
     }
   }
 
@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
     log.warn({ body }, 'Missing required fields')
     return {
       status: 400,
-      body: { error: 'Missing required fields: name, githubRepoUrl' },
+      body: { error: 'Missing required fields: name, githubRepoUrl' }
     }
   }
 
@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
       githubRepoUrl: body.githubRepoUrl,
       tokenPool: body.tokenPool || 1000000, // Default value
       createdAt: new Date(),
-      rootAgentId: null,
+      rootAgentId: null
     }
 
     organizations.push(newOrganization)
@@ -47,13 +47,13 @@ export default defineEventHandler(async (event) => {
 
     return {
       status: 201,
-      body: newOrganization,
+      body: newOrganization
     }
   } catch (error) {
     log.error({ error }, 'An unexpected error occurred while creating the organization')
     return {
       status: 500,
-      body: { error: 'Internal Server Error' },
+      body: { error: 'Internal Server Error' }
     }
   }
 })

@@ -4,7 +4,7 @@ import { tasks } from '../../data/tasks'
 export default defineEventHandler((event) => {
   const taskId = getRouterParam(event, 'id')
 
-  const taskIndex = tasks.findIndex(t => t.id === taskId)
+  const taskIndex = tasks.findIndex((t) => t.id === taskId)
 
   if (taskIndex === -1) {
     setResponseStatus(event, 404)
