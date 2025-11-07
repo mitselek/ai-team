@@ -31,7 +31,8 @@ export default defineNuxtPlugin(async () => {
     { name: 'Toolsmiths', tokenAllocation: 2_500_000, type: 'toolsmith' },
     { name: 'Libraries', tokenAllocation: 1_200_000, type: 'library' },
     { name: 'Nurses', tokenAllocation: 800_000, type: 'nurse' },
-    { name: 'Vault Ops', tokenAllocation: 1_500_000, type: 'vault' }
+    { name: 'Vault Ops', tokenAllocation: 1_500_000, type: 'vault' },
+    { name: 'Post Office', tokenAllocation: 1_000_000, type: 'post-office' }
   ]
 
   const teamsCreated = [] as { id: string; name: string; type: TeamType }[]
@@ -57,7 +58,11 @@ export default defineNuxtPlugin(async () => {
     { name: 'CareTaker', role: 'Agent Health Monitor', teamName: 'Nurses', status: 'paused', used: 50_000, allocation: 200_000 },
     { name: 'Recovery', role: 'Failure Recovery', teamName: 'Nurses', status: 'active', used: 300_000, allocation: 400_000 },
     { name: 'VaultSentinel', role: 'Secret Scanner', teamName: 'Vault Ops', status: 'active', used: 700_000, allocation: 900_000 },
-    { name: 'AuditTrail', role: 'Compliance Logger', teamName: 'Vault Ops', status: 'bored', used: 150_000, allocation: 300_000 }
+    { name: 'AuditTrail', role: 'Compliance Logger', teamName: 'Vault Ops', status: 'bored', used: 150_000, allocation: 300_000 },
+    { name: 'Postmaster', role: 'Message Routing Overseer', teamName: 'Post Office', status: 'active', used: 100_000, allocation: 250_000 },
+    { name: 'Dispatcher', role: 'Message Router', teamName: 'Post Office', status: 'active', used: 200_000, allocation: 400_000 },
+    { name: 'Notifier', role: 'Alert Manager', teamName: 'Post Office', status: 'active', used: 150_000, allocation: 300_000 },
+    { name: 'Archivist', role: 'Communication Logger', teamName: 'Post Office', status: 'bored', used: 50_000, allocation: 300_000 }
   ]
 
   const teamMap = new Map<string, string>() // teamName -> teamId
