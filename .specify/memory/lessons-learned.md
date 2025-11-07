@@ -2,6 +2,128 @@
 
 This document captures key insights, best practices, and lessons learned during the development of AI Team.
 
+## Date: 2025-11-07
+
+### Gemini CLI Autonomous Implementation from Structured Prompts
+
+**Context:** Created a structured prompt (`docs/prompts/add-post-office-team.md`) following constitutional guidelines, then asked Gemini CLI to execute it with an additional requirement (Postmaster role).
+
+**What Worked Well:**
+
+- ✅ **Full workflow automation**: Read context → updated types → modified seed data → ran lint → ran typecheck → committed → cleaned up
+- ✅ **Constitutional compliance**: No emojis in commit, proper conventional format, clear body with checklist
+- ✅ **Requested feature honored**: Added "Postmaster" role as requested alongside suggested agents
+- ✅ **Professional commit message**: `feat: add Post Office team type for message routing` with detailed body
+- ✅ **Quality gates passed**: Both `npm run lint` and `npm run typecheck` passed before commit
+- ✅ **Autonomous cleanup**: Deleted the prompt file after use (pragmatic but unexpected)
+- ✅ **Fast execution**: Complete workflow in ~3-4 minutes (read → implement → verify → commit)
+
+**What Didn't Work:**
+
+- ❌ **Token budget overrun**: Agent allocations (1.25M) exceeded team pool (1M) by 250K
+- ⚠️ **No arithmetic validation**: Gemini didn't sum/verify that agent allocations ≤ team allocation
+- ⚠️ **Overeager cleanup**: Deleted source prompt file without permission (may want to preserve for reuse)
+- ⚠️ **Literal prompt following**: Added 4 agents as suggested in examples, didn't adjust totals when adding Postmaster
+
+**Implementation Details:**
+
+Post Office Team (1M tokens allocated):
+
+- Postmaster: 200K (reduced from 250K)
+- Dispatcher: 350K (reduced from 400K)  
+- Notifier: 250K (reduced from 300K)
+- Archivist: 200K (reduced from 300K)
+- **Total after fix**: 1,000,000 tokens ✅
+
+**Best Practices Discovered:**
+
+1. **Add budget validation to prompts** - Include explicit verification step: "Ensure sum of agent allocations equals team allocation"
+2. **Preserve source materials** - Add "Do NOT delete prompt files" if you want to keep them for future reference
+3. **Arithmetic constraints** - AI won't catch math errors without explicit validation instructions
+4. **Trust workflow, verify logic** - Gemini executes steps perfectly but doesn't infer constraints
+5. **Structured prompts work** - Constitution-aware, step-by-step prompts guide Gemini to correct behavior
+6. **Quality gates are essential** - Lint/typecheck steps caught would-be syntax errors
+
+**Prompt Engineering Insights:**
+
+**What made this successful:**
+
+- Clear constitutional references (Type Safety, Observable Development, etc.)
+- Step-by-step implementation workflow (1. types, 2. seed, 3. verify, 4. commit)
+- Example code patterns showing exact syntax/structure
+- Explicit quality gates (lint, typecheck) before commit
+- Constitutional commit message template
+- Markdown formatting requirements (propagated recursively)
+
+**What to add next time:**
+
+```markdown
+### Budget Validation (Add this step)
+
+Before committing:
+
+- Calculate sum of all agent allocations for the team
+- Verify sum ≤ team's tokenAllocation
+- If over budget, proportionally reduce agent allocations to fit
+- Document final allocations in commit message
+```
+
+**Key Takeaway:** Gemini CLI can execute complex, multi-step workflows autonomously when given structured, constitution-aware prompts. It excels at following procedures and running validation gates, but requires explicit instructions for arithmetic/logic constraints. The workflow pattern of "read context → implement → verify → commit" works reliably, but cleanup behavior may be too aggressive.
+
+**Recommended Workflow:**
+
+```bash
+# Create detailed implementation prompt (constitution-aware, step-by-step)
+# Include: context, steps, examples, validation gates, commit format
+
+# Launch Gemini with additional requirements
+gemini --yolo "$(cat docs/prompts/feature-prompt.md)
+
+ADDITIONAL REQUIREMENT: [Your custom requirement here]" > .specify/logs/feature-$(date +%y%m%d-%H%M%S).log 2>&1 &
+
+# Monitor progress
+tail -f .specify/logs/feature-*.log
+
+# Verify results
+git show HEAD  # Review commit
+git diff HEAD~1 HEAD  # Review changes
+npm test  # Verify tests still pass
+```
+
+**Post-Execution Checklist:**
+
+- [ ] Verify arithmetic constraints (budgets, totals, counts)
+- [ ] Check if source prompts were deleted (restore from git if needed)
+- [ ] Review commit message for constitutional compliance
+- [ ] Validate quality gates passed (lint, typecheck, tests)
+- [ ] Check for unintended side effects (extra files, deletions)
+
+**Grade**: A-
+
+**Why A-:**
+
+- Perfect workflow execution and constitutional compliance
+- Clean, working code with proper verification
+- Fast, autonomous completion
+- Professional commit message
+
+**Why not A+:**
+
+- Arithmetic validation gap (budget overrun)
+- Overeager cleanup (deleted source prompt)
+- No self-correction on constraint violations
+
+**Comparison to Previous Lessons:**
+
+- **Better than F002** (Type-Constrained Generation): Gemini preserved types this time because prompt explicitly said so
+- **Similar to F003** (Test-First vs Test-Driven): Pragmatic implementation, fills gaps autonomously
+- **Different from F004** (Redundant Parallel): Single task, no redundancy issues
+- **Improved from F005** (Output Formatting): Commit message and code properly formatted
+
+This reinforces that **structured, constitution-aware prompts** are the key to reliable Gemini CLI automation. When constraints are explicit (types, formatting, workflow), Gemini follows perfectly. When constraints are implicit (arithmetic, preservation), Gemini may miss them.
+
+---
+
 ## Date: 2025-11-06
 
 ### Gemini Output Formatting for Readability
