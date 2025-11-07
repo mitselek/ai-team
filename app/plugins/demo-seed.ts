@@ -84,5 +84,19 @@ export default defineNuxtPlugin(async () => {
     updateAgent(agent.id, { tokenUsed: a.used, status: a.status })
   }
 
+  // 4. Budget validation: ensure total agent allocations per team do not exceed team tokenAllocation
+  const allocationTotals = new Map<string, number>()
+  for (const a of agentSeeds) {
+    allocationTotals.set(a.teamName, (allocationTotals.get(a.teamName) ?? 0) + a.allocation)
+  }
+  for (const t of teamDefs) {
+    const total = allocationTotals.get(t.name) ?? 0
+    if (total > t.tokenAllocation) {
+      logger.warn({ team: t.name, allocated: total, teamAllocation: t.tokenAllocation, overflow: total - t.tokenAllocation }, 'Agent allocations exceed team tokenAllocation')
+    } else {
+      logger.info({ team: t.name, allocated: total, teamAllocation: t.tokenAllocation, remaining: t.tokenAllocation - total }, 'Team token budget validated')
+    }
+  }
+
   logger.info({ orgId: org.id, teams: teamsCreated.length, agents: agentSeeds.length }, 'Demo data seeded')
 })

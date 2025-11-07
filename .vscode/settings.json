@@ -1,0 +1,6 @@
+{
+  // Silence built-in CSS validator complaining about Tailwind at-rules
+  "css.lint.unknownAtRules": "ignore",
+  // Keep validation on for everything else
+  "css.validate": true
+}
