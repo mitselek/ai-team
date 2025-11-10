@@ -183,7 +183,7 @@ Used dev-task prompt to generate MCP client layer (4 files, ~372 lines). Extende
 - Constitutional compliance reminder
 - Output structure specified (4 files with line counts)
 
-**No ambiguity = No loops**
+**No ambiguity = No loops!**
 
 #### Comparison to F006 Phase 1
 
