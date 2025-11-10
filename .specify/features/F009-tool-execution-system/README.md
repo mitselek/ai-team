@@ -743,7 +743,7 @@ async function queryAuditLogs(filter: {
 
 ## Expected Output
 
-```
+```text
 server/services/tools/
 ├── gateway.ts            # Execution gateway (~250 lines)
 ├── approval.ts           # Approval engine (~200 lines)

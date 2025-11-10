@@ -12,15 +12,15 @@ Used dev-task prompt to generate MCP client layer (4 files, ~372 lines). Extende
 
 #### Successes
 
-- ✅ **Complete feature implementation**: All 4 files generated (types, config, client, index)
-- ✅ **Proper scope adherence**: Only created MCP files, didn't touch existing LLM service
-- ✅ **Quality gates passed**: Both typecheck and lint passed on first try
-- ✅ **Clean import pattern**: Used `uuidv4` consistently (learned from Phase 1 loop)
-- ✅ **Connection pooling**: Smart reuse of MCP connections (efficient design)
-- ✅ **Error handling**: Proper MCPClientError class with context
-- ✅ **Structured logging**: All operations logged with correlation IDs
-- ✅ **Type safety**: Proper type assertions and narrowing
-- ✅ **No infinite loops**: Zero edit cycles, straight implementation
+- **Complete feature implementation**: All 4 files generated (types, config, client, index)
+- **Proper scope adherence**: Only created MCP files, didn't touch existing LLM service
+- **Quality gates passed**: Both typecheck and lint passed on first try
+- **Clean import pattern**: Used `uuidv4` consistently (learned from Phase 1 loop)
+- **Connection pooling**: Smart reuse of MCP connections (efficient design)
+- **Error handling**: Proper MCPClientError class with context
+- **Structured logging**: All operations logged with correlation IDs
+- **Type safety**: Proper type assertions and narrowing
+- **No infinite loops**: Zero edit cycles, straight implementation
 
 #### Implementation Details
 
@@ -63,10 +63,10 @@ Used dev-task prompt to generate MCP client layer (4 files, ~372 lines). Extende
 
 #### Gaps
 
-- ⚠️ **No tests generated**: Test creation wasn't in scope (acceptable)
-- ⚠️ **Config hardcoded**: kali-pentest server is default (TODO for file-based config)
-- ⚠️ **No streaming**: Deferred to future phase (as planned)
-- ⚠️ **No tool caching**: Tool discovery happens every time (optimization opportunity)
+- **No tests generated**: Test creation wasn't in scope (acceptable)
+- **Config hardcoded**: kali-pentest server is default (TODO for file-based config)
+- **No streaming**: Deferred to future phase (as planned)
+- **No tool caching**: Tool discovery happens every time (optimization opportunity)
 
 #### Practices Confirmed
 
@@ -124,21 +124,21 @@ Used comprehensive dev-task prompt to generate multi-provider LLM service layer 
 
 #### Successes
 
-- ✅ **Complete feature implementation**: All 7 files generated (types, config, utils, 3 provider clients, main service)
-- ✅ **Self-correction at scale**: Fixed 20+ logger call order issues across all files
-- ✅ **Quality gate compliance**: Fixed ESLint no-explicit-any violations autonomously
-- ✅ **Proactive bug fixes**: Found and fixed finishReason mapping bug in openai.ts
-- ✅ **Code review quality**: Caught cosmetic issues (extra spaces, duplicate imports)
-- ✅ **Final validation**: Both typecheck and lint passed
-- ✅ **No vulnerabilities**: Fixed security issue during dependency installation
+- **Complete feature implementation**: All 7 files generated (types, config, utils, 3 provider clients, main service)
+- **Self-correction at scale**: Fixed 20+ logger call order issues across all files
+- **Quality gate compliance**: Fixed ESLint no-explicit-any violations autonomously
+- **Proactive bug fixes**: Found and fixed finishReason mapping bug in openai.ts
+- **Code review quality**: Caught cosmetic issues (extra spaces, duplicate imports)
+- **Final validation**: Both typecheck and lint passed
+- **No vulnerabilities**: Fixed security issue during dependency installation
 
 #### Gaps
 
-- ❌ **CRITICAL: Infinite loop**: Got stuck alternating between `uuidv4` and `newCorrelationId` imports
-- ❌ **No loop detection**: Repeated same fix→verify→revert cycle 4+ times
-- ❌ **Required human intervention**: Had to kill process manually
-- ⚠️ **Ambiguous prompt**: Both uuid and logger utility were valid choices, prompt didn't specify preference
-- ⚠️ **No self-awareness**: Didn't recognize the loop pattern
+- **CRITICAL: Infinite loop**: Got stuck alternating between `uuidv4` and `newCorrelationId` imports
+- **No loop detection**: Repeated same fix→verify→revert cycle 4+ times
+- **Required human intervention**: Had to kill process manually
+- **Ambiguous prompt**: Both uuid and logger utility were valid choices, prompt didn't specify preference
+- **No self-awareness**: Didn't recognize the loop pattern
 
 #### Loop Pattern Observed
 
@@ -289,20 +289,20 @@ Created a structured prompt (`docs/prompts/add-post-office-team.md`) following c
 
 #### Autonomous Implementation – Successes
 
-- ✅ **Full workflow automation**: Read context → updated types → modified seed data → ran lint → ran typecheck → committed → cleaned up
-- ✅ **Constitutional compliance**: No emojis in commit, proper conventional format, clear body with checklist
-- ✅ **Requested feature honored**: Added "Postmaster" role as requested alongside suggested agents
-- ✅ **Professional commit message**: `feat: add Post Office team type for message routing` with detailed body
-- ✅ **Quality gates passed**: Both `npm run lint` and `npm run typecheck` passed before commit
-- ✅ **Autonomous cleanup**: Deleted the prompt file after use (pragmatic but unexpected)
-- ✅ **Fast execution**: Complete workflow in ~3-4 minutes (read → implement → verify → commit)
+- **Full workflow automation**: Read context → updated types → modified seed data → ran lint → ran typecheck → committed → cleaned up
+- **Constitutional compliance**: No emojis in commit, proper conventional format, clear body with checklist
+- **Requested feature honored**: Added "Postmaster" role as requested alongside suggested agents
+- **Professional commit message**: `feat: add Post Office team type for message routing` with detailed body
+- **Quality gates passed**: Both `npm run lint` and `npm run typecheck` passed before commit
+- **Autonomous cleanup**: Deleted the prompt file after use (pragmatic but unexpected)
+- **Fast execution**: Complete workflow in ~3-4 minutes (read → implement → verify → commit)
 
 #### Autonomous Implementation – Gaps
 
-- ❌ **Token budget overrun**: Agent allocations (1.25M) exceeded team pool (1M) by 250K
-- ⚠️ **No arithmetic validation**: Gemini didn't sum/verify that agent allocations ≤ team allocation
-- ⚠️ **Overeager cleanup**: Deleted source prompt file without permission (may want to preserve for reuse)
-- ⚠️ **Literal prompt following**: Added 4 agents as suggested in examples, didn't adjust totals when adding Postmaster
+- **Token budget overrun**: Agent allocations (1.25M) exceeded team pool (1M) by 250K
+- **No arithmetic validation**: Gemini didn't sum/verify that agent allocations ≤ team allocation
+- **Overeager cleanup**: Deleted source prompt file without permission (may want to preserve for reuse)
+- **Literal prompt following**: Added 4 agents as suggested in examples, didn't adjust totals when adding Postmaster
 
 #### Autonomous Implementation – Implementation Details
 
@@ -475,11 +475,11 @@ Used Gemini CLI to generate 4 foundational components simultaneously (composable
 
 **What Didn't Work:**
 
-- ⚠️ Used outdated package APIs (Octokit v17 syntax instead of v21)
-- ⚠️ Generated `~` path aliases instead of relative paths (caused test issues)
-- ⚠️ Failed silently when asked to fix existing code - ran but didn't complete changes
-- ⚠️ Test generation had type errors (missing/wrong fields from type definitions)
-- ⚠️ Made incorrect assumptions (tried `--file` flag that doesn't exist)
+- Used outdated package APIs (Octokit v17 syntax instead of v21)
+- Generated `~` path aliases instead of relative paths (caused test issues)
+- Failed silently when asked to fix existing code - ran but didn't complete changes
+- Test generation had type errors (missing/wrong fields from type definitions)
+- Made incorrect assumptions (tried `--file` flag that doesn't exist)
 
 **Best Practices Discovered:**
 
@@ -511,18 +511,18 @@ Used Gemini CLI to generate 4 foundational components simultaneously (composable
 
 **What Worked Well:**
 
-- ✅ Successfully read and executed git commands (status, diff, commit)
-- ✅ Generated perfect conventional commit messages
-- ✅ Followed style rules (no emojis, no em-dashes) when specified
-- ✅ Made smart grouping decisions (committed related docs together)
-- ✅ Verified completion ("working tree is clean")
-- ✅ True fire-and-forget - works autonomously in background
-- ✅ Handles both staged and unstaged changes appropriately
+- Successfully read and executed git commands (status, diff, commit)
+- Generated perfect conventional commit messages
+- Followed style rules (no emojis, no em-dashes) when specified
+- Made smart grouping decisions (committed related docs together)
+- Verified completion ("working tree is clean")
+- True fire-and-forget - works autonomously in background
+- Handles both staged and unstaged changes appropriately
 
 **What Didn't Work:**
 
-- ⚠️ Didn't loop automatically for multi-commit scenarios (needs explicit prompting)
-- ⚠️ Terminal output can be confusing (says "done" but keeps working)
+- Didn't loop automatically for multi-commit scenarios (needs explicit prompting)
+- Terminal output can be confusing (says "done" but keeps working)
 
 **Best Practices Discovered:**
 
@@ -552,20 +552,19 @@ Used Gemini CLI to generate 4 foundational components simultaneously (composable
 
 **What Worked Well:**
 
-- ✅ Successfully scanned and analyzed multiple files across directories
-- ✅ Made contextual judgments (kept appropriate emojis, removed inappropriate em-dashes)
-- ✅ Surgical precision: only edited 2 files that needed changes
-- ✅ Respected guidelines: kept status indicator emojis (✅ ⚠️), removed decorative em-dashes
-- ✅ Proper replacements: em-dash (—) → colon (:) for list introductions
-- ✅ Completed full workflow: scan → analyze → edit → stage → commit
-- ✅ Professional commit message: `docs(style): fix emoji and em-dash usage in documentation`
-- ✅ Verified working tree was clean at completion
+- Successfully scanned and analyzed multiple files across directories
+- Made contextual judgments (kept appropriate emojis, removed inappropriate em-dashes)
+- Surgical precision: only edited 2 files that needed changes
+- Proper replacements: em-dash (—) → colon (:) for list introductions
+- Completed full workflow: scan → analyze → edit → stage → commit
+- Professional commit message: `docs(style): fix emoji and em-dash usage in documentation`
+- Verified working tree was clean at completion
 
 **What Didn't Work:**
 
-- ⚠️ Takes significant time (appears stuck but is actually processing)
-- ⚠️ No progress updates during long operations
-- ⚠️ Could be more aggressive (only found 2 instances, though may be correct)
+- Takes significant time (appears stuck but is actually processing)
+- No progress updates during long operations
+- Could be more aggressive (only found 2 instances, though may be correct)
 
 **Best Practices Discovered:**
 
@@ -601,21 +600,21 @@ Used Gemini CLI to generate 4 foundational components simultaneously (composable
 
 **What Worked Well:**
 
-- ✅ Generated all requested files quickly (composable, APIs, data store, tests)
-- ✅ Code was syntactically correct and followed patterns
-- ✅ Used relative imports as requested
-- ✅ Included proper error handling and logging
+- Generated all requested files quickly (composable, APIs, data store, tests)
+- Code was syntactically correct and followed patterns
+- Used relative imports as requested
+- Included proper error handling and logging
 
 **What Didn't Work:**
 
-- ❌ **CRITICAL:** Gemini autonomously rewrote the Agent type definition
-- ❌ Removed orchestration-critical fields (role, seniorId, teamId, systemPrompt, status)
-- ❌ Added fields not in specification (githubAccessToken)
-- ❌ Changed token tracking model (tokenUsed → tokenPool)
-- ❌ Updated dependent code (orchestrator) to match simplified types
-- ❌ Got stuck in infinite edit loop trying to reconcile inconsistencies
-- ❌ Generated tests that referenced non-existent fields (teamId, status)
-- ❌ Required hard reset and loss of all generated work
+- **CRITICAL:** Gemini autonomously rewrote the Agent type definition
+- Removed orchestration-critical fields (role, seniorId, teamId, systemPrompt, status)
+- Added fields not in specification (githubAccessToken)
+- Changed token tracking model (tokenUsed → tokenPool)
+- Updated dependent code (orchestrator) to match simplified types
+- Got stuck in infinite edit loop trying to reconcile inconsistencies
+- Generated tests that referenced non-existent fields (teamId, status)
+- Required hard reset and loss of all generated work
 
 **Best Practices Discovered:**
 
@@ -651,16 +650,16 @@ Used Gemini CLI to generate 4 foundational components simultaneously (composable
 
 **What Worked Well:**
 
-- ✅ Parallel launch syntax works: multiple `gemini --yolo` in single command with `&`
-- ✅ Background execution with log redirection successful
-- ✅ Error messages clearly indicate workspace restriction
+- Parallel launch syntax works: multiple `gemini --yolo` in single command with `&`
+- Background execution with log redirection successful
+- Error messages clearly indicate workspace restriction
 
 **What Didn't Work:**
 
-- ❌ Gemini created files inside feature folder (`.specify/features/F002-team-system/server/data/teams.ts`)
-- ❌ Cannot write outside the directory where Gemini is executed
-- ❌ Error: "Search path resolves outside the allowed workspace directories"
-- ❌ Tasks 2-4 failed completely due to missing file dependencies
+- Gemini created files inside feature folder (`.specify/features/F002-team-system/server/data/teams.ts`)
+- Cannot write outside the directory where Gemini is executed
+- Error: "Search path resolves outside the allowed workspace directories"
+- Tasks 2-4 failed completely due to missing file dependencies
 
 **Best Practices Discovered:**
 
@@ -693,12 +692,12 @@ gemini --yolo "$(cat .specify/features/F00X/04-task.prompt.md)" > .specify/logs/
 
 **What Worked Well:**
 
-- ✅ Generated 226 lines, 13 comprehensive tests (GET + POST coverage)
-- ✅ All tests properly structured with mocking (logger, h3, uuid)
-- ✅ **Auto-detected 2 bugs in implementation code**
-- ✅ **Self-corrected during fix attempt** (detected regression in own work)
-- ✅ Ran tests automatically with `vitest run` (non-interactive)
-- ✅ Final result: All 36/36 tests passing
+- Generated 226 lines, 13 comprehensive tests (GET + POST coverage)
+- All tests properly structured with mocking (logger, h3, uuid)
+- **Auto-detected 2 bugs in implementation code**
+- **Self-corrected during fix attempt** (detected regression in own work)
+- Ran tests automatically with `vitest run` (non-interactive)
+- Final result: All 36/36 tests passing
 
 **Bugs Found & Fixed by Gemini:**
 
@@ -716,8 +715,8 @@ gemini --yolo "$(cat .specify/features/F00X/04-task.prompt.md)" > .specify/logs/
 
 **What Didn't Work:**
 
-- ⚠️ Initial fix introduced regression (validation before required field check)
-- ⚠️ Needed 2 iterations to get fix right
+- Initial fix introduced regression (validation before required field check)
+- Needed 2 iterations to get fix right
 
 **Best Practices Discovered:**
 
@@ -758,8 +757,8 @@ npm test  # Should be green after Gemini finishes
 
 **What Happened:**
 
-- ✅ Generated comprehensive tests (~30 tests for GET/POST/PATCH/DELETE)
-- ❌ **Auto-implemented missing files** (not requested)
+- Generated comprehensive tests (~30 tests for GET/POST/PATCH/DELETE)
+- **Auto-implemented missing files** (not requested)
 - Created: `server/data/tasks.ts`, 4 API endpoints (`index.get.ts`, `index.post.ts`, `[id].patch.ts`, `[id].delete.ts`)
 - Ran tests against own implementation (all passed)
 - Detected typo in own code, fixed it
@@ -834,12 +833,12 @@ npm test  # Verify tests pass
 
 **What Happened:**
 
-- ✅ **Process 1 (test generation)**: Created both utility file AND tests in TDD fashion
+- **Process 1 (test generation)**: Created both utility file AND tests in TDD fashion
 - Created: `server/utils/initializeOrganization.ts` (84 lines)
 - Created: `tests/utils/initializeOrganization.spec.ts` (143 lines, 13 tests)
 - Ran tests: All 13 passing ✅
 - Completed successfully in ~2 minutes
-- ❌ **Process 2 (implementation)**: Found files already existed, tried to "improve" them
+- **Process 2 (implementation)**: Found files already existed, tried to "improve" them
 - Attempted multiple edits to both files (failed - no matching strings)
 - Hit API errors when trying to make unnecessary changes
 - Got stuck in error loop, ran for 10+ minutes
@@ -860,17 +859,17 @@ Process 2: "Error: Failed to edit, 0 occurrences found... Error generating JSON.
 
 **What Worked Well:**
 
-- ✅ First process delivered complete working feature (227 lines total)
-- ✅ All 13 tests passing
-- ✅ Proper idempotency, logging, all 6 team types
-- ✅ Zero manual fixes needed (except teams.spec.ts cleanup unrelated to F004)
+- First process delivered complete working feature (227 lines total)
+- All 13 tests passing
+- Proper idempotency, logging, all 6 team types
+- Zero manual fixes needed (except teams.spec.ts cleanup unrelated to F004)
 
 **What Didn't Work:**
 
-- ❌ Second parallel process was completely unnecessary
-- ❌ Wasted compute time (10+ minutes stuck)
-- ❌ Had to manually intervene to kill processes
-- ⚠️ API rate limit errors when nothing to do
+- Second parallel process was completely unnecessary
+- Wasted compute time (10+ minutes stuck)
+- Had to manually intervene to kill processes
+- API rate limit errors when nothing to do
 
 **Best Practices Discovered:**
 
@@ -920,16 +919,16 @@ gemini --yolo "04-delete-endpoint.prompt" &
 
 **ESMuseum Pattern Adoption:**
 
-- ✅ Nuxt 3 auto-imports and composables work beautifully
-- ✅ Server/API route structure is clean and intuitive
-- ✅ TypeScript strict mode catches issues early
-- ⚠️ Vitest doesn't handle Nuxt's `~` alias without vite-tsconfig-paths plugin
+- Nuxt 3 auto-imports and composables work beautifully
+- Server/API route structure is clean and intuitive
+- TypeScript strict mode catches issues early
+- Vitest doesn't handle Nuxt's `~` alias without vite-tsconfig-paths plugin
 - **Solution:** Use relative imports in server-side code, reserve `~` for client composables only
 
 **Test Configuration:**
 
-- ✅ Mocking pino logger with `vi.mock()` solves stream.write errors in tests
-- ✅ Relative imports in tests avoid module resolution issues
+- Mocking pino logger with `vi.mock()` solves stream.write errors in tests
+- Relative imports in tests avoid module resolution issues
 - Keep test utilities (mocks, fixtures) separate from production code
 
 ---
@@ -942,13 +941,13 @@ gemini --yolo "04-delete-endpoint.prompt" &
 
 **What Worked Well:**
 
-- ✅ [Success point 1]
-- ✅ [Success point 2]
+- [Success point 1]
+- [Success point 2]
 
 **What Didn't Work:**
 
-- ⚠️ [Issue 1]
-- ⚠️ [Issue 2]
+- [Issue 1]
+- [Issue 2]
 
 **Best Practices Discovered:**
 

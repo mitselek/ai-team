@@ -157,6 +157,13 @@ Document decisions for significant additions in `.specify/features/` or `.specif
 - `.claude/` for AI tooling configuration only (prompts, settings)
 - `docs/` for user-facing product documentation
 
+### Markdown Standards
+
+- **MD040/fenced-code-language**: All fenced code blocks MUST have a language identifier
+- Use proper language tags: `typescript`, `bash`, `json`, `markdown`, `text`, etc.
+- Never use unmarked code fences (` ``` ` without language)
+- Example: ` ```typescript ` not ` ``` `
+
 ### Upgrade Policy
 
 - Track Nuxt stable releases; upgrade deliberately with a test plan

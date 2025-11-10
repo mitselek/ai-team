@@ -60,7 +60,7 @@ Implement the specialized HR Interview workflow that transforms new team members
 
 ### High-Level Design
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  Director Delegates to HR Manager           │
 │  Task: "Interview 3 new developers"         │
@@ -104,7 +104,7 @@ Implement the specialized HR Interview workflow that transforms new team members
 
 ### Interview State Machine
 
-```
+```text
 [START]
    ↓
 [GREET] "Hello! I'm conducting today's interview..."
@@ -561,7 +561,7 @@ async function finalizeInterview(session: InterviewSession): Promise<Agent> {
 
 ## Expected Output
 
-```
+```text
 server/services/interview/
 ├── session.ts            # Session manager (~200 lines)
 ├── questions.ts          # Question generator (~150 lines)
@@ -630,7 +630,7 @@ Total: ~1,730 lines across 11 files
 
 ### Sample Interview Flow
 
-```
+```text
 HR Manager: "Hello! I'm Sarah from the HR team. Welcome to the interview process.
 What role will you be taking on our team?"
 
