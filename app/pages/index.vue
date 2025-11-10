@@ -155,14 +155,45 @@
                     {{ getUsagePercentage(agent.tokenUsed, agent.tokenAllocation) }}%
                   </div>
                 </div>
-                <!-- Status -->
-                <div class="flex items-center justify-end">
-                  <span
-                    :class="getStatusColor(agent.status)"
-                    class="rounded-full px-3 py-1 text-xs font-medium capitalize"
+                <!-- Status & Actions -->
+                <div class="flex flex-col items-end gap-2">
+                  <div class="flex items-center gap-2">
+                    <!-- Start Button -->
+                    <button
+                      v-if="agent.status !== 'active'"
+                      @click="handleStartAgent(agent.id)"
+                      :disabled="loadingAgents.get(agent.id)"
+                      class="rounded bg-green-500 px-3 py-1 text-sm text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {{ loadingAgents.get(agent.id) ? '⏳' : '▶ Start' }}
+                    </button>
+
+                    <!-- Stop Button -->
+                    <button
+                      v-if="agent.status === 'active'"
+                      @click="handleStopAgent(agent.id)"
+                      :disabled="loadingAgents.get(agent.id)"
+                      class="rounded bg-red-500 px-3 py-1 text-sm text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {{ loadingAgents.get(agent.id) ? '⏳' : '⏸ Stop' }}
+                    </button>
+
+                    <!-- Status Badge -->
+                    <span
+                      :class="getStatusColor(agent.status)"
+                      class="rounded-full px-3 py-1 text-xs font-medium capitalize"
+                    >
+                      {{ agent.status }}
+                    </span>
+                  </div>
+
+                  <!-- Error Message -->
+                  <div
+                    v-if="errorMessages.get(agent.id)"
+                    class="animate-pulse text-sm text-red-600"
                   >
-                    {{ agent.status }}
-                  </span>
+                    {{ errorMessages.get(agent.id) }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -188,12 +219,14 @@ import { useAgent } from '../composables/useAgent'
 // Composables
 const { organizations, currentOrganization, getOrganization } = useOrganization()
 const { listTeams } = useTeam()
-const { listAgents } = useAgent()
+const { listAgents, startAgent, stopAgent } = useAgent()
 
 // Reactive state
 const currentOrgId = ref<string | null>(null)
 const expandedTeams = ref<Set<string>>(new Set())
 const orgTeams = ref<Team[]>([])
+const loadingAgents = ref<Map<string, boolean>>(new Map())
+const errorMessages = ref<Map<string, string>>(new Map())
 
 // Methods
 const setCurrentOrganization = (id: string) => {
@@ -276,6 +309,34 @@ const getStatusColor = (status: AgentStatus): string => {
 
 const formatNumber = (num: number): string => {
   return num.toLocaleString()
+}
+
+const handleStartAgent = async (agentId: string) => {
+  loadingAgents.value.set(agentId, true)
+  errorMessages.value.delete(agentId)
+
+  const result = await startAgent(agentId)
+
+  loadingAgents.value.set(agentId, false)
+
+  if (!result.success) {
+    errorMessages.value.set(agentId, `Failed to start: ${result.message}`)
+    setTimeout(() => errorMessages.value.delete(agentId), 5000)
+  }
+}
+
+const handleStopAgent = async (agentId: string) => {
+  loadingAgents.value.set(agentId, true)
+  errorMessages.value.delete(agentId)
+
+  const result = await stopAgent(agentId)
+
+  loadingAgents.value.set(agentId, false)
+
+  if (!result.success) {
+    errorMessages.value.set(agentId, `Failed to stop: ${result.message}`)
+    setTimeout(() => errorMessages.value.delete(agentId), 5000)
+  }
 }
 
 // Watchers

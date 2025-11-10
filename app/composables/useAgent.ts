@@ -58,7 +58,7 @@ export const useAgent = () => {
    */
   const getAgent = (id: string): Agent | undefined => {
     try {
-      return agents.value.find((agent) => agent.id === id)
+      return agents.value.find((agent: Agent) => agent.id === id)
     } catch (error) {
       logger.error({ agentId: id, error }, `Failed to get agent with id ${id}`)
       return undefined
@@ -76,7 +76,7 @@ export const useAgent = () => {
     status?: AgentStatus
   }): Agent[] => {
     try {
-      return agents.value.filter((agent) => {
+      return agents.value.filter((agent: Agent) => {
         if (filters?.organizationId && agent.organizationId !== filters.organizationId) {
           return false
         }
@@ -102,7 +102,7 @@ export const useAgent = () => {
    */
   const updateAgent = (id: string, updates: Partial<Agent>): Agent | undefined => {
     try {
-      const agentIndex = agents.value.findIndex((agent) => agent.id === id)
+      const agentIndex = agents.value.findIndex((agent: Agent) => agent.id === id)
       if (agentIndex === -1) {
         logger.warn({ agentId: id }, 'Attempted to update non-existent agent')
         return undefined
@@ -124,7 +124,7 @@ export const useAgent = () => {
    */
   const deleteAgent = (id: string): void => {
     try {
-      const agentIndex = agents.value.findIndex((agent) => agent.id === id)
+      const agentIndex = agents.value.findIndex((agent: Agent) => agent.id === id)
       if (agentIndex !== -1) {
         agents.value.splice(agentIndex, 1)
         logger.info({ agentId: id }, 'Agent deleted successfully')
@@ -137,12 +137,78 @@ export const useAgent = () => {
     }
   }
 
+  /**
+   * Starts an agent's execution loop.
+   * @param id - The ID of the agent to start.
+   * @returns Promise that resolves when the agent is started.
+   */
+  const startAgent = async (id: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await fetch(`/api/agent-start/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        // Update local state to reflect active status
+        const agent = getAgent(id)
+        if (agent) {
+          updateAgent(id, { status: 'active', lastActiveAt: new Date() })
+        }
+        logger.info({ agentId: id }, 'Agent started successfully')
+        return { success: true, message: data.message }
+      } else {
+        logger.error({ agentId: id, response: data }, 'Failed to start agent')
+        return { success: false, message: data.message || 'Failed to start agent' }
+      }
+    } catch (error) {
+      logger.error({ agentId: id, error }, 'Error starting agent')
+      return { success: false, message: 'Network error while starting agent' }
+    }
+  }
+
+  /**
+   * Stops an agent's execution loop.
+   * @param id - The ID of the agent to stop.
+   * @returns Promise that resolves when the agent is stopped.
+   */
+  const stopAgent = async (id: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await fetch(`/api/agent-stop/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        // Update local state to reflect paused status
+        const agent = getAgent(id)
+        if (agent) {
+          updateAgent(id, { status: 'paused' })
+        }
+        logger.info({ agentId: id }, 'Agent stopped successfully')
+        return { success: true, message: data.message }
+      } else {
+        logger.error({ agentId: id, response: data }, 'Failed to stop agent')
+        return { success: false, message: data.message || 'Failed to stop agent' }
+      }
+    } catch (error) {
+      logger.error({ agentId: id, error }, 'Error stopping agent')
+      return { success: false, message: 'Network error while stopping agent' }
+    }
+  }
+
   return {
     agents,
     createAgent,
     getAgent,
     listAgents,
     updateAgent,
-    deleteAgent
+    deleteAgent,
+    startAgent,
+    stopAgent
   }
 }
