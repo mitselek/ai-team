@@ -1,8 +1,8 @@
-// server/api/agents/[id].start.post.ts
+// server/api/agents/[id]/start.post.ts
 import { defineEventHandler, getRouterParam } from 'h3'
-import { start } from '../../services/agent-engine/manager'
-import { agents } from '../../data/agents'
-import { createLogger } from '../../utils/logger'
+import { start } from '../../../services/agent-engine/manager'
+import { agents } from '../../../data/agents'
+import { createLogger } from '../../../utils/logger'
 
 export default defineEventHandler(async (event) => {
   const logger = createLogger('api:agents:start')

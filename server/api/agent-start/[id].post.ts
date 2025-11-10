@@ -1,11 +1,12 @@
-// server/api/agents/[id].stop.post.ts
+// server/api/agent-start/[id].post.ts
 import { defineEventHandler, getRouterParam } from 'h3'
-import { stop } from '../../services/agent-engine/manager'
+import { start } from '../../services/agent-engine/manager'
 import { agents } from '../../data/agents'
 import { createLogger } from '../../utils/logger'
 
+const logger = createLogger('api:agent-start')
+
 export default defineEventHandler(async (event) => {
-  const logger = createLogger('api:agents:stop')
   const agentId = getRouterParam(event, 'id')
 
   if (!agentId) {
@@ -21,12 +22,12 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    await stop(agentId)
-    logger.info({ agentId }, 'Agent loop stopped successfully')
-    return { success: true, message: 'Agent loop stopped' }
+    await start(agentId)
+    logger.info({ agentId }, 'Agent loop started successfully')
+    return { success: true, message: 'Agent loop started' }
   } catch (error: unknown) {
-    logger.error({ error, agentId }, 'Failed to stop agent loop')
+    logger.error({ error, agentId }, 'Failed to start agent loop')
     event.node.res.statusCode = 500
-    return { success: false, message: 'Failed to stop agent loop' }
+    return { success: false, message: 'Failed to start agent loop' }
   }
 })

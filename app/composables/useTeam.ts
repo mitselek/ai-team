@@ -38,7 +38,7 @@ export const useTeam = () => {
     const correlationId = uuidv4()
     logger.info({ teamId: id, correlationId }, `Attempting to get team`)
     try {
-      const team = teams.value.find((t) => t.id === id)
+      const team = teams.value.find((t: Team) => t.id === id)
       if (!team) {
         logger.warn({ teamId: id, correlationId }, 'Team not found')
         return null
@@ -62,7 +62,7 @@ export const useTeam = () => {
     const correlationId = uuidv4()
     logger.info({ filter, correlationId }, 'Attempting to list teams')
     try {
-      return teams.value.filter((team) => {
+      return teams.value.filter((team: Team) => {
         if (filter?.organizationId && team.organizationId !== filter.organizationId) {
           return false
         }
@@ -87,7 +87,7 @@ export const useTeam = () => {
     const correlationId = uuidv4()
     logger.info({ teamId: id, updates, correlationId }, 'Attempting to update team')
     try {
-      const teamIndex = teams.value.findIndex((t) => t.id === id)
+      const teamIndex = teams.value.findIndex((t: Team) => t.id === id)
       if (teamIndex === -1) {
         logger.warn({ teamId: id, correlationId }, 'Attempted to update non-existent team')
         return null
@@ -112,7 +112,7 @@ export const useTeam = () => {
     const correlationId = uuidv4()
     logger.info({ teamId: id, correlationId }, 'Attempting to delete team')
     try {
-      const teamIndex = teams.value.findIndex((t) => t.id === id)
+      const teamIndex = teams.value.findIndex((t: Team) => t.id === id)
       if (teamIndex !== -1) {
         teams.value.splice(teamIndex, 1)
         logger.info({ teamId: id, correlationId }, 'Team deleted successfully')
