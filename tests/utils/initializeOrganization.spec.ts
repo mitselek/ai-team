@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { initializeDefaultTeams } from '../../server/utils/initializeOrganization'
-import { teams } from '../../server/data/teams'
+import { initializeDefaultTeams } from '../../app/server/utils/initializeOrganization'
+import { teams } from '../../app/server/data/teams'
 
 // Mock the logger to avoid stream.write errors
 vi.mock('../../server/utils/logger', () => ({

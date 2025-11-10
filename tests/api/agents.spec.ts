@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setResponseStatus, readBody, getQuery } from 'h3'
 import type { H3Event } from 'h3'
 
-import GET from '../../server/api/agents/index.get'
-import POST from '../../server/api/agents/index.post'
-import { agents } from '../../server/data/agents'
+import GET from '../../app/server/api/agents/index.get'
+import POST from '../../app/server/api/agents/index.post'
+import { agents } from '../../app/server/data/agents'
 import type { Agent } from '../../types'
 
 // Mock the logger

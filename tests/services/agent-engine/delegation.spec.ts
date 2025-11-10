@@ -1,11 +1,11 @@
 // tests/services/agent-engine/delegation.spec.ts
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { assessDelegation } from '../../../server/services/agent-engine/delegation'
-import { generateCompletion } from '../../../server/services/llm'
-import { agents } from '../../../server/data/agents'
+import { assessDelegation } from '../../../app/server/services/agent-engine/delegation'
+import { generateCompletion } from '../../../app/server/services/llm'
+import { agents } from '../../../app/server/data/agents'
 import type { Agent, Task } from '../../../types'
-import { LLMProvider } from '../../../server/services/llm/types'
+import { LLMProvider } from '../../../app/server/services/llm/types'
 
 vi.mock('../../../server/services/llm')
 vi.mock('../../../server/utils/logger', () => ({

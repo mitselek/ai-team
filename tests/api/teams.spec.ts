@@ -8,9 +8,9 @@ vi.mock('uuid', () => ({
   v4: vi.fn(() => 'mock-uuid-1234')
 }))
 
-import GET from '../../server/api/teams/index.get'
-import POST from '../../server/api/teams/index.post'
-import { teams } from '../../server/data/teams'
+import GET from '../../app/server/api/teams/index.get'
+import POST from '../../app/server/api/teams/index.post'
+import { teams } from '../../app/server/data/teams'
 import type { Team } from '../../types'
 
 // Mock the logger to avoid stream.write errors

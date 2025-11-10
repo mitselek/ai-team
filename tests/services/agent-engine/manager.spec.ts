@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import * as manager from '../../../server/services/agent-engine/manager'
-import * as loop from '../../../server/services/agent-engine/loop'
-import { agents } from '../../../server/data/agents'
+import * as manager from '../../../app/server/services/agent-engine/manager'
+import * as loop from '../../../app/server/services/agent-engine/loop'
+import { agents } from '../../../app/server/data/agents'
 import type { Agent } from '../../../types'
 
 vi.mock('../../../server/services/agent-engine/loop', () => ({

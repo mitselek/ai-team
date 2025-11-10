@@ -2,7 +2,7 @@ import { useState } from '#app'
 import { v4 as uuidv4 } from 'uuid'
 import type { Team, TeamType } from '@@/types'
 import { logger } from '../utils/logger'
-import { teams as teamsData } from '../../server/data/teams'
+import { teams as teamsData } from '../../app/server/data/teams'
 
 export const useTeam = () => {
   const teams = useState<Team[]>('teams', () => teamsData)

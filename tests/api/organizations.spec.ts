@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { organizations } from '../../server/data/organizations'
+import { organizations } from '../../app/server/data/organizations'
 
 // Mock the API routes
 describe('Organizations API', () => {

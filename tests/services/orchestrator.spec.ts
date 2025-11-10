@@ -4,7 +4,7 @@ import {
   detectBoredom,
   detectStuck,
   trackTokenUsage
-} from '../../server/services/orchestrator'
+} from '../../app/server/services/orchestrator'
 import type { Agent, Task, Organization } from '../../types'
 
 // Mock the logger to avoid stream.write errors in tests

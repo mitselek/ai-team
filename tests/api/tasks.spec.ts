@@ -29,11 +29,11 @@ vi.mock('h3', async () => {
   }
 })
 
-import GET from '../../server/api/tasks/index.get'
-import POST from '../../server/api/tasks/index.post'
-import PATCH from '../../server/api/tasks/[id].patch'
-import DELETE from '../../server/api/tasks/[id].delete'
-import { tasks } from '../../server/data/tasks'
+import GET from '../../app/server/api/tasks/index.get'
+import POST from '../../app/server/api/tasks/index.post'
+import PATCH from '../../app/server/api/tasks/[id].patch'
+import DELETE from '../../app/server/api/tasks/[id].delete'
+import { tasks } from '../../app/server/data/tasks'
 import type { Task } from '../../types'
 
 const mockEvent = {} as H3Event

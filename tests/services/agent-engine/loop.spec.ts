@@ -2,8 +2,8 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Task } from '../../../types'
-import { startAgentLoop } from '../../../server/services/agent-engine/loop'
-import * as tasks from '../../../server/data/tasks'
+import { startAgentLoop } from '../../../app/server/services/agent-engine/loop'
+import * as tasks from '../../../app/server/data/tasks'
 
 vi.mock('../../../server/data/tasks')
 

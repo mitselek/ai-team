@@ -1,6 +1,6 @@
 // tests/api/agent-engine.spec.ts
 import { describe, it, expect, beforeEach } from 'vitest'
-import { agents } from '../../server/data/agents'
+import { agents } from '../../app/server/data/agents'
 import type { Agent } from '../../types'
 
 const mockAgents: Agent[] = [
