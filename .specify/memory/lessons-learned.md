@@ -4,7 +4,119 @@ This document captures key insights, best practices, and lessons learned during 
 
 ## Date: 2025-11-10
 
-### Gemini CLI LLM Service Integration (F006) - Infinite Loop Detection
+### Gemini CLI MCP Client Integration (F006 Phase 2) - Clean Execution
+
+#### Context
+
+Used dev-task prompt to generate MCP client layer (4 files, ~372 lines). Extended F006 Phase 1 (LLM service) with Model Context Protocol tool discovery and invocation capabilities.
+
+#### Successes
+
+- ✅ **Complete feature implementation**: All 4 files generated (types, config, client, index)
+- ✅ **Proper scope adherence**: Only created MCP files, didn't touch existing LLM service
+- ✅ **Quality gates passed**: Both typecheck and lint passed on first try
+- ✅ **Clean import pattern**: Used `uuidv4` consistently (learned from Phase 1 loop)
+- ✅ **Connection pooling**: Smart reuse of MCP connections (efficient design)
+- ✅ **Error handling**: Proper MCPClientError class with context
+- ✅ **Structured logging**: All operations logged with correlation IDs
+- ✅ **Type safety**: Proper type assertions and narrowing
+- ✅ **No infinite loops**: Zero edit cycles, straight implementation
+
+#### Implementation Details
+
+**Files Created:**
+
+1. `server/services/llm/mcp/types.ts` (53 lines)
+   - MCPServerConfig, MCPTool, MCPToolCall, MCPToolResult interfaces
+   - MCPClientError class with server context
+   - Clean type exports
+
+2. `server/services/llm/mcp/config.ts` (42 lines)
+   - loadMCPServers() with default kali-pentest server
+   - getMCPServerConfig() lookup function
+   - TODO comment for file-based config (future enhancement)
+
+3. `server/services/llm/mcp/client.ts` (153 lines)
+   - Connection pooling (Map<string, Client>)
+   - connectToMCPServer() with stdio transport
+   - listTools() for discovery
+   - callTool() for invocation
+   - disconnectMCPServer() for cleanup
+   - Proper error handling with MCPClientError
+
+4. `server/services/llm/mcp/index.ts` (124 lines)
+   - discoverAllTools() - scans all configured servers
+   - executeTool() - finds server and invokes tool
+   - getAvailableTools() - convenience wrapper
+   - Type re-exports for easy importing
+
+**Total:** 372 lines (vs 400 estimated)
+
+#### Architectural Quality
+
+- **Connection Management**: Reuses clients instead of reconnecting
+- **Error Resilience**: Continues with other servers if one fails
+- **Type Safety**: Proper unknown→Error narrowing in catch blocks
+- **Correlation IDs**: Full traceability across operations
+- **Separation of Concerns**: Config, client, orchestration cleanly separated
+- **Extensibility**: Easy to add more MCP servers via config
+
+#### Gaps
+
+- ⚠️ **No tests generated**: Test creation wasn't in scope (acceptable)
+- ⚠️ **Config hardcoded**: kali-pentest server is default (TODO for file-based config)
+- ⚠️ **No streaming**: Deferred to future phase (as planned)
+- ⚠️ **No tool caching**: Tool discovery happens every time (optimization opportunity)
+
+#### Practices Confirmed
+
+1. **Explicit utility preferences work** - No uuid/logger ambiguity this time
+2. **Single source of truth** - Prompt showed one pattern, Gemini followed it
+3. **Quality gates catch issues** - Typecheck/lint would have caught problems
+4. **Scope constraints effective** - "DO NOT MODIFY existing files" was respected
+5. **Lessons applied** - F006 Phase 1 infinite loop informed this prompt
+
+#### Prompt Engineering Success
+
+**What worked in prompt:**
+
+- Clear scope boundary (Phase 2 only, don't touch Phase 1)
+- Explicit import pattern (`uuidv4` from uuid, not newCorrelationId)
+- Reference files specified (existing LLM service patterns)
+- Type definitions included upfront
+- Constitutional compliance reminder
+- Output structure specified (4 files with line counts)
+
+**No ambiguity = No loops**
+
+#### Comparison to F006 Phase 1
+
+| Aspect              | Phase 1 (LLM Service)   | Phase 2 (MCP Client) |
+| ------------------- | ----------------------- | -------------------- |
+| Files               | 7 files, 850 lines      | 4 files, 372 lines   |
+| Self-corrections    | 20+ logger fixes        | 0 corrections needed |
+| Infinite loops      | 1 (uuid/logger)         | 0 loops              |
+| Quality gates       | Passed after fixes      | Passed first try     |
+| Manual intervention | Required (kill process) | Not needed           |
+| Grade               | B+                      | A                    |
+
+#### Key Takeaway
+
+When prompts are unambiguous and lessons from previous iterations are applied, Gemini CLI executes cleanly without loops or corrections. The F006 Phase 1 infinite loop taught us to be explicit about utility preferences, and Phase 2 benefited directly from that lesson.
+
+**Loop prevention checklist applied:**
+
+- [x] Single source of truth for each pattern
+- [x] Explicit utility preferences stated
+- [x] No multiple valid options without preference
+- [x] Reference one existing pattern per concern
+- [x] Clear scope boundaries
+
+**Grade: A** - Clean execution, no corrections needed, all quality gates passed, architectural quality excellent.
+
+---
+
+### Gemini CLI LLM Service Integration (F006 Phase 1) - Infinite Loop Detection
 
 #### Context
 

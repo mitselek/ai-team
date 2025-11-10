@@ -264,6 +264,7 @@ Tests use Vitest with setup in `tests/setup.ts`. Test environment variables are 
 - Blank lines before/after headings, lists, code blocks
 - **No emojis** in commits, code comments, console logs, or technical docs
 - Use text prefixes like `[ERROR]`, `[INFO]`, `[WARNING]` for better grep
+- Fenced code blocks should have a language specified (text by default)
 
 ## Common Patterns
 
@@ -321,7 +322,7 @@ if (delegateToId) {
 
 ## Current State (MVP)
 
-#### Implemented
+### Implemented
 
 - Basic org/team/agent hierarchy (in-memory)
 - Type system and API structure
@@ -331,14 +332,14 @@ if (delegateToId) {
 - Core team initialization utility
 - Structured logging
 
-#### In Progress
+### In Progress
 
 - GitHub integration for persistence
 - Frontend visualization (D3.js force-directed graph)
 - Tool governance workflow
 - Agent execution engine
 
-#### Not Yet Started
+### Not Yet Started
 
 - LLM provider integration
 - Agent interview process
