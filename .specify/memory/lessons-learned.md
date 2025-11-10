@@ -4,6 +4,53 @@ This document captures key insights, best practices, and lessons learned during 
 
 ## Date: 2025-11-10
 
+### Terminal Interruption During Background Gemini Execution (F007)
+
+#### Context
+
+Launched Gemini for F007 Agent Execution Engine in background mode. Process got paused (not running), user brought it to foreground with `fg 1`, then Claude checked terminal output which interrupted Gemini mid-execution.
+
+#### Issue
+
+- Gemini was running in background successfully creating files
+- Process somehow paused (stopped state shown by `jobs`)
+- User ran `fg 1` to bring to foreground
+- Claude then ran `get_terminal_output` which interrupted the running process
+- Gemini stopped mid-task with "Operation cancelled"
+
+#### Root Cause
+
+**Don't check terminal output while Gemini is actively running in foreground**. The `get_terminal_output` tool or other terminal interactions can interrupt/cancel the running process.
+
+#### Correct Approach
+
+1. **Background mode**: Launch with `&`, let it run, check log files with `tail -f`, don't interact with terminal
+2. **Foreground mode**: Launch without `&`, let it run to completion, don't interrupt
+3. **If process pauses**: Use `fg` to bring to foreground, then **wait** - don't check output
+4. **To monitor**: Use log files (`tail -f logfile.log`) instead of terminal interaction
+5. **File inspection**: Use `read_file` tool instead of terminal commands when Gemini is running
+
+#### Recovery
+
+When interrupted:
+
+- Restart Gemini with continuation prompt
+- List what was already created
+- Ask to continue from where stopped
+- Run in foreground if process management is unclear
+
+#### Best Practice
+
+**Never interact with a terminal that has an active Gemini process running in foreground**. Either:
+
+- Run in background and monitor via log files
+- Run in foreground and wait for completion without interaction
+- Use separate terminal for monitoring
+
+**Grade: Lesson Learned** - Avoid terminal interaction during active execution.
+
+---
+
 ### Gemini CLI MCP Client Integration (F006 Phase 2) - Clean Execution
 
 #### Context

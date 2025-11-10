@@ -67,6 +67,8 @@ export interface Task {
   createdAt: Date
   updatedAt: Date
   completedAt: Date | null
+  result?: string
+  metadata?: Record<string, unknown>
 }
 
 export type TaskStatus = 'pending' | 'in-progress' | 'blocked' | 'completed' | 'cancelled'

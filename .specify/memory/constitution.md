@@ -160,8 +160,10 @@ Document decisions for significant additions in `.specify/features/` or `.specif
 ### Markdown Standards
 
 - **MD040/fenced-code-language**: All fenced code blocks MUST have a language identifier
+- **MD032/blanks-around-lists**: Lists MUST be surrounded by blank lines
 - Use proper language tags: `typescript`, `bash`, `json`, `markdown`, `text`, etc.
 - Never use unmarked code fences (` ``` ` without language)
+- Always add blank line before and after lists (ordered and unordered)
 - Example: ` ```typescript ` not ` ``` `
 
 ### Upgrade Policy
