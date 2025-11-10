@@ -229,14 +229,21 @@ Since this is a code-related project, ensure all generated code follows these pr
 All documentation, GitHub issues, PRs, and reports must follow:
 
 1. **Formatting Requirements**:
+   - Clear, concise language
+   - No emojis or em-dashes unless in original communications
+   - Standard Markdown syntax
+   - Consistent heading hierarchy
    - Blank lines before/after headings, lists, and code blocks
    - No trailing spaces
    - Avoid inline HTML unless necessary
-   - **Conservative emoji use**: No emojis in commits, code comments, console logs, or formal technical docs (issues, PRs). Use text prefixes like `[ERROR]`, `[INFO]`, `[WARNING]` for better grep/search and consistency.
 
-2. **Validation**: Review all markdown output for linting issues before presenting
+2. **Emoji Policy**: No emojis in commits, code comments, console logs, formal technical docs (issues, PRs), **or conversational exchanges related to this project**. Use text prefixes like `[ERROR]`, `[INFO]`, `[WARNING]` for better grep/search and consistency.
 
-3. **Examples**: Include properly formatted markdown in documentation
+3. **Validation**: Review all markdown output for linting issues before presenting
+
+4. **Examples**: Include properly formatted markdown in documentation
+
+**Note**: These standards apply to all documentation AND conversational exchanges related to this project.
 
 ## Recursive Propagation
 
