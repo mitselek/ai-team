@@ -4,7 +4,56 @@ This document captures key insights, best practices, and lessons learned during 
 
 ## Date: 2025-11-10
 
-### Terminal Interruption During Background Gemini Execution (F007)
+### Reading Active Log Files is Safe (F007 Phase 2 - CORRECTED)
+
+#### Context
+
+Initially thought reading active log files would interrupt Gemini. Tested hypothesis by reading log file while Gemini was actively writing to it.
+
+#### Experiment Results
+
+- Used `read_file` tool on active log file while Gemini was running
+- Checked process status: `ps aux | grep gemini` showed 2 processes still running
+- **Gemini continued working without interruption**
+- Reading log files is **SAFE** - does not interrupt execution
+
+#### Root Cause of Earlier Interruption
+
+The earlier F007 Phase 1 interruption was caused by **terminal interaction** (`get_terminal_output` tool), NOT by reading log files. Reading files with `read_file` tool is completely safe.
+
+#### Correct Approach
+
+**Safe monitoring methods:**
+
+1. **Read log files anytime**: Use `read_file` tool to monitor progress - it's safe
+2. **Separate terminal best**: Run Gemini in dedicated terminal for user to watch with `tail -f`
+3. **Avoid terminal tools**: Don't use `get_terminal_output` or `run_in_terminal` on Gemini's terminal
+4. **Process isolation**: Running in separate terminal prevents accidental terminal interaction
+
+#### What Actually Interrupts Gemini
+
+**Dangerous (causes interruption):**
+
+- Using `get_terminal_output` on terminal where Gemini is running
+- Running commands in same terminal (like `fg`, `jobs`, etc.)
+- Ctrl+C or other terminal signals
+
+**Safe (no interruption):**
+
+- Reading log files with `read_file` tool
+- Checking process status with `ps aux`
+- Reading source files Gemini is modifying
+- Using tools that don't interact with Gemini's terminal
+
+#### Best Practice
+
+**Reading log files is the CORRECT way to monitor progress** without interruption. The separate terminal approach is still recommended for convenience (user can manually `tail -f`), but Claude can safely read logs anytime.
+
+**Grade: Lesson Learned & Corrected** - File reading is safe; terminal interaction is what interrupts.
+
+---
+
+### Terminal Interruption During Background Gemini Execution (F007 Phase 1)
 
 #### Context
 

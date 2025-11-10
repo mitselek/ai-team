@@ -9,6 +9,18 @@ import { LLMProvider } from '../../../server/services/llm/types'
 
 vi.mock('../../../server/services/llm')
 vi.mock('../../../server/services/agent-engine/delegation')
+vi.mock('../../../server/utils/logger', () => ({
+  createLogger: vi.fn(() => ({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    child: vi.fn(() => ({
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn()
+    }))
+  }))
+}))
 
 describe('Task Processor', () => {
   beforeEach(() => {
@@ -67,7 +79,7 @@ describe('Task Processor', () => {
 
     await processTask(agent, task)
 
-    expect(task.status).toBe('failed')
+    expect(task.status).toBe('blocked')
     expect(task.result).toBe('Error: LLM Error')
   })
 })

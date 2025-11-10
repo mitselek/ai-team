@@ -22,7 +22,8 @@
     "lint:css": "stylelint \"app/**/*.{css,vue}\"",
     "test": "vitest run",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:e2e": "start-server-and-test dev http://localhost:3000 test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",
@@ -44,6 +45,7 @@
     "@nuxt/test-utils": "^3.19.2",
     "@types/d3": "^7.4.3",
     "@types/node": "^24.10.0",
+    "@types/supertest": "^6.0.3",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.13.0",
     "@typescript-eslint/parser": "^8.13.0",
@@ -58,8 +60,10 @@
     "postcss-html": "^1.7.0",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.8",
+    "start-server-and-test": "^2.1.2",
     "stylelint": "^16.9.0",
     "stylelint-config-standard": "^36.0.0",
+    "supertest": "^7.1.4",
     "typescript": "^5.7.3",
     "vitest": "^3.2.4",
     "vue-tsc": "^2.0.0"
