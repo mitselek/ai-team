@@ -64,8 +64,6 @@ This document defines the formal iterative workflow for building the AI Team sys
                   [REPEAT]
 ```
 
-````
-
 ## Phase 1: PLAN
 
 ### Inputs
@@ -95,7 +93,7 @@ Objective: Auto-populate 6 default teams per organization
 Dependencies: F002 Team System (complete)
 Scope: 1 utility file, 6 team definitions, tests
 Complexity: Medium (team type validation, leader assignment)
-````
+```
 
 ## Phase 2: SPECIFY
 

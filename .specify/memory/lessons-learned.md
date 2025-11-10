@@ -2,6 +2,171 @@
 
 This document captures key insights, best practices, and lessons learned during the development of AI Team.
 
+## Date: 2025-11-10
+
+### Gemini CLI LLM Service Integration (F006) - Infinite Loop Detection
+
+#### Context
+
+Used comprehensive dev-task prompt to generate multi-provider LLM service layer (7 files, ~850 lines). Gemini executed autonomously with --yolo mode.
+
+#### Successes
+
+- ✅ **Complete feature implementation**: All 7 files generated (types, config, utils, 3 provider clients, main service)
+- ✅ **Self-correction at scale**: Fixed 20+ logger call order issues across all files
+- ✅ **Quality gate compliance**: Fixed ESLint no-explicit-any violations autonomously
+- ✅ **Proactive bug fixes**: Found and fixed finishReason mapping bug in openai.ts
+- ✅ **Code review quality**: Caught cosmetic issues (extra spaces, duplicate imports)
+- ✅ **Final validation**: Both typecheck and lint passed
+- ✅ **No vulnerabilities**: Fixed security issue during dependency installation
+
+#### Gaps
+
+- ❌ **CRITICAL: Infinite loop**: Got stuck alternating between `uuidv4` and `newCorrelationId` imports
+- ❌ **No loop detection**: Repeated same fix→verify→revert cycle 4+ times
+- ❌ **Required human intervention**: Had to kill process manually
+- ⚠️ **Ambiguous prompt**: Both uuid and logger utility were valid choices, prompt didn't specify preference
+- ⚠️ **No self-awareness**: Didn't recognize the loop pattern
+
+#### Loop Pattern Observed
+
+```text
+State A: Add newCorrelationId → remove uuidv4 → typecheck passes → sees "missing uuidv4"
+State B: Add uuidv4 → remove newCorrelationId → typecheck passes → sees "missing newCorrelationId"
+[Repeat infinitely]
+```
+
+#### Root Cause
+
+Prompt included example code using `newCorrelationId()` but also showed UUID pattern. When both passed typecheck, Gemini couldn't decide which was "correct" and kept switching based on what was currently missing.
+
+#### Practices
+
+1. **Be explicit about utilities** - Don't provide multiple valid options without clear preference
+2. **Kill stuck processes early** - If same error repeats 3+ times, manual intervention needed
+3. **Monitor for loops** - Watch for alternating fixes in logs (A→B→A→B pattern)
+4. **Single source of truth** - Reference ONE pattern for each concern (correlation IDs, logging, etc.)
+5. **Prompt clarity over completeness** - Better to show one correct way than multiple valid ways
+
+#### Prompt Engineering Insights
+
+**What Caused Loop:**
+
+- Example code showed: `const correlationId = options.correlationId || uuidv4()`
+- Reference pattern showed: `import { createLogger, newCorrelationId } from '../../utils/logger'`
+- Both are valid in the codebase
+- No explicit instruction: "Use X, not Y"
+
+**Fix for Future Prompts:**
+
+````markdown
+### Correlation ID Generation
+
+Use uuid v4 directly:
+
+```typescript
+import { v4 as uuidv4 } from 'uuid'
+const correlationId = options.correlationId || uuidv4()
+```
+````
+
+Do NOT use newCorrelationId from logger utility.
+
+#### Implementation Quality
+
+Despite the loop issue, final code quality was excellent:
+
+- Type-safe with proper error handling
+- Provider abstraction with fallback logic
+- Token tracking integration working
+- All three providers (Anthropic, OpenAI, Google) implemented
+- Retry logic with exponential backoff
+- Proper structured logging (after fixes)
+- Constitutional compliance (no emojis, relative imports)
+
+#### Key Takeaway
+
+Gemini CLI can execute complex multi-file features autonomously BUT needs unambiguous prompts. When multiple valid patterns exist, explicitly specify which to use. Without clear preference, Gemini may enter infinite loops when both options pass validation. Human monitoring is essential for long-running tasks to detect and break loops early.
+
+**Loop Detection Checklist:**
+
+- [ ] Same file edited multiple times in sequence
+- [ ] Alternating imports being added/removed
+- [ ] "Fixing" messages for same issue repeatedly
+- [ ] Process running >20 minutes without progress
+- [ ] Log file growing but no new files created
+
+**When to Intervene:**
+
+- Same fix attempt 3+ times = likely loop
+- Kill process, review prompt for ambiguity
+- Make explicit choice, update prompt
+- Final code is usually salvageable (just needs manual fix)
+
+#### Comparison to Previous Lessons
+
+- **Better than F002** (Type-Constrained): Types preserved this time
+- **Similar to F003** (Test-Driven): Pragmatic implementation
+- **Different from F004** (Redundant Parallel): Single task, no redundancy
+- **Similar to Post Office** (Autonomous): Quality gates work, but arithmetic/logic needs explicit rules
+- **NEW PATTERN**: Infinite loops on ambiguous choices
+
+#### Grade: B+
+
+**Why B+:**
+
+- Complete, working implementation
+- Excellent self-correction on clear errors
+- Professional code quality
+- Final product is production-ready
+
+**Why not A:**
+
+- Required manual intervention (kill process)
+- Wasted 10+ minutes in loop
+- Prompt ambiguity should have been caught
+
+#### Recommendations
+
+**For dev-task.prompt.md updates:**
+
+1. Add "Loop Detection" section:
+
+   ```markdown
+   If you find yourself reverting a change you just made, STOP and report the ambiguity.
+   ```
+
+2. Specify utility preferences explicitly:
+
+   ```markdown
+   - Correlation IDs: Use `uuid` package directly
+   - Logging: Use `createLogger` from server/utils/logger
+   - Error handling: Type errors as `unknown`, narrow with guards
+   ```
+
+3. Add timeout guidance:
+
+   ```markdown
+   If a single file requires more than 3 edit attempts, report the issue rather than continuing.
+   ```
+
+**Workflow Pattern:**
+
+```bash
+# Launch with monitoring
+gemini --yolo "$(cat prompt.md)" > log.txt 2>&1 &
+PID=$!
+
+# Monitor for loops
+tail -f log.txt | grep -E "(Fixing|Rerunning)" --line-buffered
+
+# If loop detected:
+kill $PID
+# Review ambiguity, update prompt, relaunch
+```
+
+---
+
 ## Date: 2025-11-07
 
 ### Gemini CLI Autonomous Implementation from Structured Prompts
