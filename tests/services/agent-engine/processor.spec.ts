@@ -7,9 +7,9 @@ import { assessDelegation } from '../../../app/server/services/agent-engine/dele
 import type { Agent, Task } from '../../../types'
 import { LLMProvider } from '../../../app/server/services/llm/types'
 
-vi.mock('../../../server/services/llm')
-vi.mock('../../../server/services/agent-engine/delegation')
-vi.mock('../../../server/utils/logger', () => ({
+vi.mock('../../../app/server/services/llm')
+vi.mock('../../../app/server/services/agent-engine/delegation')
+vi.mock('../../../app/server/utils/logger', () => ({
   createLogger: vi.fn(() => ({
     info: vi.fn(),
     warn: vi.fn(),

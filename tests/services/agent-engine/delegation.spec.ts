@@ -7,8 +7,8 @@ import { agents } from '../../../app/server/data/agents'
 import type { Agent, Task } from '../../../types'
 import { LLMProvider } from '../../../app/server/services/llm/types'
 
-vi.mock('../../../server/services/llm')
-vi.mock('../../../server/utils/logger', () => ({
+vi.mock('../../../app/server/services/llm')
+vi.mock('../../../app/server/utils/logger', () => ({
   createLogger: vi.fn(() => ({
     info: vi.fn(),
     warn: vi.fn(),
