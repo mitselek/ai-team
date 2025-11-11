@@ -36,8 +36,8 @@ import { useRouter } from 'vue-router'
 import { useInterview } from '~/composables/useInterview'
 import { useTeam } from '~/composables/useTeam'
 import { useAgent } from '~/composables/useAgent'
-import type { Team } from '~/types'
-import type { Agent } from '~/types'
+import type { Team } from '~/types/index'
+import type { Agent } from '~/types/index'
 
 const { interviews, listInterviews, startInterview } = useInterview()
 const { listTeams } = useTeam()
