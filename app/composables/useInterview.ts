@@ -1,29 +1,35 @@
 import { ref, computed } from 'vue'
 
-interface Candidate {
+interface TranscriptEntry {
   id: string
-  name: string
-  email: string
+  speaker: 'interviewer' | 'candidate'
+  message: string | { text: string }
+  timestamp: string
 }
 
-interface Question {
-  id: string
-  text: string
-}
-
-interface Response {
-  id?: string
-  text: string
-  questionId?: string
+interface CandidateProfile {
+  role: string
+  expertise: string[]
+  preferences: {
+    communicationStyle: string
+    workingHours: string
+    autonomyLevel: string
+  }
+  personality: {
+    traits: string[]
+    tone: string
+  }
 }
 
 interface Interview {
   id: string
-  status: 'pending' | 'in-progress' | 'completed' | 'cancelled'
-  requester: string
-  candidate: Candidate
-  questions: Question[]
-  responses: Response[]
+  candidateId: string
+  teamId: string
+  interviewerId: string
+  status: 'active' | 'completed' | 'cancelled'
+  currentState: string
+  transcript: TranscriptEntry[]
+  candidateProfile: CandidateProfile
   createdAt: string
   updatedAt: string
 }
@@ -55,13 +61,13 @@ export const useInterview = () => {
     return newInterview
   }
 
-  const respondToInterview = async (id: string, response: Response) => {
+  const respondToInterview = async (id: string, responseText: string) => {
     const res = await fetch(`/api/interview/${id}/respond`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ response })
+      body: JSON.stringify({ response: responseText })
     })
     currentInterview.value = await res.json()
   }

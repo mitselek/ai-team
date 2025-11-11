@@ -38,22 +38,16 @@ const chatHistory = computed(() => {
     return []
   }
 
-  const history = []
-  const questions = currentInterview.value.questions || []
-  const responses = currentInterview.value.responses || []
-
-  for (let i = 0; i < questions.length; i++) {
-    history.push({ sender: 'Marcus', text: questions[i].text })
-    if (responses[i]) {
-      history.push({ sender: 'You', text: responses[i].text })
-    }
-  }
-  return history
+  const transcript = currentInterview.value.transcript || []
+  return transcript.map((entry) => ({
+    sender: entry.speaker === 'interviewer' ? 'Marcus' : 'You',
+    text: typeof entry.message === 'string' ? entry.message : entry.message.text
+  }))
 })
 
 const sendMessage = () => {
   if (newMessage.value.trim() !== '') {
-    respondToInterview(interviewId, { text: newMessage.value })
+    respondToInterview(interviewId, newMessage.value)
     newMessage.value = ''
   }
 }

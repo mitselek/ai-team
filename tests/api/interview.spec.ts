@@ -5,7 +5,7 @@ import { setResponseStatus, readBody, getQuery } from 'h3'
 // Import handlers
 import startHandler from '../../app/server/api/interview/start.post'
 import respondHandler from '../../app/server/api/interview/[id]/respond.post'
-import getHandler from '../../app/server/api/interview/[id].get'
+import getHandler from '../../app/server/api/interview/[id]/index.get'
 import cancelHandler from '../../app/server/api/interview/[id]/cancel.post'
 import listHandler from '../../app/server/api/interviews.get'
 

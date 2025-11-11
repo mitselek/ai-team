@@ -134,8 +134,12 @@ Choose ONE aspect to ask about now.`
     case 'follow_up':
       return `${baseContext}
 
-The requester's last response needs clarification or elaboration.
-Ask a natural follow-up question to better understand what kind of agent they need.`
+Based on the conversation so far, synthesize what you've learned and either:
+1. If you understand the agent role (like "researcher specialist" or similar), acknowledge it and ask ONE specific follow-up about expertise/capabilities
+2. If it's still unclear, ask for a concrete example
+
+DO NOT keep asking the same type of question. Move the conversation forward.
+If you have gathered enough information (role + some expertise), respond with just "INTERVIEW_COMPLETE".`
 
     default:
       return `${baseContext}

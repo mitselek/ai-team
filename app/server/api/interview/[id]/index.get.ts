@@ -1,7 +1,7 @@
 import { defineEventHandler, getRouterParam, setResponseStatus } from 'h3'
-import { createLogger, newCorrelationId } from '../../utils/logger'
-import { getSession } from '../../services/interview/session'
-import type { InterviewSession } from '../../services/interview/types'
+import { createLogger, newCorrelationId } from '../../../utils/logger'
+import { getSession } from '../../../services/interview/session'
+import type { InterviewSession } from '../../../services/interview/types'
 
 const logger = createLogger('api.interview.get')
 

@@ -217,11 +217,23 @@ function extractRole(keyInfo: string[], currentRole: string): string {
     'qa',
     'tester',
     'product',
-    'project'
+    'project',
+    'researcher',
+    'specialist',
+    'coordinator',
+    'assistant',
+    'consultant',
+    'expert',
+    'agent'
   ]
 
+  // First, look for explicit role mentions
   for (const info of keyInfo) {
     const lower = info.toLowerCase()
+    // Check for "X role" or "X specialist" patterns
+    if (lower.includes('role') || lower.includes('specialist') || lower.includes('agent')) {
+      return info
+    }
     for (const keyword of roleKeywords) {
       if (lower.includes(keyword)) {
         return info
