@@ -82,61 +82,67 @@ function buildQuestionPrompt(
   transcript: string,
   profile: InterviewSession['candidateProfile']
 ): string {
-  const baseContext = `You are an HR interviewer conducting an onboarding interview for a new team member.
+  const baseContext = `You are Marcus, an HR specialist helping to understand what kind of AI agent is needed.
+You are interviewing the requester (the person who needs a new agent) to learn about:
+- What role/problem the new agent should handle
+- What expertise and skills the new agent should have
+- How the new agent should communicate and work
+
 Keep your questions natural, conversational, and ask ONE question at a time.
+Focus on understanding the NEED, not interviewing the requester about themselves.
 
 Interview progress:
 ${transcript || '(No messages yet)'}
 
-Candidate profile so far:
-- Role: ${profile.role || 'Unknown'}
-- Expertise: ${profile.expertise.join(', ') || 'None collected'}
+New agent profile so far:
+- Role needed: ${profile.role || 'Unknown'}
+- Expertise needed: ${profile.expertise.join(', ') || 'None collected'}
 - Communication style: ${profile.preferences.communicationStyle || 'Unknown'}
 - Autonomy level: ${profile.preferences.autonomyLevel || 'Unknown'}
-- Personality traits: ${profile.personality.traits.join(', ') || 'None identified'}
+- Desired traits: ${profile.personality.traits.join(', ') || 'None identified'}
 `
 
   switch (state) {
     case 'greet':
       return `${baseContext}
 
-You are starting the interview. Greet the candidate warmly and introduce yourself.
-Ask them what role they will be taking on the team.`
+You are starting the interview. Greet the requester warmly and introduce yourself as Marcus.
+Ask them what kind of agent they need - what problem or role should this new agent handle?`
 
     case 'ask_role':
       return `${baseContext}
 
-The candidate has introduced themselves. Ask about their role if not already clear,
-or ask about their areas of expertise within that role.`
+The requester has introduced their need. Ask about the specific role or responsibilities
+the new agent should have. What tasks will this agent perform?`
 
     case 'ask_expertise':
       return `${baseContext}
 
-You've learned about their role. Now ask about specific expertise, skills, or
-areas they excel in. Keep it focused and relevant to their role.`
+You've learned about the role needed. Now ask about specific expertise, skills, or
+knowledge areas the new agent should have. What should the agent be good at?`
 
     case 'ask_preferences':
       return `${baseContext}
 
-You've collected expertise information. Now ask about their work preferences:
-- How they prefer to communicate
-- Their preferred level of autonomy
-- Any working style preferences
+You've collected expertise requirements. Now ask about how the new agent should work:
+- How should the agent communicate?
+- How much autonomy should the agent have?
+- What working style would fit best?
 
 Choose ONE aspect to ask about now.`
 
     case 'follow_up':
       return `${baseContext}
 
-The candidate's last response needs clarification or elaboration.
-Ask a natural follow-up question to get more specific information.`
+The requester's last response needs clarification or elaboration.
+Ask a natural follow-up question to better understand what kind of agent they need.`
 
     default:
       return `${baseContext}
 
-Continue the interview naturally. Ask the next most relevant question based on
-what you've learned so far. If you feel you have enough information to create
-a comprehensive agent profile, respond with just "INTERVIEW_COMPLETE".`
+Continue the interview naturally. Ask the next most relevant question to understand
+what agent is needed. If you feel you have enough information to create a comprehensive
+agent profile and system prompt, respond with just "INTERVIEW_COMPLETE".`
   }
 }
 
@@ -144,7 +150,7 @@ a comprehensive agent profile, respond with just "INTERVIEW_COMPLETE".`
  * Generate a greeting message
  */
 export function generateGreeting(interviewerName: string, teamName: string): string {
-  return `Hello! I'm ${interviewerName} from the ${teamName}. Welcome to the interview process. I'll be asking you a few questions to help us understand your role and preferences. Let's get started!`
+  return `Hello! I'm ${interviewerName} from the ${teamName}. I'm here to help you hire a new AI agent for your team. I'll ask you a few questions to understand what kind of agent you need, and then we'll create the perfect assistant for you. Let's get started!`
 }
 
 /**

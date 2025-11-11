@@ -171,8 +171,8 @@ export default defineNuxtPlugin(async () => {
       allocation: 200_000
     },
     {
-      name: 'HR Bot',
-      role: 'Interview Conductor',
+      name: 'Marcus',
+      role: 'HR Specialist',
       teamName: 'HR Team',
       status: 'active',
       used: 150_000,
