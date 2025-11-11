@@ -32,8 +32,8 @@ const interviews = ref<Interview[]>([])
 const currentInterview = ref<Interview | null>(null)
 
 export const useInterview = () => {
-  const listInterviews = async () => {
-    const response = await fetch('/api/interviews')
+  const listInterviews = async (teamId: string) => {
+    const response = await fetch(`/api/interviews?teamId=${teamId}`)
     interviews.value = await response.json()
   }
 
@@ -42,37 +42,33 @@ export const useInterview = () => {
     currentInterview.value = await response.json()
   }
 
-  const startInterview = async (requester: string) => {
+  const startInterview = async (teamId: string, interviewerId: string) => {
     const response = await fetch('/api/interview/start', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ requester })
+      body: JSON.stringify({ teamId, interviewerId })
     })
     const newInterview = await response.json()
-    interviews.value.push(newInterview)
+    await listInterviews(teamId)
     return newInterview
   }
 
   const respondToInterview = async (id: string, response: Response) => {
-    const res = await fetch(`/api/interview/respond`, {
+    const res = await fetch(`/api/interview/${id}/respond`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ id, response })
+      body: JSON.stringify({ response })
     })
     currentInterview.value = await res.json()
   }
 
   const cancelInterview = async (id: string) => {
-    await fetch(`/api/interview/cancel`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ id })
+    await fetch(`/api/interview/${id}/cancel`, {
+      method: 'POST'
     })
     const index = interviews.value.findIndex((i) => i.id === id)
     if (index !== -1) {
