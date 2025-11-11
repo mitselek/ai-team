@@ -25,7 +25,7 @@ Create the core autonomous agent execution engine that enables agents to continu
 
 ### Out of Scope (Future)
 
-- Tool execution (F009 - Tool Execution System)
+- Tool execution (F010 - Tool Execution System)
 - Interview process (F008 - HR Interview Workflow)
 - Memory compression (F016 - The Nurse)
 - Multi-turn conversation optimization (F018)

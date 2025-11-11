@@ -16,12 +16,16 @@ You are working on the "AI Team" project - a Nuxt 3 application for asynchronous
 
 ### MUST USE
 
-- **Relative imports only** - No `~` aliases. Use `../../types`, `../../server/utils/logger`, etc.
+- **Import paths** - CRITICAL: Follow these rules EXACTLY:
+  - **Project types**: ALWAYS use `import type { X } from '@@/types'` for types in root types/index.ts
+  - **Feature-specific types**: Use relative paths `import type { X } from '../../services/feature/types'`
+  - **Services/utils**: Use relative paths `../../services/...` or `../../utils/...`
+  - **NEVER use `~` or `@`** for service/utility imports - these cause depth-dependent errors
 - **Type-only imports** - For types/interfaces use `import type { ... }` not `import { ... }`
 - **Existing patterns** - Reference similar files as examples (listed below)
 - **All required fields** - Every object must include ALL fields from its interface
 - **Structured logging** - Import and use `createLogger` from server/utils/logger
-- **Error handling** - Wrap operations in try-catch, log errors with context
+- **Error handling** - Wrap operations in try-catch, use `error: unknown` not `error: any`
 
 ## Type Definitions to Use
 
@@ -43,8 +47,11 @@ Create ONLY the following file(s):
 
 Before finishing, verify:
 
-- [ ] All imports use relative paths (../../)
+- [ ] Project type imports use `@@/types` (Agent, Team, Organization, etc.)
+- [ ] Feature type imports use relative paths to specific types file
+- [ ] Service/utility imports use relative paths (../../)
 - [ ] Type imports use `import type { }` syntax (for TypeScript types/interfaces)
+- [ ] Error handling uses `error: unknown`, not `error: any`
 - [ ] All type fields are present (no missing required fields)
 - [ ] Structured logging used (createLogger, correlationId)
 - [ ] Error handling with try-catch

@@ -20,7 +20,11 @@ Generate comprehensive tests for the specified files/functionality based on the 
 
 ### MUST USE
 
-- **Relative imports only** - No `~` aliases. Use `../../` paths
+- **Import paths** - CRITICAL: Follow these rules EXACTLY:
+  - **Project types**: ALWAYS use `import type { X } from '@@/types'` for types in root types/index.ts
+  - **Feature-specific types**: Use relative paths `import type { X } from '../../app/server/services/feature/types'`
+  - **Services/utils**: Use relative paths `../../server/...` or `../../app/...`
+  - **NEVER use `~` or `@`** for service/utility imports - these cause depth-dependent errors
 - **Type-only imports** - For types/interfaces use `import type { ... }`
 - **Vitest** - Use describe, it, expect, beforeEach, afterEach, vi
 - **Mock logger** - Always mock logger to avoid stream.write errors
@@ -231,7 +235,8 @@ describe('someFunction', () => {
 Always create test objects with ALL required fields:
 
 ```typescript
-import type { Agent } from '../../types'
+// ✅ CORRECT - Root types from @@/types
+import type { Agent } from '@@/types'
 
 const testAgent: Agent = {
   id: 'test-id',
@@ -246,6 +251,28 @@ const testAgent: Agent = {
   status: 'active',
   createdAt: new Date(),
   lastActiveAt: new Date()
+}
+
+// ✅ CORRECT - Feature types from service location
+import type { InterviewSession } from '../../app/server/services/interview/types'
+
+const mockSession: InterviewSession = {
+  id: 'session-1',
+  teamId: 'team-1',
+  interviewerId: 'agent-1',
+  status: 'active' as const, // Use 'as const' for literal types
+  candidateProfile: {
+    role: 'Backend Engineer', // Don't forget required fields!
+    expertise: ['Node.js'],
+    experience: '5+ years'
+  },
+  transcript: [],
+  metadata: {
+    state: 'greet' as const, // Use 'as const' for enum-like types
+    lastActivity: new Date()
+  },
+  createdAt: new Date(),
+  updatedAt: new Date()
 }
 ```
 
@@ -280,11 +307,14 @@ npm test -- --watch
 Before finishing, verify:
 
 - [ ] File created at correct path (tests/api/, tests/composables/, tests/services/)
-- [ ] All imports use relative paths (../../)
+- [ ] Project type imports use `@@/types` (Agent, Team, Organization, etc.)
+- [ ] Feature type imports use relative paths to specific types file
+- [ ] Service/utility imports use relative paths (../../)
 - [ ] Type imports use `import type { }` syntax
 - [ ] Logger is mocked with vi.mock at top of file
 - [ ] beforeEach clears relevant data arrays
 - [ ] All test data objects have ALL required fields from type definitions
+- [ ] Enum-like fields use `as const` (e.g., `status: 'active' as const`)
 - [ ] Tests cover success, error, and edge cases
 - [ ] No console.log or console.error (use mocked logger)
 - [ ] Tests can run with `npm test` (no user input required)
