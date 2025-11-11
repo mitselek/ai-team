@@ -52,7 +52,39 @@ You are an expert system architect and full-stack developer building an asynchro
 7. All internal tool usage logged; anomalies generate tickets to Tools Library
 8. Dangerous operations (file deletion, external API calls with side effects) require approval + sandboxing + rate limiting
 
+### Data Persistence Phases
+
+**Phase 1 - MVP (Current)**:
+
+- Organizations stored as filesystem structures (JSON)
+- Located in project repo under `data/organizations/{org-id}/`
+- Contains: agent definitions, team structure, interviews, logs
+- Survives server restarts (persistent organizational state)
+- Version controlled structure, gitignored data
+
+**Phase 2 - Multi-Org (Future)**:
+
+- Each organization gets dedicated GitHub repository
+- Migration tool moves filesystem org → dedicated repo
+- Maintains backward compatibility during transition
+
+**Bootstrap Process**:
+
+1. Server startup checks for existing organizations
+2. If none: Create initial org with core teams
+3. Create Marcus (first HR agent) with persistent identity
+4. Marcus conducts interviews for subsequent hires
+5. All agents permanent from creation (no demo/test distinction)
+
 ### Agent Lifecycle & Behavior
+
+**Bootstrap (Initial Organization)**:
+
+- System creates first organization with core team structure
+- Marcus (HR Specialist) is first agent with full identity
+- Marcus conducts interview for first "real" hire
+- All subsequent agents enrolled through HR process
+- All agents persistent from creation (survive restarts)
 
 **Enrollment Process**:
 
