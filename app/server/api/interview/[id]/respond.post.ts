@@ -1,7 +1,6 @@
-import { defineEventHandler, readBody, getRouterParam, setResponseStatus } from 'h3'
+import { defineEventHandler, readBody, setResponseStatus } from 'h3'
 import { createLogger, newCorrelationId } from '../../../utils/logger'
 import { processCandidateResponse } from '../../../services/interview/workflow'
-import { getSession } from '../../../services/interview/session'
 
 const logger = createLogger('api.interview.respond')
 
@@ -9,15 +8,14 @@ export default defineEventHandler(async (event) => {
   const correlationId = newCorrelationId()
   const log = logger.child({ correlationId })
 
-  log.info('Received request to respond to interview question')
-
-  const sessionId = getRouterParam(event, 'id')
-
-  if (!sessionId) {
-    log.warn('Session ID missing from URL')
+  const interviewId = event.context.params?.id
+  if (!interviewId) {
+    log.warn('Missing interviewId')
     setResponseStatus(event, 400)
-    return { error: 'Session ID required' }
+    return { error: 'interviewId is required' }
   }
+
+  log.info({ interviewId }, 'Received request to respond to interview')
 
   let body: { response?: string }
   try {
@@ -28,42 +26,16 @@ export default defineEventHandler(async (event) => {
     return { error: 'Invalid request body' }
   }
 
-  if (!body.response || body.response.trim() === '') {
-    log.warn('Empty response provided')
+  const { response } = body
+  if (!response) {
+    log.warn({ response }, 'Missing required fields')
     setResponseStatus(event, 400)
-    return { error: 'Response text required' }
+    return { error: 'response is required' }
   }
 
   try {
-    // Check if session exists and is active
-    const session = getSession(sessionId)
-    if (!session) {
-      log.warn({ sessionId }, 'Session not found')
-      setResponseStatus(event, 404)
-      return { error: 'Session not found' }
-    }
-
-    if (session.status !== 'active') {
-      log.warn({ sessionId, status: session.status }, 'Session not active')
-      setResponseStatus(event, 400)
-      return { error: 'Interview session is not active' }
-    }
-
-    // Process response
-    const result = await processCandidateResponse(sessionId, body.response)
-
-    log.info({ sessionId, complete: result.complete }, 'Response processed successfully')
-
-    if (result.complete) {
-      return {
-        nextQuestion: result.nextQuestion,
-        complete: result.complete,
-        profile: session.candidateProfile,
-        systemPrompt: session.candidateProfile.systemPrompt,
-        suggestedName: session.candidateProfile.suggestedName
-      }
-    }
-
+    const result = await processCandidateResponse(interviewId, response)
+    log.info({ interviewId }, 'Successfully processed candidate response')
     return result
   } catch (error: unknown) {
     if (error instanceof Error && error.message?.includes('not found')) {
@@ -72,8 +44,8 @@ export default defineEventHandler(async (event) => {
       return { error: error.message }
     }
 
-    log.error({ error }, 'Failed to process response')
+    log.error({ error, interviewId }, 'Failed to process candidate response')
     setResponseStatus(event, 500)
-    return { error: 'Internal Server Error' }
+    return { error: 'Failed to process candidate response' }
   }
 })
