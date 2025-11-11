@@ -30,7 +30,7 @@ Create server-side persistence layer that:
 
 ### Data Storage Structure
 
-```
+```text
 data/
   organizations/
     {org-id}/
@@ -51,7 +51,7 @@ data/
 
 ### Bootstrap Plugin Flow
 
-```
+```text
 Server Start
     ↓
 Check: data/organizations/ exists?
