@@ -20,7 +20,7 @@ export function loadConfig(): LLMConfig {
     providers: {
       anthropic: {
         apiKey: process.env.NUXT_ANTHROPIC_API_KEY || '',
-        defaultModel: 'claude-3-5-sonnet-20241022',
+        defaultModel: 'claude-3-haiku-20240307',
         maxRetries: 3,
         timeout: 60000,
         rateLimit: { requestsPerMinute: 50, tokensPerMinute: 40000 }
@@ -48,12 +48,12 @@ export function loadConfig(): LLMConfig {
         [LLMProvider.GOOGLE]: 'gemini-pro'
       },
       manager: {
-        [LLMProvider.ANTHROPIC]: 'claude-3-5-sonnet-20241022',
+        [LLMProvider.ANTHROPIC]: 'claude-3-haiku-20240307',
         [LLMProvider.OPENAI]: 'gpt-4-turbo-preview',
         [LLMProvider.GOOGLE]: 'gemini-pro'
       },
       director: {
-        [LLMProvider.ANTHROPIC]: 'claude-3-opus-20240229',
+        [LLMProvider.ANTHROPIC]: 'claude-3-haiku-20240307',
         [LLMProvider.OPENAI]: 'gpt-4',
         [LLMProvider.GOOGLE]: 'gemini-pro'
       }
