@@ -30,7 +30,7 @@ export default defineNuxtPlugin(async () => {
   const org = createOrganization(
     'Demo AI Org',
     'https://github.com/example/demo-ai-org',
-    10_000_000
+    11_000_000
   )
   currentOrganization.value = org
 
@@ -40,7 +40,8 @@ export default defineNuxtPlugin(async () => {
     { name: 'Libraries', tokenAllocation: 1_200_000, type: 'library' },
     { name: 'Nurses', tokenAllocation: 800_000, type: 'nurse' },
     { name: 'Vault Ops', tokenAllocation: 1_500_000, type: 'vault' },
-    { name: 'Post Office', tokenAllocation: 1_000_000, type: 'post-office' }
+    { name: 'Post Office', tokenAllocation: 1_000_000, type: 'post-office' },
+    { name: 'HR Team', tokenAllocation: 1_000_000, type: 'hr' }
   ]
 
   const teamsCreated = [] as { id: string; name: string; type: TeamType }[]
@@ -168,6 +169,14 @@ export default defineNuxtPlugin(async () => {
       status: 'bored',
       used: 40_000,
       allocation: 200_000
+    },
+    {
+      name: 'HR Bot',
+      role: 'Interview Conductor',
+      teamName: 'HR Team',
+      status: 'active',
+      used: 150_000,
+      allocation: 500_000
     }
   ]
 
