@@ -152,6 +152,20 @@ Complexity: Medium (team type validation, leader assignment)
 
 ### Activities
 
+#### Execution Strategy: Two Approaches
+
+**Option A: Parallel Test + Implementation** (Faster, less control)
+
+- Launch test generation and implementation simultaneously
+- Good for: Stable patterns, proven prompts
+- Risk: Implementation may not match test expectations
+
+**Option B: Split TDD Approach** (Safer, more controlled) **RECOMMENDED**
+
+- Generate tests first → Assess → Commit tests → Then implement
+- Good for: Complex features, new patterns, learning
+- Benefit: Tests define exact contract, implementation adapts to frozen tests
+
 #### Step 1: Test Generation (Specification-Driven)
 
 ```bash
@@ -161,7 +175,16 @@ gemini --yolo "$(cat .github/prompts/test-generation.prompt.md)" \
   > .specify/logs/F00X-tests-$(date +%H%M%S).log 2>&1 &
 ```
 
-#### Step 2: Implementation (Parallel)
+**Split TDD Checkpoint (Optional but Recommended):**
+After test generation completes:
+
+1. Assess tests (PHASE 4)
+2. Fix any import paths or test structure issues
+3. Commit tests with message: "test(feature): add X tests (F00X - TDD)"
+4. Note: Tests will fail (expected) - endpoint doesn't exist yet
+5. Continue to Step 2 (implementation)
+
+#### Step 2: Implementation (Parallel or Sequential)
 
 ```bash
 # Launch all independent tasks in parallel
@@ -569,24 +592,36 @@ Then:
    - Tests guide correctness
    - Result: Working, tested code
 
-2. **Parallel Implementation** (Grade A)
+2. **Split TDD Approach** (Grade A+) **NEW - F013 Phase 5**
+   - Generate tests first, commit separately
+   - Tests become frozen contract
+   - Implementation adapts to test expectations
+   - Benefits:
+     - Implementation must match exact test interface
+     - Clear separation of concerns
+     - Better error messages when contract violated
+     - Forces Gemini to self-correct against tests
+   - Result: 8/8 tests passing, type-safe, self-healing implementation
+
+3. **Parallel Implementation** (Grade A)
    - Independent tasks in parallel
    - 4-6 concurrent processes
    - Saves 70% time vs sequential
 
-3. **Fire-and-Forget Commits** (Grade A+)
+4. **Fire-and-Forget Commits** (Grade A+)
    - Stage changes, launch Gemini
    - Continue planning next feature
    - Commit completes in background
 
-4. **Template + Arguments** (Grade A)
+5. **Template + Arguments** (Grade A)
    - Reusable templates in .github/prompts/
    - Feature-specific arguments in .specify/features/
    - Combine with: `"$(cat template)" "$(cat arguments)"`
 
 ### Anti-Patterns to Avoid
 
-1. ❌ **Strict TDD** (Red→Green→Refactor doesn't fit AI workflow)
+1. ❌ **Strict TDD** (Red→Green→Refactor continuous test modification)
+   - ✅ BUT: Test-first with frozen contract works (Split TDD)
 2. ❌ **Micro-management** (Checking Gemini progress every 30 seconds)
 3. ❌ **Vague specifications** (Gemini guesses, often wrong)
 4. ❌ **Sequential execution** (Parallel is 70% faster)
