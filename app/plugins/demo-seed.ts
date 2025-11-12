@@ -1,3 +1,38 @@
+/*
+ * DISABLED: 2025-11-12 (F012 Phase 4)
+ *
+ * This client-side plugin has been replaced by server-side bootstrap.
+ * See: app/server/plugins/bootstrap.ts
+ *
+ * ISSUE: Client plugin created browser-memory data, but API runs server-side
+ * with separate in-memory stores. This led to client/server data separation:
+ * - Client had organization/teams/agents in browser memory
+ * - Server API had empty stores (no access to client-seeded data)
+ * - API calls failed because server couldn't see client-seeded data
+ *
+ * SOLUTION: Server-side plugin with filesystem persistence (F012).
+ * All organizational state now lives on server where API can access it.
+ * Data persists across restarts in data/organizations/ directory.
+ *
+ * Bootstrap behavior:
+ * - First startup: Creates initial organization + 6 teams + Marcus
+ * - Subsequent startups: Loads existing data from filesystem
+ * - Interview sessions: Persist automatically on every mutation
+ *
+ * Original code preserved at bottom for reference.
+ * To re-enable (not recommended), remove this wrapper and uncomment code below.
+ */
+
+import { defineNuxtPlugin } from '#app'
+
+// No-op plugin - client-side seeding disabled
+export default defineNuxtPlugin(() => {
+  // Server-side bootstrap handles all initialization
+})
+
+/*
+====== ORIGINAL CLIENT-SIDE SEEDING CODE (DISABLED) ======
+
 import { defineNuxtPlugin } from '#app'
 import { useOrganization } from '../composables/useOrganization'
 import { useTeam } from '../composables/useTeam'
@@ -6,11 +41,6 @@ import type { AgentStatus, TeamType } from '@@/types'
 import { logger } from '../utils/logger'
 import { validateAllocations } from '../utils/validateAllocations'
 
-/**
- * Demo data seeding plugin.
- * Populates one organization, several teams, and agents with varied usage/status
- * ONLY if there is currently no organization data (idempotent on first load).
- */
 export default defineNuxtPlugin(async () => {
   const { organizations, createOrganization, currentOrganization } = useOrganization()
   const { createTeam } = useTeam()
@@ -237,3 +267,6 @@ export default defineNuxtPlugin(async () => {
     'Demo data seeded'
   )
 })
+
+========== END ORIGINAL CODE ==========
+*/

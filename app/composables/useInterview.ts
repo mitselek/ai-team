@@ -2,7 +2,7 @@ import { ref, computed } from 'vue'
 
 interface TranscriptEntry {
   id: string
-  speaker: 'interviewer' | 'candidate'
+  speaker: 'interviewer' | 'requester'
   message: string | { text: string }
   timestamp: string
 }

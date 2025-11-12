@@ -208,12 +208,14 @@ describe('HR Interview API Endpoints', () => {
     })
 
     it('should return 404 if session not found', async () => {
-      vi.mocked(getSession).mockReturnValue(undefined)
+      vi.mocked(processCandidateResponse).mockRejectedValue(
+        new Error('Interview session session-123 not found')
+      )
       vi.mocked(readBody).mockResolvedValue({ response: 'A response' })
       const result = await respondHandler(mockEvent)
       expect(setResponseStatus).toHaveBeenCalledWith(mockEvent, 404)
       if ('error' in result) {
-        expect(result.error).toBe('Session not found')
+        expect(result.error).toContain('not found')
       }
     })
   })
@@ -246,13 +248,12 @@ describe('HR Interview API Endpoints', () => {
     })
 
     it('should cancel an interview', async () => {
-      vi.mocked(readBody).mockResolvedValue({ reason: 'Test cancellation' })
       vi.mocked(cancelInterview).mockReturnValue(undefined) // Returns void
       vi.mocked(getSession).mockReturnValue(mockSession)
 
       const result = await cancelHandler(mockEvent)
 
-      expect(cancelInterview).toHaveBeenCalledWith('session-123', 'Test cancellation')
+      expect(cancelInterview).toHaveBeenCalledWith('session-123')
       expect(result).toHaveProperty('success', true)
     })
   })

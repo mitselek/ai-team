@@ -21,8 +21,10 @@ export type InterviewStatus = 'active' | 'pending_review' | 'completed' | 'cance
 
 /**
  * Interview message speaker type
+ * - interviewer: HR agent (e.g., Marcus)
+ * - requester: User requesting to create a new position/agent
  */
-export type InterviewSpeaker = 'interviewer' | 'candidate'
+export type InterviewSpeaker = 'interviewer' | 'requester'
 
 /**
  * Message metadata for tracking question context

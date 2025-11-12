@@ -74,7 +74,7 @@ const createTestInterview = (teamId: string, interviewerId: string): InterviewSe
     },
     {
       id: 'msg-2',
-      speaker: 'candidate',
+      speaker: 'requester',
       message: 'Hi there!',
       timestamp: new Date('2025-01-01T12:01:00.000Z')
     }

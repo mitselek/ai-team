@@ -226,7 +226,7 @@ describe('Interview Workflow', () => {
     for (let i = 0; i < 8; i++) {
       session.transcript.push({
         id: `msg-${i}`,
-        speaker: i % 2 === 0 ? 'interviewer' : 'candidate',
+        speaker: i % 2 === 0 ? 'interviewer' : 'requester',
         message: `Message ${i}`,
         timestamp: new Date()
       })

@@ -54,26 +54,29 @@ You are an expert system architect and full-stack developer building an asynchro
 
 ### Data Persistence Phases
 
-**Phase 1 - MVP (Current)**:
+**Phase 1 - MVP (Current - F012 Implemented)**:
 
 - Organizations stored as filesystem structures (JSON)
 - Located in project repo under `data/organizations/{org-id}/`
-- Contains: agent definitions, team structure, interviews, logs
-- Survives server restarts (persistent organizational state)
-- Version controlled structure, gitignored data
+- Contains: organization, teams, agents, tasks, and interview sessions
+- Auto-initialized via server-side bootstrap plugin on first startup
+- Survives server restarts (persistent organizational state + interviews)
+- Fire-and-forget persistence hooks (zero latency impact)
+- Version controlled structure, gitignored data (data/organizations/ in .gitignore)
 
 **Phase 2 - Multi-Org (Future)**:
 
 - Each organization gets dedicated GitHub repository
 - Migration tool moves filesystem org → dedicated repo
 - Maintains backward compatibility during transition
+- GitHub Issues, Wiki, PRs for extended collaboration features
 
 **Bootstrap Process**:
 
-1. Server startup checks for existing organizations
-2. If none: Create initial org with core teams
-3. Create Marcus (first HR agent) with persistent identity
-4. Marcus conducts interviews for subsequent hires
+1. Server startup runs bootstrap plugin (app/server/plugins/bootstrap.ts)
+2. If no existing data: Create initial org with 6 core teams + 14 agents including Marcus
+3. If data exists: Load organization state from data/organizations/
+4. Interview sessions automatically restored (can resume after restart)
 5. All agents permanent from creation (no demo/test distinction)
 
 ### Agent Lifecycle & Behavior

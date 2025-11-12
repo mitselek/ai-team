@@ -292,7 +292,7 @@ export function resumeSession(sessionId: string): void {
 export function formatTranscript(session: InterviewSession): string {
   const lines = session.transcript.map((msg) => {
     const timestamp = msg.timestamp.toISOString().substring(11, 19)
-    const speaker = msg.speaker === 'interviewer' ? 'Interviewer' : 'Candidate'
+    const speaker = msg.speaker === 'interviewer' ? 'Interviewer' : 'Requester'
     return `[${timestamp}] ${speaker}: ${msg.message}`
   })
 
@@ -300,7 +300,7 @@ export function formatTranscript(session: InterviewSession): string {
 }
 
 /**
- * Get the last candidate response
+ * Get the last requester response
  */
 export function getLastCandidateResponse(sessionId: string): InterviewMessage | undefined {
   const session = getSession(sessionId)
@@ -308,9 +308,9 @@ export function getLastCandidateResponse(sessionId: string): InterviewMessage | 
     return undefined
   }
 
-  // Find last message from candidate
+  // Find last message from requester
   for (let i = session.transcript.length - 1; i >= 0; i--) {
-    if (session.transcript[i].speaker === 'candidate') {
+    if (session.transcript[i].speaker === 'requester') {
       return session.transcript[i]
     }
   }

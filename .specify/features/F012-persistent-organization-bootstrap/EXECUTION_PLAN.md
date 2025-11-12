@@ -1115,9 +1115,9 @@ mv app/plugins/demo-seed.ts app/plugins/demo-seed.ts.disabled
 
 #### Task 4.2: Update Bootstrap Script
 
-**Type**: Manual modification
-**Files**: `scripts/bootstrap-marcus.sh`
-**Complexity**: Low
+**Type**: Manual modification  
+**Files**: `scripts/bootstrap-marcus.sh`  
+**Complexity**: Low  
 **Time**: 5 minutes
 
 **Update script logic**:
@@ -1129,22 +1129,22 @@ mv app/plugins/demo-seed.ts app/plugins/demo-seed.ts.disabled
 # New: Check filesystem first (faster, more accurate)
 
 if [ -d "data/organizations" ] && [ "$(ls -A data/organizations 2>/dev/null)" ]; then
-  echo "✅ Organizations exist (filesystem)"
+  echo "Organizations exist (filesystem)"
 
   # Still verify API consistency
   TEAM_COUNT=$(curl -s "$BASE_URL/api/teams" | jq 'length')
-  echo "   API teams: $TEAM_COUNT"
+  echo "API teams: $TEAM_COUNT"
 
   if [ "$TEAM_COUNT" = "0" ]; then
-    echo "⚠️  Warning: Filesystem has data but API is empty"
-    echo "   Server may not have started yet, or bootstrap failed"
-    echo "   Check logs: .specify/logs/"
+    echo "Warning: Filesystem has data but API is empty"
+    echo "Server may not have started yet, or bootstrap failed"
+    echo "Check logs: .specify/logs/"
     exit 1
   fi
 else
-  echo "❌ No organizations found"
-  echo "   Run: npm run dev"
-  echo "   This will bootstrap the initial organization with Marcus"
+  echo "No organizations found"
+  echo "Run: npm run dev"
+  echo "This will bootstrap the initial organization with Marcus"
   exit 1
 fi
 ```
@@ -1152,10 +1152,10 @@ fi
 **Update success message**:
 
 ```bash
-echo "✨ Done!"
+echo "Done!"
 echo ""
-echo "💡 Tip: Marcus and all agents persist across restarts"
-echo "   Organization data: data/organizations/"
+echo "Tip: Marcus and all agents persist across restarts"
+echo "Organization data: data/organizations/"
 ```
 
 **Validation**:

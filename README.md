@@ -16,7 +16,7 @@ AI Team enables organizations to create autonomous AI agent hierarchies that:
 
 - **Framework**: Nuxt 3 (Vue 3, TypeScript strict)
 - **Backend**: Nitro server (Nuxt's integrated backend)
-- **Persistence**: GitHub API (repos, issues, wikis, PRs)
+- **Persistence**: Filesystem (JSON, MD) + GitHub API (repos, issues, wikis, PRs)
 - **Visualization**: D3.js (force-directed graphs)
 - **Styling**: Tailwind CSS
 - **AI Integration**: Multi-provider LLM support (OpenAI, Anthropic, local models)
@@ -46,9 +46,14 @@ app/
 │   │   ├── agents/
 │   │   ├── tasks/
 │   │   └── tools/
+│   ├── plugins/       # Server bootstrap (organization initialization)
+│   ├── services/      # Business logic & persistence layer
 │   └── utils/
 ├── types/             # TypeScript definitions
 └── assets/
+
+data/                  # Filesystem persistence (not in git)
+└── organizations/     # Org/team/agent/interview data (JSON)
 
 .github/
 └── prompts/           # Custom slash commands
@@ -63,7 +68,7 @@ tests/                 # Test suites
 # Install dependencies
 npm install
 
-# Start development server
+# Start development server (auto-bootstraps organization on first run)
 npm run dev
 
 # Run tests
@@ -71,7 +76,24 @@ npm run test
 
 # Build for production
 npm run build
+
+# Bootstrap Marcus interview helper
+./scripts/bootstrap-marcus.sh
 ```
+
+## Data Persistence
+
+AI Team uses a hybrid persistence approach:
+
+- **Filesystem (JSON)**: Organizations, teams, agents, and interview sessions
+  - Location: `data/organizations/`
+  - Auto-initialized on first startup with demo organization
+  - Survives server restarts (interviews resume seamlessly)
+  - See `.specify/features/F012-persistent-organization-bootstrap/USAGE.md` for details
+
+- **GitHub API**: Coming soon for cross-environment sync
+  - Repositories, issues, wikis, PRs
+  - Collaboration and version control integration
 
 ## Documentation
 

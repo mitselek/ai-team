@@ -112,7 +112,7 @@ describe('Interview Questions', () => {
     for (let i = 0; i < 16; i++) {
       session.transcript.push({
         id: `msg-${i}`,
-        speaker: i % 2 === 0 ? 'interviewer' : 'candidate',
+        speaker: i % 2 === 0 ? 'interviewer' : 'requester',
         message: `Message ${i}`,
         timestamp: new Date()
       })
@@ -138,7 +138,7 @@ describe('Interview Questions', () => {
     for (let i = 0; i < 30; i++) {
       session.transcript.push({
         id: `msg-${i}`,
-        speaker: i % 2 === 0 ? 'interviewer' : 'candidate',
+        speaker: i % 2 === 0 ? 'interviewer' : 'requester',
         message: `Message ${i}`,
         timestamp: new Date()
       })
