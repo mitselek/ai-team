@@ -379,3 +379,73 @@ export async function resumeInterview(sessionId: string): Promise<InterviewSessi
 
   return session
 }
+
+/**
+ * Approve the generated system prompt
+ */
+export function approvePrompt(sessionId: string): void {
+  const log = logger.child({ sessionId })
+
+  log.info('Approving system prompt')
+
+  const session = getSession(sessionId)
+  if (!session) {
+    throw new Error(`Interview session ${sessionId} not found`)
+  }
+
+  if (session.currentState !== 'review_prompt') {
+    throw new Error(`Cannot approve prompt in state '${session.currentState}'`)
+  }
+
+  // Transition to test conversation
+  updateState(sessionId, 'test_conversation')
+  resetExchangeCounter(session)
+
+  log.info({ newState: 'test_conversation' }, 'Prompt approved, moved to test conversation')
+}
+
+/**
+ * Reject the generated system prompt
+ */
+export function rejectPrompt(sessionId: string): void {
+  const log = logger.child({ sessionId })
+
+  log.info('Rejecting system prompt')
+
+  const session = getSession(sessionId)
+  if (!session) {
+    throw new Error(`Interview session ${sessionId} not found`)
+  }
+
+  if (session.currentState !== 'review_prompt') {
+    throw new Error(`Cannot reject prompt in state '${session.currentState}'`)
+  }
+
+  // Transition back to finalize to regenerate prompt
+  updateState(sessionId, 'finalize')
+
+  log.info({ newState: 'finalize' }, 'Prompt rejected, moved back to finalize')
+}
+
+/**
+ * Edit the generated system prompt
+ */
+export async function editPrompt(sessionId: string, newPrompt: string): Promise<void> {
+  const log = logger.child({ sessionId })
+
+  log.info('Editing system prompt')
+
+  const session = getSession(sessionId)
+  if (!session) {
+    throw new Error(`Interview session ${sessionId} not found`)
+  }
+
+  if (session.currentState !== 'review_prompt') {
+    throw new Error(`Cannot edit prompt in state '${session.currentState}'`)
+  }
+
+  // Update the prompt in the candidate profile
+  await updateProfile(sessionId, { systemPrompt: newPrompt })
+
+  log.info('System prompt updated successfully')
+}

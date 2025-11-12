@@ -174,25 +174,44 @@ export function updateState(sessionId: string, newState: InterviewState): void {
 /**
  * Update the candidate profile
  */
-export function updateProfile(sessionId: string, profile: Partial<CandidateProfile>): void {
+export async function updateProfile(
+  sessionId: string,
+  profile: Partial<CandidateProfile>
+): Promise<void> {
   const session = getSession(sessionId)
   if (!session) {
     throw new Error(`Interview session ${sessionId} not found`)
   }
 
-  // Merge profile updates
-  session.candidateProfile = {
-    ...session.candidateProfile,
-    ...profile,
-    preferences: {
+  // Handle top-level simple fields first
+  if (profile.role !== undefined) {
+    session.candidateProfile.role = profile.role
+  }
+  if (profile.systemPrompt !== undefined) {
+    session.candidateProfile.systemPrompt = profile.systemPrompt
+  }
+  if (profile.suggestedName !== undefined) {
+    session.candidateProfile.suggestedName = profile.suggestedName
+  }
+
+  // Handle array field
+  if (profile.expertise !== undefined) {
+    session.candidateProfile.expertise = profile.expertise
+  }
+
+  // Handle nested objects with proper merging
+  if (profile.preferences) {
+    session.candidateProfile.preferences = {
       ...session.candidateProfile.preferences,
-      ...(profile.preferences || {})
-    },
-    personality: {
+      ...profile.preferences
+    }
+  }
+
+  if (profile.personality) {
+    session.candidateProfile.personality = {
       ...session.candidateProfile.personality,
-      ...(profile.personality || {})
-    },
-    expertise: profile.expertise || session.candidateProfile.expertise
+      ...profile.personality
+    }
   }
 
   session.updatedAt = new Date()
@@ -205,10 +224,14 @@ export function updateProfile(sessionId: string, profile: Partial<CandidateProfi
     'Candidate profile updated'
   )
 
-  // Persist to filesystem (fire-and-forget)
-  saveInterview(session).catch((error: unknown) => {
+  // Persist to filesystem
+  try {
+    await saveInterview(session)
+  } catch (error: unknown) {
     logger.error({ error, sessionId }, 'Failed to persist interview profile update')
-  })
+    // Re-throw the error to be caught by the calling workflow
+    throw error
+  }
 }
 
 /**
