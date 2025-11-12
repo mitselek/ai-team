@@ -82,6 +82,86 @@ export const useInterview = () => {
     }
   }
 
+  // F013 Approval Workflow Functions
+
+  const approvePrompt = async (id: string) => {
+    const res = await fetch(`/api/interview/${id}/approve-prompt`, {
+      method: 'POST'
+    })
+    currentInterview.value = await res.json()
+  }
+
+  const rejectPrompt = async (id: string) => {
+    const res = await fetch(`/api/interview/${id}/reject-prompt`, {
+      method: 'POST'
+    })
+    currentInterview.value = await res.json()
+  }
+
+  const editPrompt = async (id: string, newPrompt: string) => {
+    const res = await fetch(`/api/interview/${id}/edit-prompt`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ prompt: newPrompt })
+    })
+    currentInterview.value = await res.json()
+  }
+
+  const sendTestMessage = async (id: string, message: string) => {
+    const res = await fetch(`/api/interview/${id}/test-message`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message })
+    })
+    currentInterview.value = await res.json()
+  }
+
+  const getTestHistory = async (id: string) => {
+    const res = await fetch(`/api/interview/${id}/test-history`)
+    return await res.json()
+  }
+
+  const clearTestHistory = async (id: string) => {
+    const res = await fetch(`/api/interview/${id}/clear-test-history`, {
+      method: 'POST'
+    })
+    currentInterview.value = await res.json()
+  }
+
+  const approveAgent = async (id: string) => {
+    const res = await fetch(`/api/interview/${id}/approve-agent`, {
+      method: 'POST'
+    })
+    currentInterview.value = await res.json()
+  }
+
+  const rejectAgent = async (id: string) => {
+    const res = await fetch(`/api/interview/${id}/reject-agent`, {
+      method: 'POST'
+    })
+    currentInterview.value = await res.json()
+  }
+
+  const getNameSuggestions = async (id: string) => {
+    const res = await fetch(`/api/interview/${id}/name-suggestions`)
+    return await res.json()
+  }
+
+  const setAgentDetails = async (id: string, name: string, gender: string) => {
+    const res = await fetch(`/api/interview/${id}/set-details`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name, gender })
+    })
+    currentInterview.value = await res.json()
+  }
+
   return {
     interviews: computed(() => interviews.value),
     currentInterview: computed(() => currentInterview.value),
@@ -89,6 +169,17 @@ export const useInterview = () => {
     getInterview,
     startInterview,
     respondToInterview,
-    cancelInterview
+    cancelInterview,
+    // F013 Approval Workflow
+    approvePrompt,
+    rejectPrompt,
+    editPrompt,
+    sendTestMessage,
+    getTestHistory,
+    clearTestHistory,
+    approveAgent,
+    rejectAgent,
+    getNameSuggestions,
+    setAgentDetails
   }
 }
