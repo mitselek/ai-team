@@ -586,3 +586,53 @@ export async function clearTestHistory(sessionId: string): Promise<void> {
 
   log.info('Test conversation history cleared successfully')
 }
+
+/**
+ * Approve the agent after successful test conversation
+ */
+export function approveAgent(sessionId: string): void {
+  const log = logger.child({ sessionId })
+
+  log.info('Approving agent after test conversation')
+
+  const session = getSession(sessionId)
+  if (!session) {
+    throw new Error(`Interview session ${sessionId} not found`)
+  }
+
+  if (session.currentState !== 'test_conversation') {
+    throw new Error(`Cannot approve agent in state '${session.currentState}'`)
+  }
+
+  // Transition to assign_details
+  updateState(sessionId, 'assign_details')
+  resetExchangeCounter(session)
+
+  log.info({ newState: 'assign_details' }, 'Agent approved, moved to assign details')
+}
+
+/**
+ * Reject the agent after a test conversation and return to prompt review
+ */
+export function rejectAgent(sessionId: string): void {
+  const log = logger.child({ sessionId })
+
+  log.info('Rejecting agent, returning to prompt review')
+
+  const session = getSession(sessionId)
+  if (!session) {
+    throw new Error(`Interview session ${sessionId} not found`)
+  }
+
+  if (session.currentState !== 'test_conversation') {
+    throw new Error(`Cannot reject agent in state '${session.currentState}'`)
+  }
+
+  // Clear test conversation history (start fresh)
+  session.testConversationHistory = []
+
+  // Transition back to review_prompt
+  updateState(sessionId, 'review_prompt')
+
+  log.info({ newState: 'review_prompt' }, 'Agent rejected, moved back to review prompt')
+}
