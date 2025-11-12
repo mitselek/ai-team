@@ -352,7 +352,16 @@ If new constraints discovered:
 
 ### Activities
 
-#### Step 1: Stage Files
+#### Step 1: Verify Clean Status (Pre-Staging)
+
+```bash
+# Check current repository state
+git status
+# Review what's changed before staging
+git diff --stat
+```
+
+#### Step 2: Stage Files
 
 ```bash
 git add <feature-files>              # Implementation
@@ -361,7 +370,16 @@ git add .specify/features/F00X/      # Feature planning
 git add .specify/memory/lessons-learned.md  # If updated
 ```
 
-#### Step 2: Launch Commit Automation
+#### Step 3: Verify Staged Changes
+
+```bash
+# Confirm staged files are correct
+git status
+# Review staged changes
+git diff --cached --stat
+```
+
+#### Step 4: Launch Commit Automation
 
 ```bash
 cd /home/user/project
@@ -369,7 +387,7 @@ gemini --yolo "$(cat .github/prompts/commit4gemini.prompt.md)" \
   > gemini-commit-$(date +%Y%m%d-%H%M%S).log 2>&1 &
 ```
 
-#### Step 3: Wait & Verify
+#### Step 5: Wait & Verify
 
 ```bash
 # Wait ~1-2 minutes
@@ -379,10 +397,36 @@ ps aux | grep gemini | grep commit4gemini
 git log --oneline -1
 # Should show conventional commit format
 
-# Verify clean tree
+# CRITICAL: Verify clean tree
 git status
-# Should show "nothing to commit, working tree clean"
+# MUST show "nothing to commit, working tree clean"
+# If not clean, investigate what's uncommitted and why
 ```
+
+### Git Status Requirements (CRITICAL)
+
+**BEFORE commit**:
+
+- ✅ Run `git status` to see all changes
+- ✅ Run `git diff --stat` to review modifications
+- ✅ Stage ONLY intended files (don't use `git add .`)
+- ✅ Run `git status` again to verify staged files
+- ✅ Review `git diff --cached` to confirm staged changes
+
+**AFTER commit**:
+
+- ✅ Run `git status` to verify clean working tree
+- ✅ MUST show "nothing to commit, working tree clean"
+- ✅ If uncommitted files remain, determine if intentional or error
+- ✅ Unstaged files indicate incomplete commit or new untracked work
+
+**Why this matters**:
+
+- Prevents accidental omission of files
+- Catches unintended modifications
+- Ensures atomic commits (all related changes together)
+- Provides clean checkpoint for next iteration
+- Makes git history reliable and predictable
 
 ### Commit Quality
 

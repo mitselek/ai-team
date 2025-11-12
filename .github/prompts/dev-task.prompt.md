@@ -73,6 +73,44 @@ Before finishing, verify:
 - Stay within the scope defined above
 - Use uuid v4 for ID generation: `import { v4 as uuidv4 } from 'uuid'`
 
+## Git Status Requirements (CRITICAL)
+
+When working with git, ALWAYS verify repository state:
+
+**Before making changes**:
+
+```bash
+git status  # Check current state
+```
+
+**After completing task**:
+
+```bash
+git status  # Verify changes are as expected
+git diff --stat  # Review modification summary
+```
+
+**Before any commit**:
+
+```bash
+git status  # See all changes
+git diff --cached  # Review staged changes
+```
+
+**After commit**:
+
+```bash
+git status  # MUST show "nothing to commit, working tree clean"
+```
+
+**Why this matters**:
+
+- Ensures all intended files are included
+- Catches unintended modifications
+- Verifies clean working state after commit
+- Prevents incomplete or partial commits
+- Makes git history reliable
+
 ## Output Formatting (MANDATORY)
 
 All output (status, reasoning, steps) MUST be cleanly formatted:

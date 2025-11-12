@@ -401,7 +401,7 @@ When planning next steps, structure your response like this:
 
 ---
 
-```
+````
 
 ## Markdown Formatting Requirements (CRITICAL)
 
@@ -424,6 +424,45 @@ Before presenting final output:
 - Ensure consistent markdown syntax throughout
 
 **RECURSIVE REQUIREMENT**: If this prompt generates output that itself creates markdown content (such as documentation, planning templates, or other prompts), those outputs MUST also include these same markdown formatting requirements to ensure linting standards propagate through all levels of generation.
+
+## Git Status Requirements (CRITICAL)
+
+When planning work that involves git commits, include git status verification:
+
+**Pre-Commit Checklist**:
+
+```bash
+# Before staging
+git status           # Review all changes
+git diff --stat      # See modification summary
+
+# After staging
+git status           # Verify staged files
+git diff --cached    # Review staged changes
+````
+
+**Post-Commit Verification**:
+
+```bash
+# After commit completes
+git status           # MUST show "nothing to commit, working tree clean"
+git log -1 --oneline # Verify commit message
+```
+
+**Why this matters**:
+
+- Prevents incomplete commits (missing files)
+- Catches unintended modifications
+- Ensures clean checkpoints between iterations
+- Makes git history reliable and atomic
+- Provides clear state for next work phase
+
+**Include in all planning output**:
+
+- Add git status checks to task lists
+- Include verification steps in validation gates
+- Remind to check clean status after commits
+- Document expected git state at each phase
 
 ## Constitutional Compliance (CRITICAL for Code-Related Planning)
 
@@ -557,11 +596,11 @@ Now we need to expose it. Options:
 - UI components (better UX, takes longer)
   Which should we do first?
 
-````
+```
 
 **AI generates**:
 
-```markdown
+````markdown
 ## Next Steps Planning: Interview System Exposure
 
 ### Current State Analysis
@@ -586,13 +625,13 @@ Now we need to expose it. Options:
 
 ### Decision Matrix
 
-| Criteria | Option A | Option B | Winner |
-|----------|----------|----------|--------|
-| Effort | 30 min | 2 hours | A |
-| Time to Value | Immediate | 2+ hours | A |
-| Validation Speed | Fast | Slow | A |
-| User Experience | None | High | B |
-| Dependencies | None | Needs A | A |
+| Criteria         | Option A  | Option B | Winner |
+| ---------------- | --------- | -------- | ------ |
+| Effort           | 30 min    | 2 hours  | A      |
+| Time to Value    | Immediate | 2+ hours | A      |
+| Validation Speed | Fast      | Slow     | A      |
+| User Experience  | None      | High     | B      |
+| Dependencies     | None      | Needs A  | A      |
 
 ### Recommendation
 
@@ -623,6 +662,7 @@ Phase 2: UI Components (~2 hours)
 
 ```bash
 create_file app/server/api/interview/start.post.ts
+```
 ````
 
 **Why**: Enables first test case (starting an interview)
