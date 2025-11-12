@@ -2,7 +2,7 @@ import { mkdir, writeFile, readFile, readdir } from 'fs/promises'
 import path from 'path'
 import { createLogger } from '../../utils/logger'
 import type { Organization, Team, Agent } from '@@/types'
-import type { InterviewSession, TranscriptEntry } from './types'
+import type { InterviewSession, InterviewMessage } from './types'
 
 const log = createLogger('persistence:filesystem')
 
@@ -222,7 +222,7 @@ export async function loadInterview(sessionId: string): Promise<InterviewSession
         createdAt: new Date(data.createdAt),
         updatedAt: new Date(data.updatedAt),
         transcript: data.transcript.map(
-          (t: TranscriptEntry): TranscriptEntry => ({
+          (t: InterviewMessage): InterviewMessage => ({
             ...t,
             timestamp: new Date(t.timestamp)
           })
@@ -252,7 +252,7 @@ export async function loadInterviews(orgId: string): Promise<InterviewSession[]>
           createdAt: new Date(data.createdAt),
           updatedAt: new Date(data.updatedAt),
           transcript: data.transcript.map(
-            (t: TranscriptEntry): TranscriptEntry => ({
+            (t: InterviewMessage): InterviewMessage => ({
               ...t,
               timestamp: new Date(t.timestamp)
             })
