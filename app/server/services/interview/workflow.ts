@@ -444,8 +444,145 @@ export async function editPrompt(sessionId: string, newPrompt: string): Promise<
     throw new Error(`Cannot edit prompt in state '${session.currentState}'`)
   }
 
-  // Update the prompt in the candidate profile
-  await updateProfile(sessionId, { systemPrompt: newPrompt })
+  // Update the prompt in the agent draft
+  if (session.agentDraft) {
+    session.agentDraft.draftPrompt = newPrompt
+  } else {
+    // This case should ideally not happen in this state, but handle defensively
+    await updateProfile(sessionId, { systemPrompt: newPrompt })
+  }
+
+  // Save session changes
+  const { saveInterview } = await import('../persistence/filesystem')
+  await saveInterview(session)
 
   log.info('System prompt updated successfully')
+}
+
+/**
+ * Send a test message to the draft agent
+ */
+export async function sendTestMessage(
+  sessionId: string,
+  message: string,
+  correlationId?: string
+): Promise<{ response: string; historyLength: number }> {
+  const log = logger.child({ sessionId, correlationId })
+
+  log.info('Sending test message to draft agent')
+
+  const session = getSession(sessionId)
+  if (!session) {
+    throw new Error(`Interview session ${sessionId} not found`)
+  }
+
+  if (session.currentState !== 'test_conversation') {
+    throw new Error(
+      `Cannot send test message in state '${session.currentState}'. Must be in 'test_conversation' state.`
+    )
+  }
+
+  if (!session.agentDraft?.draftPrompt) {
+    throw new Error('No draft prompt available for testing')
+  }
+
+  // Dynamically import to avoid circular dependencies
+  const { generateCompletion } = await import('../llm')
+  const { saveInterview } = await import('../persistence/filesystem')
+
+  // Build conversation context for the LLM
+  const messages = [
+    { role: 'system', content: session.agentDraft.draftPrompt },
+    ...(session.testConversationHistory || []).map((msg) => ({
+      role: msg.speaker === 'requester' ? 'user' : 'assistant',
+      content: msg.message
+    })),
+    { role: 'user', content: message }
+  ]
+
+  // The 'generateCompletion' function expects a string prompt.
+  // We need to format the messages array into a string.
+  // This is a simplified representation; a more robust solution might be needed
+  // depending on the LLM provider's expected format.
+  const prompt = messages
+    .map((m) => {
+      if (m.role === 'system') {
+        return `${m.content}\n\n` // System prompts often are presented first
+      }
+      return `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`
+    })
+    .join('\n')
+
+  try {
+    const response = await generateCompletion(prompt, {
+      agentId: session.interviewerId, // Track token usage against the interviewer
+      temperature: 0.7,
+      maxTokens: 1000
+    })
+
+    const agentResponse = response.content.trim()
+
+    // Initialize history if it doesn't exist
+    if (!session.testConversationHistory) {
+      session.testConversationHistory = []
+    }
+
+    // Add user message to history
+    session.testConversationHistory.push({
+      id: uuidv4(),
+      speaker: 'requester',
+      message,
+      timestamp: new Date()
+    })
+
+    // Add agent response to history
+    session.testConversationHistory.push({
+      id: uuidv4(),
+      speaker: 'interviewer', // 'interviewer' acts as the draft agent here
+      message: agentResponse,
+      timestamp: new Date()
+    })
+
+    await saveInterview(session)
+
+    log.info(
+      { historyLength: session.testConversationHistory.length },
+      'Test message processed successfully'
+    )
+
+    return {
+      response: agentResponse,
+      historyLength: session.testConversationHistory.length
+    }
+  } catch (error) {
+    log.error({ error }, 'Failed to process test message')
+    throw new Error('Failed to get response from LLM during test conversation')
+  }
+}
+
+/**
+ * Clear test conversation history
+ */
+export async function clearTestHistory(sessionId: string): Promise<void> {
+  const log = logger.child({ sessionId })
+
+  log.info('Clearing test conversation history')
+
+  const session = getSession(sessionId)
+  if (!session) {
+    throw new Error(`Interview session ${sessionId} not found`)
+  }
+
+  if (session.currentState !== 'test_conversation') {
+    throw new Error(
+      `Cannot clear test history in state '${session.currentState}'. Must be in 'test_conversation' state.`
+    )
+  }
+
+  session.testConversationHistory = []
+
+  const { saveInterview } = await import('../persistence/filesystem')
+  await saveInterview(session)
+
+  log.info('Test conversation history cleared successfully')
 }
