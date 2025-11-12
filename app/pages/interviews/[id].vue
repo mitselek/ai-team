@@ -3,7 +3,7 @@
     <div class="mx-auto max-w-4xl">
       <!-- Header with Refresh Button -->
       <div class="mb-6 flex items-center justify-between">
-        <h1 class="text-3xl font-bold text-gray-900">Interview {{ $route.params.id }}</h1>
+        <h1 class="text-3xl font-bold text-gray-900">Interview {{ interviewId }}</h1>
         <button
           @click="refreshInterview"
           class="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
@@ -23,236 +23,43 @@
         </div>
 
         <!-- Standard Interview Chat (for greet, ask_role, etc.) -->
-        <div v-if="!isApprovalState" class="rounded-lg bg-white p-6 shadow-sm">
-          <div
-            class="chat-window mb-4 h-96 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-4"
-          >
-            <div v-for="(message, index) in chatHistory" :key="index" class="chat-message mb-3">
-              <div :class="message.sender === 'Marcus' ? 'text-left' : 'text-right'">
-                <span
-                  class="inline-block rounded-lg px-4 py-2"
-                  :class="
-                    message.sender === 'Marcus'
-                      ? 'bg-blue-100 text-blue-900'
-                      : 'bg-green-100 text-green-900'
-                  "
-                >
-                  <strong>{{ message.sender }}:</strong> {{ message.text }}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div class="chat-input flex gap-2">
-            <input
-              v-model="newMessage"
-              @keyup.enter="sendMessage"
-              placeholder="Type your message..."
-              class="flex-grow rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              @click="sendMessage"
-              class="rounded-lg bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700"
-            >
-              Send
-            </button>
-          </div>
-        </div>
+        <StandardChat v-if="!isApprovalState" :chat-history="chatHistory" @send="sendMessage" />
 
         <!-- Review Prompt State -->
-        <div
+        <ReviewPrompt
           v-if="currentInterview.currentState === 'review_prompt'"
-          class="space-y-4 rounded-lg bg-white p-6 shadow-sm"
-        >
-          <h2 class="text-2xl font-semibold text-gray-900">Review Interview Prompt</h2>
-          <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <p class="whitespace-pre-wrap text-gray-700">
-              {{ agentDraft?.generatedPrompt || 'No prompt available' }}
-            </p>
-          </div>
-          <div v-if="!editingPrompt" class="flex gap-3">
-            <button
-              @click="handleApprovePrompt"
-              class="rounded-lg bg-green-600 px-6 py-2 text-white transition-colors hover:bg-green-700"
-            >
-              Approve
-            </button>
-            <button
-              @click="handleRejectPrompt"
-              class="rounded-lg bg-red-600 px-6 py-2 text-white transition-colors hover:bg-red-700"
-            >
-              Reject
-            </button>
-            <button
-              @click="editingPrompt = true"
-              class="rounded-lg bg-yellow-600 px-6 py-2 text-white transition-colors hover:bg-yellow-700"
-            >
-              Edit
-            </button>
-          </div>
-          <div v-if="editingPrompt" class="space-y-3">
-            <textarea
-              v-model="editedPrompt"
-              class="h-40 w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Edit the prompt..."
-            ></textarea>
-            <div class="flex gap-3">
-              <button
-                @click="handleSavePrompt"
-                class="rounded-lg bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700"
-              >
-                Save
-              </button>
-              <button
-                @click="editingPrompt = false"
-                class="rounded-lg bg-gray-600 px-6 py-2 text-white transition-colors hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+          :prompt="agentDraft?.generatedPrompt || ''"
+          @approve="handleApprovePrompt"
+          @reject="handleRejectPrompt"
+          @save="handleSavePrompt"
+        />
 
         <!-- Test Conversation State -->
-        <div
+        <TestConversation
           v-if="currentInterview.currentState === 'test_conversation'"
-          class="space-y-4 rounded-lg bg-white p-6 shadow-sm"
-        >
-          <h2 class="text-2xl font-semibold text-gray-900">Test Agent Conversation</h2>
-          <div
-            class="chat-window mb-4 h-96 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-4"
-          >
-            <div v-for="(message, index) in testHistory" :key="index" class="chat-message mb-3">
-              <div :class="message.sender === 'agent' ? 'text-left' : 'text-right'">
-                <span
-                  class="inline-block rounded-lg px-4 py-2"
-                  :class="
-                    message.sender === 'agent'
-                      ? 'bg-purple-100 text-purple-900'
-                      : 'bg-green-100 text-green-900'
-                  "
-                >
-                  <strong>{{ message.sender === 'agent' ? 'Agent' : 'You' }}:</strong>
-                  {{ message.text }}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div class="mb-4 flex gap-2">
-            <input
-              v-model="testMessage"
-              @keyup.enter="handleSendTestMessage"
-              placeholder="Send a test message..."
-              class="flex-grow rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              @click="handleSendTestMessage"
-              class="rounded-lg bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700"
-            >
-              Send
-            </button>
-          </div>
-          <div class="flex gap-3">
-            <button
-              @click="handleApproveAgent"
-              class="rounded-lg bg-green-600 px-6 py-2 text-white transition-colors hover:bg-green-700"
-            >
-              Approve Agent
-            </button>
-            <button
-              @click="handleRejectAgent"
-              class="rounded-lg bg-red-600 px-6 py-2 text-white transition-colors hover:bg-red-700"
-            >
-              Reject Agent
-            </button>
-            <button
-              @click="handleClearTestHistory"
-              class="rounded-lg bg-gray-600 px-6 py-2 text-white transition-colors hover:bg-gray-700"
-            >
-              Clear History
-            </button>
-          </div>
-        </div>
+          :test-history="testHistory"
+          @send="handleSendTestMessage"
+          @approve="handleApproveAgent"
+          @reject="handleRejectAgent"
+          @clear="handleClearTestHistory"
+        />
 
         <!-- Assign Details State -->
-        <div
+        <AssignDetails
           v-if="currentInterview.currentState === 'assign_details'"
-          class="space-y-4 rounded-lg bg-white p-6 shadow-sm"
-        >
-          <h2 class="text-2xl font-semibold text-gray-900">Assign Agent Details</h2>
-
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700">Suggested Names</label>
-            <div class="flex flex-wrap gap-2">
-              <button
-                v-for="name in nameSuggestions"
-                :key="name"
-                @click="selectedName = name"
-                class="rounded-full border px-4 py-2 transition-colors"
-                :class="
-                  selectedName === name
-                    ? 'border-blue-600 bg-blue-600 text-white'
-                    : 'border-gray-300 bg-white text-gray-700 hover:border-blue-500'
-                "
-              >
-                {{ name }}
-              </button>
-            </div>
-          </div>
-
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700">Agent Name</label>
-            <input
-              v-model="selectedName"
-              type="text"
-              placeholder="Enter agent name"
-              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <p v-if="nameError" class="text-sm text-red-600">{{ nameError }}</p>
-          </div>
-
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700">Gender</label>
-            <div class="flex gap-4">
-              <label class="flex items-center">
-                <input v-model="selectedGender" type="radio" value="male" class="mr-2" />
-                <span>Male</span>
-              </label>
-              <label class="flex items-center">
-                <input v-model="selectedGender" type="radio" value="female" class="mr-2" />
-                <span>Female</span>
-              </label>
-              <label class="flex items-center">
-                <input v-model="selectedGender" type="radio" value="neutral" class="mr-2" />
-                <span>Neutral</span>
-              </label>
-            </div>
-            <p v-if="genderError" class="text-sm text-red-600">{{ genderError }}</p>
-          </div>
-
-          <button
-            @click="handleSetAgentDetails"
-            class="rounded-lg bg-green-600 px-6 py-2 text-white transition-colors hover:bg-green-700"
-          >
-            Create Agent
-          </button>
-        </div>
+          :name-suggestions="nameSuggestions"
+          v-model:selected-name="selectedName"
+          v-model:selected-gender="selectedGender"
+          @create="handleSetAgentDetails"
+        />
 
         <!-- Complete State -->
-        <div
+        <CompleteState
           v-if="currentInterview.currentState === 'complete'"
-          class="space-y-4 rounded-lg bg-white p-6 shadow-sm"
-        >
-          <div class="text-center">
-            <div class="mb-4 text-6xl">✓</div>
-            <h2 class="mb-2 text-2xl font-semibold text-green-600">Agent Created Successfully!</h2>
-            <p class="mb-4 text-gray-700">Your new agent is ready to join the team.</p>
-            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 text-left">
-              <p><strong>Agent ID:</strong> {{ currentInterview.agentId || 'N/A' }}</p>
-              <p><strong>Name:</strong> {{ agentDraft?.finalDetails?.name || 'N/A' }}</p>
-              <p><strong>Gender:</strong> {{ agentDraft?.finalDetails?.gender || 'N/A' }}</p>
-            </div>
-          </div>
-        </div>
+          :agent-id="currentInterview.agentId"
+          :name="agentDraft?.finalDetails?.name"
+          :gender="agentDraft?.finalDetails?.gender"
+        />
       </div>
     </div>
   </div>
@@ -262,6 +69,11 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useInterview } from '~/composables/useInterview'
+import StandardChat from '~/components/interview/StandardChat.vue'
+import ReviewPrompt from '~/components/interview/ReviewPrompt.vue'
+import TestConversation from '~/components/interview/TestConversation.vue'
+import AssignDetails from '~/components/interview/AssignDetails.vue'
+import CompleteState from '~/components/interview/CompleteState.vue'
 
 const route = useRoute()
 const {
@@ -280,28 +92,20 @@ const {
   setAgentDetails
 } = useInterview()
 
-const interviewId = route.params.id as string
-
-// Standard chat
-const newMessage = ref('')
-
-// Prompt review
-const editingPrompt = ref(false)
-const editedPrompt = ref('')
+const interviewId = ref(route.params.id as string)
 
 // Test conversation
-const testMessage = ref('')
 const testHistory = ref<Array<{ sender: string; text: string }>>([])
 
 // Agent details
 const nameSuggestions = ref<string[]>([])
 const selectedName = ref('')
 const selectedGender = ref('')
-const nameError = ref('')
-const genderError = ref('')
 
 onMounted(() => {
-  getInterview(interviewId)
+  if (interviewId.value) {
+    getInterview(interviewId.value)
+  }
 })
 
 const chatHistory = computed(() => {
@@ -325,7 +129,7 @@ const isApprovalState = computed(() => {
 })
 
 const refreshInterview = async () => {
-  await getInterview(interviewId)
+  await getInterview(interviewId.value)
 
   // Load test history if in test_conversation state
   if (currentInterview.value?.currentState === 'test_conversation') {
@@ -338,42 +142,33 @@ const refreshInterview = async () => {
   }
 }
 
-const sendMessage = async () => {
-  if (newMessage.value.trim() !== '') {
-    await respondToInterview(interviewId, newMessage.value)
-    newMessage.value = ''
-    await getInterview(interviewId)
-  }
+const sendMessage = async (message: string) => {
+  await respondToInterview(interviewId.value, message)
+  await getInterview(interviewId.value)
 }
 
 const handleApprovePrompt = async () => {
-  await approvePrompt(interviewId)
-  await getInterview(interviewId)
+  await approvePrompt(interviewId.value)
+  await getInterview(interviewId.value)
 }
 
 const handleRejectPrompt = async () => {
-  await rejectPrompt(interviewId)
-  await getInterview(interviewId)
+  await rejectPrompt(interviewId.value)
+  await getInterview(interviewId.value)
 }
 
-const handleSavePrompt = async () => {
-  if (editedPrompt.value.trim()) {
-    await editPrompt(interviewId, editedPrompt.value)
-    editingPrompt.value = false
-    await getInterview(interviewId)
-  }
+const handleSavePrompt = async (newPrompt: string) => {
+  await editPrompt(interviewId.value, newPrompt)
+  await getInterview(interviewId.value)
 }
 
-const handleSendTestMessage = async () => {
-  if (testMessage.value.trim()) {
-    await sendTestMessage(interviewId, testMessage.value)
-    testMessage.value = ''
-    await loadTestHistory()
-  }
+const handleSendTestMessage = async (message: string) => {
+  await sendTestMessage(interviewId.value, message)
+  await loadTestHistory()
 }
 
 const loadTestHistory = async () => {
-  const history = await getTestHistory(interviewId)
+  const history = await getTestHistory(interviewId.value)
   if (history && Array.isArray(history)) {
     testHistory.value = history.map((entry: any) => ({
       sender: entry.sender || entry.speaker,
@@ -384,42 +179,29 @@ const loadTestHistory = async () => {
 }
 
 const handleClearTestHistory = async () => {
-  await clearTestHistory(interviewId)
+  await clearTestHistory(interviewId.value)
   testHistory.value = []
 }
 
 const handleApproveAgent = async () => {
-  await approveAgent(interviewId)
-  await getInterview(interviewId)
+  await approveAgent(interviewId.value)
+  await getInterview(interviewId.value)
 }
 
 const handleRejectAgent = async () => {
-  await rejectAgent(interviewId)
-  await getInterview(interviewId)
+  await rejectAgent(interviewId.value)
+  await getInterview(interviewId.value)
 }
 
 const loadNameSuggestions = async () => {
-  const suggestions = await getNameSuggestions(interviewId)
+  const suggestions = await getNameSuggestions(interviewId.value)
   if (suggestions && Array.isArray(suggestions)) {
     nameSuggestions.value = suggestions
   }
 }
 
-const handleSetAgentDetails = async () => {
-  nameError.value = ''
-  genderError.value = ''
-
-  if (!selectedName.value || selectedName.value.trim().length < 2) {
-    nameError.value = 'Name must be at least 2 characters'
-    return
-  }
-
-  if (!selectedGender.value) {
-    genderError.value = 'Please select a gender'
-    return
-  }
-
-  await setAgentDetails(interviewId, selectedName.value, selectedGender.value)
-  await getInterview(interviewId)
+const handleSetAgentDetails = async (name: string, gender: string) => {
+  await setAgentDetails(interviewId.value, name, gender)
+  await getInterview(interviewId.value)
 }
 </script>
