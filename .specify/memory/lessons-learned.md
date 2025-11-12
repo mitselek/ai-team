@@ -4,6 +4,59 @@ This document captures key insights, best practices, and lessons learned during 
 
 ## Date: 2025-11-12
 
+### F012 Phase 2: Bootstrap Plugin - Type Deduplication & Manual Implementation
+
+#### Context
+
+Implemented server-side bootstrap plugin to create initial organization on first startup or load existing state on restarts. All tasks completed manually without Gemini assistance.
+
+#### Successes
+
+- **Bootstrap orchestration**: Simple existence check (filesystem empty → create, else → load) works reliably
+- **Token budget planning**: 10M pool, 6M allocated to 6 core teams, 200K to Marcus, 3.8M reserve
+- **Manual testing**: 3 test scenarios (fresh, reload, multiple restarts) all passed, zero data duplication
+- **Error resilience**: Load function continues on individual org failures, doesn't crash on corrupt data
+- **Logging clarity**: Bootstrap logs clearly show what happened (bootstrap vs load path)
+
+#### Challenge: Type Definition Duplication
+
+**Problem**: Persistence layer duplicated InterviewSession type with incompatible enum values:
+
+```typescript
+// persistence/types.ts had: 'pending' | 'active' | 'completed' | 'cancelled'
+// interview/types.ts has:    'active' | 'pending_review' | 'completed' | 'cancelled'
+```
+
+**Impact**: TypeScript error when loading interviews - type mismatch prevented array push.
+
+**Solution**: Re-export all interview types from persistence/types.ts instead of duplicating:
+
+```typescript
+export type {
+  InterviewSession,
+  InterviewStatus,
+  InterviewState,
+  InterviewMessage
+  // ... all types
+} from '../interview/types'
+```
+
+#### Best Practices Discovered
+
+1. **Single Source of Truth for Types** - Re-export types, never duplicate definitions across modules
+2. **Simple Orchestration Logic** - 30-line Nitro plugin didn't need Gemini, faster to write manually
+3. **Graceful Degradation** - Continue processing on partial failures during bulk operations
+4. **Manual Validation Before Commit** - Test scenarios caught issues early
+5. **Skip AI for Glue Code** - Use Gemini for complex logic, not simple orchestration
+
+#### Key Takeaway
+
+Type duplication across modules leads to incompatible definitions over time. Always re-export from a single source of truth. For simple orchestration code (30 lines), manual implementation is faster than creating prompts for Gemini.
+
+**Grade: A** - All validation gates passed, clean implementation, type issue caught and fixed proactively.
+
+---
+
 ### F012 Phase 1: Filesystem Persistence Layer - ESM Test Isolation Challenge
 
 #### Context
