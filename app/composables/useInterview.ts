@@ -19,6 +19,18 @@ interface CandidateProfile {
     traits: string[]
     tone: string
   }
+  systemPrompt?: string
+  suggestedName?: string
+}
+
+interface AgentDraft {
+  profile: CandidateProfile
+  generatedPrompt: string
+  suggestedNames: string[]
+  finalDetails?: {
+    name: string
+    gender: string
+  }
 }
 
 interface Interview {
@@ -26,12 +38,27 @@ interface Interview {
   candidateId: string
   teamId: string
   interviewerId: string
-  status: 'active' | 'completed' | 'cancelled'
-  currentState: string
+  status: 'active' | 'pending_review' | 'completed' | 'cancelled'
+  currentState:
+    | 'greet'
+    | 'ask_role'
+    | 'ask_expertise'
+    | 'ask_preferences'
+    | 'follow_up'
+    | 'consult_hr'
+    | 'awaiting_review'
+    | 'finalize'
+    | 'review_prompt'
+    | 'test_conversation'
+    | 'assign_details'
+    | 'complete'
   transcript: TranscriptEntry[]
   candidateProfile: CandidateProfile
   createdAt: string
   updatedAt: string
+  agentDraft?: AgentDraft
+  testConversationHistory?: TranscriptEntry[]
+  agentId?: string
 }
 
 const interviews = ref<Interview[]>([])
