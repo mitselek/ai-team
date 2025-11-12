@@ -20,7 +20,7 @@ export function loadConfig(): LLMConfig {
     providers: {
       anthropic: {
         apiKey: process.env.NUXT_ANTHROPIC_API_KEY || '',
-        defaultModel: 'claude-3-haiku-20240307',
+        defaultModel: 'claude-sonnet-4-5-20250929', // Back to Sonnet for continuing that session
         maxRetries: 3,
         timeout: 60000,
         rateLimit: { requestsPerMinute: 50, tokensPerMinute: 40000 }
@@ -34,13 +34,13 @@ export function loadConfig(): LLMConfig {
       },
       google: {
         apiKey: process.env.NUXT_GOOGLE_API_KEY || '',
-        defaultModel: 'gemini-1.5-flash', // Upgraded from gemini-pro - much better instruction following
+        defaultModel: 'gemini-2.5-flash-lite',
         maxRetries: 3,
         timeout: 60000,
         rateLimit: { requestsPerMinute: 60, tokensPerMinute: 50000 }
       }
     },
-    providerPriority: [LLMProvider.ANTHROPIC], // Only use Anthropic - others generate hallucinations
+    providerPriority: [LLMProvider.ANTHROPIC], // Switch back to Anthropic
     modelByRole: {
       worker: {
         [LLMProvider.ANTHROPIC]: 'claude-3-haiku-20240307',
