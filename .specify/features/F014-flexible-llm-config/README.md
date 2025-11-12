@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD036 MD024 MD026 -->
+
 # F014: Flexible LLM Configuration with Task-Based Model Selection
 
 **Feature ID:** F014-flexible-llm-config
