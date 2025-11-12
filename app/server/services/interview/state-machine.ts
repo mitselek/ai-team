@@ -15,10 +15,18 @@ type StateKey =
   | 'ask_preferences'
   | 'follow_up'
   | 'finalize'
+  | 'review_prompt'
+  | 'test_conversation'
+  | 'assign_details'
 
 const STATE_CONFIG: Record<
   StateKey,
-  { maxExchanges: number; nextState: InterviewState | null; topic: string }
+  {
+    maxExchanges: number
+    nextState: InterviewState | null
+    topic: string
+    isBlocked?: boolean // If true, state doesn't accept user responses
+  }
 > = {
   greet: {
     maxExchanges: 1,
@@ -46,9 +54,27 @@ const STATE_CONFIG: Record<
     topic: 'follow_up'
   },
   finalize: {
-    maxExchanges: 1,
+    maxExchanges: 0, // No user input accepted
+    nextState: 'review_prompt' as InterviewState,
+    topic: 'finalization',
+    isBlocked: true // Async processing, no responses allowed
+  },
+  review_prompt: {
+    maxExchanges: 0, // Uses approval API, not /respond endpoint
+    nextState: 'test_conversation' as InterviewState,
+    topic: 'prompt_review',
+    isBlocked: true // Uses dedicated approval endpoints
+  },
+  test_conversation: {
+    maxExchanges: 10, // Allow multiple test messages
+    nextState: 'assign_details' as InterviewState,
+    topic: 'agent_testing'
+  },
+  assign_details: {
+    maxExchanges: 0, // Uses details API, not /respond endpoint
     nextState: 'complete' as InterviewState,
-    topic: 'summary'
+    topic: 'agent_details',
+    isBlocked: true // Uses dedicated details endpoint
   }
 }
 
@@ -118,6 +144,15 @@ export function getNextState(session: InterviewSession): InterviewState | null {
   }
 
   return config.nextState
+}
+
+/**
+ * Check if current state is blocked (doesn't accept user responses)
+ */
+export function isStateBlocked(session: InterviewSession): boolean {
+  const state = session.currentState as StateKey
+  const config = STATE_CONFIG[state as keyof typeof STATE_CONFIG]
+  return config?.isBlocked === true
 }
 
 /**

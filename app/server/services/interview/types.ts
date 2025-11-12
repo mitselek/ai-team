@@ -12,6 +12,9 @@ export type InterviewState =
   | 'consult_hr'
   | 'awaiting_review'
   | 'finalize'
+  | 'review_prompt' // Requester reviews generated system prompt
+  | 'test_conversation' // Requester tests agent with sample conversation
+  | 'assign_details' // Requester assigns name and gender
   | 'complete'
 
 /**
@@ -75,6 +78,29 @@ export interface CandidateProfile {
 }
 
 /**
+ * Agent draft for approval workflow
+ * Extended profile with additional fields for agent creation
+ */
+export interface AgentDraft {
+  profile: CandidateProfile
+  draftPrompt: string // Generated system prompt for review
+  suggestedNames: string[] // Name options for requester
+  finalName?: string // Chosen name
+  gender?: 'male' | 'female' | 'non-binary' | 'other' // Chosen gender
+}
+
+/**
+ * Approval actions available to requester
+ */
+export type ApprovalAction =
+  | 'approve_prompt'
+  | 'reject_prompt'
+  | 'edit_prompt'
+  | 'approve_agent'
+  | 'reject_agent'
+  | 'set_details'
+
+/**
  * Interview session tracking
  */
 export interface InterviewSession {
@@ -93,6 +119,9 @@ export interface InterviewSession {
   stateHistory?: InterviewState[] // Track state progression
   exchangesInCurrentState?: number // Count Q&A exchanges in current state
   topicsCovered?: string[] // Track which topics have been addressed
+  // Approval workflow tracking
+  agentDraft?: AgentDraft // Draft agent for review/testing
+  testConversationHistory?: InterviewMessage[] // Messages during test phase
 }
 
 /**

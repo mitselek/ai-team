@@ -44,6 +44,12 @@ export default defineEventHandler(async (event) => {
       return { error: error.message }
     }
 
+    if (error instanceof Error && error.message?.includes('Cannot respond in state')) {
+      log.warn({ error: error.message, interviewId }, 'State is blocked')
+      setResponseStatus(event, 400)
+      return { error: error.message }
+    }
+
     log.error({ error, interviewId }, 'Failed to process candidate response')
     setResponseStatus(event, 500)
     return { error: 'Failed to process candidate response' }

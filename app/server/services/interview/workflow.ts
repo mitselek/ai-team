@@ -5,7 +5,7 @@ import { createLogger } from '../../utils/logger'
 import { agents } from '../../data/agents'
 import { teams } from '../../data/teams'
 import type { Agent } from '@@/types'
-import type { InterviewSession, InterviewState } from './types'
+import type { InterviewSession } from './types'
 import {
   createSession,
   getSession,
@@ -14,12 +14,7 @@ import {
   updateProfile,
   completeSession
 } from './session'
-import {
-  generateNextQuestion,
-  generateGreeting,
-  generateFollowUpQuestion,
-  shouldContinueInterview
-} from './questions'
+import { generateNextQuestion, generateGreeting } from './questions'
 import { analyzeResponse } from './analyzer'
 import { consultHRSpecialist } from './hr-specialist'
 import { generateSystemPrompt } from './prompt-builder'
@@ -29,7 +24,8 @@ import {
   shouldTransitionState,
   getNextState,
   incrementExchangeCounter,
-  resetExchangeCounter
+  resetExchangeCounter,
+  isStateBlocked
 } from './state-machine'
 
 const logger = createLogger('interview:workflow')
@@ -107,6 +103,13 @@ export async function processCandidateResponse(
     throw new Error(`Interview session ${sessionId} is not active`)
   }
 
+  // Check if current state is blocked (doesn't accept user responses)
+  if (isStateBlocked(session)) {
+    throw new Error(
+      `Cannot respond in state '${session.currentState}'. This state uses dedicated approval endpoints.`
+    )
+  }
+
   // Add response to transcript
   addMessage(sessionId, 'requester', response)
 
@@ -166,41 +169,6 @@ export async function processCandidateResponse(
     nextQuestion,
     complete: false
   }
-}
-
-/**
- * Determine the next interview state based on current progress
- */
-function determineNextState(session: InterviewSession): InterviewState {
-  const profile = session.candidateProfile
-
-  // If no role yet, ask about role
-  if (!profile.role) {
-    return 'ask_role'
-  }
-
-  // If no expertise, ask about expertise
-  if (profile.expertise.length === 0) {
-    return 'ask_expertise'
-  }
-
-  // If no preferences, ask about preferences
-  if (
-    !profile.preferences.communicationStyle &&
-    !profile.preferences.autonomyLevel &&
-    !profile.preferences.workingHours
-  ) {
-    return 'ask_preferences'
-  }
-
-  // Check if we have enough information
-  const messageCount = session.transcript.length
-  if (messageCount >= INTERVIEW_CONFIG.minQuestions * 2) {
-    return 'consult_hr'
-  }
-
-  // Continue with preferences or general questions
-  return 'ask_preferences'
 }
 
 /**
