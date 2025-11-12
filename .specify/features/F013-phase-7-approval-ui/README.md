@@ -8,8 +8,8 @@
 **Priority**: High (completes F013 approval workflow)
 **Dependencies**:
 
-- ✅ F013 Phases 1-6 (all API endpoints complete, 100% tests passing)
-- ✅ UI foundation healthy (composables connected to API)
+- F013 Phases 1-6 (all API endpoints complete, 100% tests passing)
+- UI foundation healthy (composables connected to API)
 
 ### Objectives
 

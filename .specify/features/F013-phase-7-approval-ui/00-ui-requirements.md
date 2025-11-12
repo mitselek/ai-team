@@ -143,7 +143,7 @@ This document defines the exact UI requirements for each approval workflow state
 
 **Layout**:
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │ Test Your Agent            [🔄 Refresh] │
 ├─────────────────────────────────────────┤
@@ -218,7 +218,7 @@ This document defines the exact UI requirements for each approval workflow state
 
 **Layout**:
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │ Finalize Your Agent        [🔄 Refresh] │
 ├─────────────────────────────────────────┤
@@ -261,7 +261,7 @@ This document defines the exact UI requirements for each approval workflow state
 
 If no name suggestions available:
 
-```
+```text
 Name Suggestions: (No suggestions available)
 ```
 
@@ -287,7 +287,7 @@ Name Suggestions: (No suggestions available)
 
 **Layout**:
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │ 🎉 Agent Created Successfully!          │
 ├─────────────────────────────────────────┤
@@ -401,7 +401,7 @@ Name Suggestions: (No suggestions available)
 
 ### Manual Browser Testing
 
-**Test Flow 1: Happy Path**
+**Test Flow 1: Happy Path:**
 
 1. Start interview → complete conversation
 2. Verify `review_prompt` shows generated prompt
@@ -412,7 +412,7 @@ Name Suggestions: (No suggestions available)
 7. Select gender → click Create Agent
 8. Verify `complete` screen shows success
 
-**Test Flow 2: Edit Prompt**
+**Test Flow 2: Edit Prompt:**
 
 1. Reach `review_prompt` state
 2. Click Edit Prompt
@@ -420,7 +420,7 @@ Name Suggestions: (No suggestions available)
 4. Verify prompt updates
 5. Approve → continue to test
 
-**Test Flow 3: Reject Agent**
+**Test Flow 3: Reject Agent:**
 
 1. Reach `test_conversation` state
 2. Test agent behavior
@@ -428,7 +428,7 @@ Name Suggestions: (No suggestions available)
 4. Verify returns to `review_prompt`
 5. Verify test history cleared
 
-**Test Flow 4: Validation**
+**Test Flow 4: Validation:**
 
 1. Reach `assign_details` state
 2. Try submit with empty name → verify error
