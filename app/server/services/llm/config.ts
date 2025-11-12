@@ -34,7 +34,7 @@ export function loadConfig(): LLMConfig {
       },
       google: {
         apiKey: process.env.NUXT_GOOGLE_API_KEY || '',
-        defaultModel: 'gemini-pro',
+        defaultModel: 'gemini-1.5-flash', // Upgraded from gemini-pro - much better instruction following
         maxRetries: 3,
         timeout: 60000,
         rateLimit: { requestsPerMinute: 60, tokensPerMinute: 50000 }
@@ -45,17 +45,17 @@ export function loadConfig(): LLMConfig {
       worker: {
         [LLMProvider.ANTHROPIC]: 'claude-3-haiku-20240307',
         [LLMProvider.OPENAI]: 'gpt-3.5-turbo',
-        [LLMProvider.GOOGLE]: 'gemini-pro'
+        [LLMProvider.GOOGLE]: 'gemini-1.5-flash' // Fast, smart, good for worker tasks
       },
       manager: {
         [LLMProvider.ANTHROPIC]: 'claude-3-haiku-20240307',
         [LLMProvider.OPENAI]: 'gpt-4-turbo-preview',
-        [LLMProvider.GOOGLE]: 'gemini-pro'
+        [LLMProvider.GOOGLE]: 'gemini-1.5-flash' // Good balance of speed and quality
       },
       director: {
         [LLMProvider.ANTHROPIC]: 'claude-3-haiku-20240307',
         [LLMProvider.OPENAI]: 'gpt-4',
-        [LLMProvider.GOOGLE]: 'gemini-pro'
+        [LLMProvider.GOOGLE]: 'gemini-1.5-pro' // Most capable for complex tasks
       }
     }
   }

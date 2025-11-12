@@ -31,7 +31,7 @@ Complete interviewer responses should be received and stored in transcript.
 
 Responses are cut off mid-sentence or mid-word. Example from transcript:
 
-```
+```text
 "...5. Experience with documentation standards and API design principles would be valuable too.\n\n5"
 ```
 
@@ -107,7 +107,7 @@ Message ID: `fc0d808c-7d5e-4565-8293-1ff4699b30cf`
 
 Example transcript entry:
 
-```
+```text
 "Okay, let's talk about how this new MCP librarian agent should communicate. What kind of communication style or approach would work best for this role?\n\n[20:06:00] Interviewer: Great question. In terms of communication style, what would be the most effective way for this MCP librarian agent to interact with the teams and users it will be supporting?\n\n[20:06:29] Requester: The MCP librarian agent should have a very clear, concise, and informative communication style..."
 ```
 
@@ -166,7 +166,7 @@ Async operations should complete successfully without channel closure errors.
 
 Console errors:
 
-```
+```text
 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
 ```
 
@@ -289,43 +289,43 @@ Can test with alternative approaches:
 
 ### Critical Priority (Blocks Phase 7 Completion)
 
-1. **Fix Issue #3 (Async channel errors)** - Root cause of workflow failure
-   - Investigate LLM service integration
-   - Add proper error handling
-   - Implement timeout management
+- **Fix Issue #3 (Async channel errors)** - Root cause of workflow failure
+  - Investigate LLM service integration
+  - Add proper error handling
+  - Implement timeout management
 
-2. **Fix Issue #1 (Message truncation)** - Prevents interview completion
-   - Review token limits
-   - Fix streaming implementation
-   - Add response validation
+- **Fix Issue #1 (Message truncation)** - Prevents interview completion
+  - Review token limits
+  - Fix streaming implementation
+  - Add response validation
 
-3. **Fix Issue #2 (Duplicate turns)** - Breaks conversation flow
-   - Review system prompt
-   - Limit context window
-   - Validate response format
+- **Fix Issue #2 (Duplicate turns)** - Breaks conversation flow
+  - Review system prompt
+  - Limit context window
+  - Validate response format
 
 ### High Priority (Quality Issues)
 
-4. Consider adding mock/test mode for approval workflow testing
-5. Add session state manipulation endpoints for testing
-6. Implement better error messages in UI
+- Consider adding mock/test mode for approval workflow testing
+- Add session state manipulation endpoints for testing
+- Implement better error messages in UI
 
 ### Next Steps
 
-**Option A: Fix Backend Issues First**
+**Option A: Fix Backend Issues First:**
 
 - Address Issues #1, #2, #3
 - Return to Phase 8 testing
 - Complete approval workflow validation
 
-**Option B: Test What We Can**
+**Option B: Test What We Can:**
 
 - Create test endpoint to manually advance interview state
 - Test approval workflow UI in isolation
 - Validate API endpoints individually
 - Document Phase 7 UI as functionally complete
 
-**Option C: Mock Data Testing**
+**Option C: Mock Data Testing:**
 
 - Create mock interview sessions in approval states
 - Test UI components with controlled data

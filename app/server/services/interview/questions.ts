@@ -8,6 +8,29 @@ import { formatTranscript } from './session'
 const logger = createLogger('interview:questions')
 
 /**
+ * Sanitize interviewer response to remove hallucinated multi-turn conversations
+ */
+function sanitizeInterviewerResponse(text: string): string {
+  // Remove "Marcus:" prefix if present
+  text = text.replace(/^Marcus:\s*/i, '')
+
+  // Split on "Requester:" to detect hallucinated responses
+  const parts = text.split(/\n\s*Requester:/i)
+
+  // Only keep the first part (Marcus's actual question)
+  let cleanText = parts[0].trim()
+
+  // If there's a subsequent "Marcus:" in the first part, split on that too
+  const marcusParts = cleanText.split(/\n\s*Marcus:/i)
+  cleanText = marcusParts[0].trim()
+
+  // Remove any remaining speaker labels
+  cleanText = cleanText.replace(/^(Interviewer|Marcus|Requester):\s*/gim, '')
+
+  return cleanText
+}
+
+/**
  * Interview configuration constants
  */
 export const INTERVIEW_CONFIG = {
@@ -51,7 +74,10 @@ export async function generateNextQuestion(session: InterviewSession): Promise<s
       maxTokens: 1500 // Increased from 200 to allow complete responses
     })
 
-    const content = response.content?.trim() || ''
+    let content = response.content?.trim() || ''
+
+    // Sanitize response to remove hallucinated multi-turn conversations
+    content = sanitizeInterviewerResponse(content)
 
     // Check if LLM indicates interview is complete
     if (content.includes('INTERVIEW_COMPLETE') || content.includes('COMPLETE')) {
