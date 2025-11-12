@@ -53,6 +53,33 @@ export async function generateNextQuestion(session: InterviewSession): Promise<s
 
     const content = response.content?.trim() || ''
 
+    // Log exact LLM response for debugging
+    log.info(
+      {
+        sessionId: session.id,
+        rawContent: content,
+        contentLength: content.length,
+        firstChars: content.substring(0, 100),
+        lastChars: content.substring(Math.max(0, content.length - 100))
+      },
+      'Raw LLM response received'
+    )
+
+    // Validate response doesn't contain hallucinated multi-turn conversation
+    if (
+      content.includes('Requester:') ||
+      content.includes('Marcus:') ||
+      content.includes('Interviewer:')
+    ) {
+      log.error(
+        { content: content.substring(0, 200) },
+        'LLM hallucinated multi-turn conversation - rejecting response'
+      )
+      throw new Error(
+        'Generated response contained hallucinated conversation turns. Please try again.'
+      )
+    }
+
     // Check if LLM indicates interview is complete
     if (content.includes('INTERVIEW_COMPLETE') || content.includes('COMPLETE')) {
       log.info('LLM indicates interview is complete')

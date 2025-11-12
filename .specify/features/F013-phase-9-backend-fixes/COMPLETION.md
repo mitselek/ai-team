@@ -173,16 +173,12 @@ export function formatTranscript(session: InterviewSession): string {
    - Limited context to last 12 messages (6 exchanges)
    - Cleaner format with double newlines
 
-### Client Integration
-
-1. **app/composables/useInterview.ts**
+5. **Client Integration** **app/composables/useInterview.ts**
    - Enhanced error handling in `respondToInterview()`
    - Proper async/await chains
    - Refresh interview after respond
 
-### LLM Integration
-
-1. **app/server/services/llm/google.ts**
+6. **LLM Integration** **app/server/services/llm/google.ts**
    - Added detailed logging for debugging
    - Better visibility into async operations
 

@@ -120,12 +120,15 @@ export function addMessage(
   session.transcript.push(interviewMessage)
   session.updatedAt = new Date()
 
-  logger.debug(
+  logger.info(
     {
       sessionId,
       speaker,
       messageLength: message.length,
-      messageId: interviewMessage.id
+      messageId: interviewMessage.id,
+      messagePreview: message.substring(0, 150),
+      containsRequester: message.includes('Requester:'),
+      containsMarcus: message.includes('Marcus:')
     },
     'Message added to transcript'
   )
