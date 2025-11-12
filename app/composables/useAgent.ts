@@ -70,24 +70,20 @@ export const useAgent = () => {
    * @param filters - Optional filters for organizationId, teamId, and status.
    * @returns A filtered list of agents.
    */
-  const listAgents = (filters?: {
+  const listAgents = async (filters?: {
     organizationId?: string
     teamId?: string
     status?: AgentStatus
-  }): Agent[] => {
+  }): Promise<Agent[]> => {
     try {
-      return agents.value.filter((agent: Agent) => {
-        if (filters?.organizationId && agent.organizationId !== filters.organizationId) {
-          return false
-        }
-        if (filters?.teamId && agent.teamId !== filters.teamId) {
-          return false
-        }
-        if (filters?.status && agent.status !== filters.status) {
-          return false
-        }
-        return true
-      })
+      const params = new URLSearchParams()
+      if (filters?.organizationId) params.append('organizationId', filters.organizationId)
+      if (filters?.teamId) params.append('teamId', filters.teamId)
+      if (filters?.status) params.append('status', filters.status)
+
+      const response = await fetch(`/api/agents?${params}`)
+      const data = await response.json()
+      return data || []
     } catch (error) {
       logger.error({ filters, error }, 'Failed to list agents')
       return []

@@ -62,15 +62,13 @@ export const useTeam = () => {
     const correlationId = uuidv4()
     logger.info({ filter, correlationId }, 'Attempting to list teams')
     try {
-      return teams.value.filter((team: Team) => {
-        if (filter?.organizationId && team.organizationId !== filter.organizationId) {
-          return false
-        }
-        if (filter?.type && team.type !== filter.type) {
-          return false
-        }
-        return true
-      })
+      const params = new URLSearchParams()
+      if (filter?.organizationId) params.append('organizationId', filter.organizationId)
+      if (filter?.type) params.append('type', filter.type)
+
+      const response = await fetch(`/api/teams?${params}`)
+      const data = await response.json()
+      return data || []
     } catch (error) {
       logger.error({ filter, error, correlationId }, 'Failed to list teams')
       return []

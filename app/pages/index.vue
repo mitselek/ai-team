@@ -217,7 +217,8 @@ import { useTeam } from '../composables/useTeam'
 import { useAgent } from '../composables/useAgent'
 
 // Composables
-const { organizations, currentOrganization, getOrganization } = useOrganization()
+const { organizations, currentOrganization, getOrganization, fetchOrganizations } =
+  useOrganization()
 const { listTeams } = useTeam()
 const { listAgents, startAgent, stopAgent } = useAgent()
 
@@ -225,6 +226,7 @@ const { listAgents, startAgent, stopAgent } = useAgent()
 const currentOrgId = ref<string | null>(null)
 const expandedTeams = ref<Set<string>>(new Set())
 const orgTeams = ref<Team[]>([])
+const orgAgents = ref<Agent[]>([]) // All agents for current org
 const loadingAgents = ref<Map<string, boolean>>(new Map())
 const errorMessages = ref<Map<string, string>>(new Map())
 
@@ -241,17 +243,12 @@ const allOrgs = computed<Organization[]>(() => organizations.value)
 
 const currentOrg = computed<Organization | null>(() => currentOrganization.value)
 
-const allAgentsInOrg = computed<Agent[]>(() => {
-  if (!currentOrgId.value) return []
-  return listAgents({ organizationId: currentOrgId.value })
-})
-
 const tokenStats = computed(() => {
   if (!currentOrg.value) return { total: 0, allocated: 0, used: 0, remaining: 0 }
 
   const total = currentOrg.value.tokenPool
   const allocated = orgTeams.value.reduce((sum, team) => sum + team.tokenAllocation, 0)
-  const used = allAgentsInOrg.value.reduce((sum, agent) => sum + agent.tokenUsed, 0)
+  const used = orgAgents.value.reduce((sum, agent) => sum + agent.tokenUsed, 0)
   const remaining = total - used
 
   return { total, allocated, used, remaining }
@@ -273,7 +270,7 @@ const toggleTeam = (teamId: string) => {
 }
 
 const getTeamAgents = (teamId: string): Agent[] => {
-  return listAgents({ teamId })
+  return orgAgents.value.filter((agent) => agent.teamId === teamId)
 }
 
 const getTeamTokenUsage = (teamId: string): number => {
@@ -345,15 +342,20 @@ watch(
   async (newId) => {
     if (newId) {
       orgTeams.value = await listTeams({ organizationId: newId })
+      orgAgents.value = await listAgents({ organizationId: newId })
     } else {
       orgTeams.value = []
+      orgAgents.value = []
     }
   },
   { immediate: true }
 )
 
 // Lifecycle Hooks
-onMounted(() => {
+onMounted(async () => {
+  // Fetch organizations from API
+  await fetchOrganizations()
+
   if (currentOrganization.value) {
     currentOrgId.value = currentOrganization.value.id
   } else if (allOrgs.value.length > 0) {

@@ -47,6 +47,21 @@ export const useOrganization = () => {
   }
 
   /**
+   * Fetches all organizations from the API and updates the state.
+   */
+  const fetchOrganizations = async () => {
+    try {
+      const response = await fetch('/api/organizations')
+      const data = await response.json()
+      organizations.value = data.body || []
+      logger.info({ count: organizations.value.length }, 'Organizations fetched successfully')
+    } catch (error) {
+      logger.error({ error }, 'Failed to fetch organizations')
+      throw new Error('Failed to fetch organizations')
+    }
+  }
+
+  /**
    * Lists all organizations.
    * @returns A reactive reference to the list of organizations.
    */
@@ -87,6 +102,7 @@ export const useOrganization = () => {
     createOrganization,
     getOrganization,
     listOrganizations,
+    fetchOrganizations,
     updateOrganization
   }
 }
