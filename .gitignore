@@ -30,3 +30,13 @@ coverage
 *.tmp
 *.temp
 *.bak
+
+# Organization data (persistent state)
+data/organizations/*/manifest.json
+data/organizations/*/teams/
+data/organizations/*/agents/
+data/organizations/*/interviews/
+data/organizations/*/logs/
+
+# Keep directory structure
+!data/organizations/.gitkeep

@@ -2,6 +2,78 @@
 
 This document captures key insights, best practices, and lessons learned during the development of AI Team.
 
+## Date: 2025-11-12
+
+### F012 Phase 1: Filesystem Persistence Layer - ESM Test Isolation Challenge
+
+#### Context
+
+Implemented filesystem-based persistence layer (264 lines implementation + 257 lines tests). Gemini successfully created implementation but struggled with test isolation for ~7 minutes before human intervention was required.
+
+#### Successes
+
+- **Implementation quality**: 10 persistence functions (save/load for Org, Team, Agent, Interview) with proper error handling
+- **Date serialization**: ISO strings for storage, Date objects in memory worked perfectly across all entities
+- **Self-correction**: Gemini fixed minor path confusion autonomously during implementation
+- **Test coverage**: 17 comprehensive tests generated with good organization
+- **Final result**: 17/17 tests passing, 0 TypeScript errors, production-ready code
+
+#### Critical Challenge: ESM Module Test Isolation
+
+**Problem**: Module-level constants evaluate at import time, before `beforeEach` can override test environment:
+
+```typescript
+// This evaluates IMMEDIATELY on module load
+const DATA_DIR = path.resolve(process.cwd(), 'data/organizations')
+```
+
+**Gemini's Failed Approaches** (7 minutes of iteration):
+
+1. `process.chdir()` to temp directory - timing issue
+2. Mocking `path.resolve` - mock not applied correctly
+3. Environment variable attempts - incomplete test setup
+4. Dynamic imports - missing proper module reset sequence
+
+**Human Solution** (1 minute):
+
+```typescript
+// Implementation: Function checks env var
+function getDataDir(): string {
+  return process.env.TEST_DATA_DIR || path.resolve(process.cwd(), 'data/organizations')
+}
+
+// Test: Set env BEFORE dynamic import
+beforeEach(async () => {
+  process.env.TEST_DATA_DIR = tempDir
+  vi.resetModules() // Critical!
+  service = await import('../../../app/server/services/persistence/filesystem')
+})
+```
+
+#### Best Practices Discovered
+
+1. **Environment variables > Complex mocking** - Simple override pattern works better than intricate mocks
+2. **Dynamic imports + module resets = test isolation** - For ESM modules with constants, use `vi.resetModules()` + dynamic import
+3. **Kill stuck AI early** - If same fix repeats 3+ times, intervene (don't wait 7+ minutes)
+4. **Manual validation matters** - Unit tests passed, but validation script confirmed real filesystem behavior
+5. **Validation gates work** - Caught all issues before proceeding to next phase
+
+#### Gemini AI Analysis
+
+**Strengths**: Straightforward implementation, self-corrects simple issues, produces compilable code
+
+**Weaknesses**: Struggles with iterative debugging of complex module mocking, gets stuck in loops, doesn't recognize when to ask for help
+
+**Human Value**: Quick root cause identification, preference for simple solutions over complex ones
+
+#### Key Takeaway
+
+ESM module constants require special handling in tests. When modules evaluate constants at import time, use environment variable overrides + dynamic imports + `vi.resetModules()` for reliable test isolation. This is simpler and more maintainable than complex path mocking strategies.
+
+**Grade: B+** - Excellent implementation quality and comprehensive tests, but required human intervention to resolve test isolation. Final product is production-ready.
+
+---
+
 ## Date: 2025-11-11
 
 ### Gemini CLI Parallel API Implementation with Import Path Chaos (F009)
