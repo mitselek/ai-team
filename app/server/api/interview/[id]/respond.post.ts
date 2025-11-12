@@ -50,6 +50,16 @@ export default defineEventHandler(async (event) => {
       return { error: error.message }
     }
 
+    if (error instanceof Error && error.message?.includes('hallucinated conversation')) {
+      log.warn({ error: error.message, interviewId }, 'LLM hallucination detected')
+      setResponseStatus(event, 500)
+      return {
+        error:
+          'The AI interviewer had a technical issue generating the next question. Please try submitting your response again.',
+        retryable: true
+      }
+    }
+
     log.error({ error, interviewId }, 'Failed to process candidate response')
     setResponseStatus(event, 500)
     return { error: 'Failed to process candidate response' }
