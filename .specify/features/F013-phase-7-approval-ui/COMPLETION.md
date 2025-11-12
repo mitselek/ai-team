@@ -112,7 +112,7 @@ Extended `useInterview.ts` with 10 approval workflow functions:
 
 ### Files Modified
 
-```
+```text
 .specify/features/F013-phase-7-approval-ui/
   ├── README.md (created)
   └── 00-ui-requirements.md (created)
