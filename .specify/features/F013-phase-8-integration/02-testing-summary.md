@@ -333,7 +333,7 @@ Backend interview workflow issues prevent reaching approval states naturally.
 
 ### Files Changed
 
-```
+```text
 app/composables/useInterview.ts (extended)
 app/pages/interviews/[id].vue (refactored, 211 lines)
 app/components/interview/StandardChat.vue (created, 64 lines)

@@ -207,7 +207,7 @@ For each endpoint:
 
 #### State Transitions
 
-```
+```text
 greet → ask_role → ask_expertise → ask_preferences → ... → review_prompt
 review_prompt → test_conversation (on approve)
 review_prompt → greet (on reject)
