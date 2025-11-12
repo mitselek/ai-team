@@ -2,6 +2,7 @@
 
 import { v4 as uuidv4 } from 'uuid'
 import { createLogger } from '../../utils/logger'
+import { saveInterview } from '../persistence/filesystem'
 import type {
   InterviewSession,
   InterviewState,
@@ -60,6 +61,11 @@ export function createSession(teamId: string, interviewerId: string): InterviewS
     },
     'Interview session created'
   )
+
+  // Persist to filesystem (fire-and-forget)
+  saveInterview(session).catch((error: unknown) => {
+    logger.error({ error, sessionId: session.id }, 'Failed to persist new interview session')
+  })
 
   return session
 }
@@ -120,6 +126,11 @@ export function addMessage(
     'Message added to transcript'
   )
 
+  // Persist to filesystem (fire-and-forget)
+  saveInterview(session).catch((error: unknown) => {
+    logger.error({ error, sessionId }, 'Failed to persist interview after message')
+  })
+
   return interviewMessage
 }
 
@@ -144,6 +155,11 @@ export function updateState(sessionId: string, newState: InterviewState): void {
     },
     'Interview state updated'
   )
+
+  // Persist to filesystem (fire-and-forget)
+  saveInterview(session).catch((error: unknown) => {
+    logger.error({ error, sessionId }, 'Failed to persist interview state update')
+  })
 }
 
 /**
@@ -179,6 +195,11 @@ export function updateProfile(sessionId: string, profile: Partial<CandidateProfi
     },
     'Candidate profile updated'
   )
+
+  // Persist to filesystem (fire-and-forget)
+  saveInterview(session).catch((error: unknown) => {
+    logger.error({ error, sessionId }, 'Failed to persist interview profile update')
+  })
 }
 
 /**
@@ -203,6 +224,11 @@ export function completeSession(sessionId: string): void {
     },
     'Interview session completed'
   )
+
+  // Persist to filesystem (fire-and-forget)
+  saveInterview(session).catch((error: unknown) => {
+    logger.error({ error, sessionId }, 'Failed to persist completed interview session')
+  })
 }
 
 /**
@@ -225,6 +251,11 @@ export function cancelSession(sessionId: string): void {
     },
     'Interview session cancelled'
   )
+
+  // Persist to filesystem (fire-and-forget)
+  saveInterview(session).catch((error: unknown) => {
+    logger.error({ error, sessionId }, 'Failed to persist cancelled interview session')
+  })
 }
 
 /**
@@ -247,6 +278,11 @@ export function resumeSession(sessionId: string): void {
       },
       'Interview session resumed'
     )
+
+    // Persist to filesystem (fire-and-forget)
+    saveInterview(session).catch((error: unknown) => {
+      logger.error({ error, sessionId }, 'Failed to persist resumed interview session')
+    })
   }
 }
 
