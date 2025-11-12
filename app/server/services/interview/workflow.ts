@@ -636,3 +636,48 @@ export function rejectAgent(sessionId: string): void {
 
   log.info({ newState: 'review_prompt' }, 'Agent rejected, moved back to review prompt')
 }
+
+/**
+ * Set agent name and gender, create the final agent
+ */
+export async function setAgentDetails(
+  sessionId: string,
+  name: string,
+  gender: 'male' | 'female' | 'non-binary' | 'other'
+): Promise<{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  session: any
+  agentId: string
+}> {
+  const log = logger.child({ sessionId })
+
+  log.info({ name, gender }, 'Setting agent details and creating final agent')
+
+  const session = getSession(sessionId)
+  if (!session) {
+    throw new Error(`Interview session ${sessionId} not found`)
+  }
+
+  if (session.currentState !== 'assign_details') {
+    throw new Error(`Cannot set details in state '${session.currentState}'`)
+  }
+
+  if (!session.agentDraft) {
+    throw new Error('Agent draft not found - cannot create agent')
+  }
+
+  // Update agent draft with final details
+  session.agentDraft.finalName = name
+  session.agentDraft.gender = gender
+
+  // Create the final agent
+  const newAgent = await createAgentFromProfile(session, name, session.agentDraft.draftPrompt)
+
+  // Transition to complete
+  updateState(sessionId, 'complete')
+  completeSession(sessionId)
+
+  log.info({ agentId: newAgent.id, name, gender }, 'Agent created successfully')
+
+  return { session, agentId: newAgent.id }
+}
