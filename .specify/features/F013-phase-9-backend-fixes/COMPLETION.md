@@ -175,14 +175,14 @@ export function formatTranscript(session: InterviewSession): string {
 
 ### Client Integration
 
-5. **app/composables/useInterview.ts**
+1. **app/composables/useInterview.ts**
    - Enhanced error handling in `respondToInterview()`
    - Proper async/await chains
    - Refresh interview after respond
 
 ### LLM Integration
 
-6. **app/server/services/llm/google.ts**
+1. **app/server/services/llm/google.ts**
    - Added detailed logging for debugging
    - Better visibility into async operations
 
