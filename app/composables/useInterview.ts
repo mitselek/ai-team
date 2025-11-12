@@ -83,9 +83,10 @@ export const useInterview = () => {
       },
       body: JSON.stringify({ teamId, interviewerId })
     })
-    const newInterview = await response.json()
+    const result = await response.json()
     await listInterviews(teamId)
-    return newInterview
+    // The API returns sessionId, not id
+    return { id: result.sessionId, ...result }
   }
 
   const respondToInterview = async (id: string, responseText: string) => {
