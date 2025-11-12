@@ -40,7 +40,7 @@ export function loadConfig(): LLMConfig {
         rateLimit: { requestsPerMinute: 60, tokensPerMinute: 50000 }
       }
     },
-    providerPriority: [LLMProvider.ANTHROPIC, LLMProvider.OPENAI, LLMProvider.GOOGLE],
+    providerPriority: [LLMProvider.ANTHROPIC], // Only use Anthropic - others generate hallucinations
     modelByRole: {
       worker: {
         [LLMProvider.ANTHROPIC]: 'claude-3-haiku-20240307',
