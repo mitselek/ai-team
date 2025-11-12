@@ -89,6 +89,10 @@ export interface InterviewSession {
   createdAt: Date
   updatedAt: Date
   completedAt?: Date
+  // State machine tracking
+  stateHistory?: InterviewState[] // Track state progression
+  exchangesInCurrentState?: number // Count Q&A exchanges in current state
+  topicsCovered?: string[] // Track which topics have been addressed
 }
 
 /**

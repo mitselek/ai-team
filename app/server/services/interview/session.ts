@@ -47,7 +47,11 @@ export function createSession(teamId: string, interviewerId: string): InterviewS
       }
     },
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
+    // State machine tracking
+    stateHistory: ['greet'],
+    exchangesInCurrentState: 0,
+    topicsCovered: []
   }
 
   interviewSessions.push(session)
@@ -146,6 +150,11 @@ export function updateState(sessionId: string, newState: InterviewState): void {
   const oldState = session.currentState
   session.currentState = newState
   session.updatedAt = new Date()
+
+  // Track state history
+  const history = session.stateHistory || []
+  history.push(newState)
+  session.stateHistory = history
 
   logger.info(
     {

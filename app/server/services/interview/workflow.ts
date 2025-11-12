@@ -20,11 +20,17 @@ import {
   generateFollowUpQuestion,
   shouldContinueInterview
 } from './questions'
-import { analyzeResponse, needsFollowUp } from './analyzer'
+import { analyzeResponse } from './analyzer'
 import { consultHRSpecialist } from './hr-specialist'
 import { generateSystemPrompt } from './prompt-builder'
 import { generateAgentName } from './name-generator'
 import { INTERVIEW_CONFIG } from './questions'
+import {
+  shouldTransitionState,
+  getNextState,
+  incrementExchangeCounter,
+  resetExchangeCounter
+} from './state-machine'
 
 const logger = createLogger('interview:workflow')
 
@@ -102,47 +108,55 @@ export async function processCandidateResponse(
   }
 
   // Add response to transcript
-  addMessage(sessionId, 'candidate', response)
+  addMessage(sessionId, 'requester', response)
 
-  // Analyze response
+  // Increment exchange counter for state machine
+  incrementExchangeCounter(session)
+
+  // Analyze response (extract data only, no flow control)
   const analysis = await analyzeResponse(session, response)
 
   log.info(
     {
       clarityScore: analysis.clarityScore,
       keyInfoCount: analysis.keyInfo.length,
-      needsFollowUp: analysis.needsFollowUp
+      currentState: session.currentState,
+      exchanges: session.exchangesInCurrentState
     },
     'Response analyzed'
   )
 
-  // Check if follow-up is needed
-  if (needsFollowUp(analysis)) {
-    updateState(sessionId, 'follow_up')
-    const followUpQuestion = await generateFollowUpQuestion(session, analysis.followUpReason)
-    addMessage(sessionId, 'interviewer', followUpQuestion)
+  // Check if state should transition (formal logic, not LLM judgment)
+  if (shouldTransitionState(session)) {
+    const nextState = getNextState(session)
+
+    if (!nextState || nextState === 'complete') {
+      // Interview complete
+      return await finalizeInterview(sessionId)
+    }
+
+    log.info({ sessionId, oldState: session.currentState, nextState }, 'Transitioning state')
+
+    // Update to next state and reset counter
+    updateState(sessionId, nextState)
+    resetExchangeCounter(session)
+
+    const nextQuestion = await generateNextQuestion(session)
+    if (nextQuestion) {
+      addMessage(sessionId, 'interviewer', nextQuestion)
+    }
 
     return {
-      nextQuestion: followUpQuestion,
+      nextQuestion: nextQuestion || '',
       complete: false
     }
   }
 
-  // Determine next state
-  const nextState = determineNextState(session)
-
-  // Check if interview should continue
-  if (!shouldContinueInterview(session) || nextState === 'consult_hr') {
-    // Move to HR consultation
-    return await finalizeInterview(sessionId)
-  }
-
-  // Update state and generate next question
-  updateState(sessionId, nextState)
+  // Continue in current state - generate next question
   const nextQuestion = await generateNextQuestion(session)
 
   if (!nextQuestion) {
-    // LLM indicates interview is complete
+    // No more questions, finalize
     return await finalizeInterview(sessionId)
   }
 
