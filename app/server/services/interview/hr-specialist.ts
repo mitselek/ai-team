@@ -167,7 +167,7 @@ Respond in JSON format:
     const response = await generateCompletion(prompt, {
       agentId: specialistId,
       temperature: 0.7,
-      maxTokens: 1000
+      maxTokens: 2048 // Increased from 1000 to allow complete recommendations
     })
 
     // Parse JSON response

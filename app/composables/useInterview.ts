@@ -97,7 +97,18 @@ export const useInterview = () => {
       },
       body: JSON.stringify({ response: responseText })
     })
-    currentInterview.value = await res.json()
+
+    if (!res.ok) {
+      const error = await res.json()
+      throw new Error(error.error || 'Failed to respond to interview')
+    }
+
+    const data = await res.json()
+
+    // Refresh the interview to get updated state
+    await getInterview(id)
+
+    return data
   }
 
   const cancelInterview = async (id: string) => {

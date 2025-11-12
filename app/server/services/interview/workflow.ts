@@ -517,7 +517,7 @@ export async function sendTestMessage(
     const response = await generateCompletion(prompt, {
       agentId: session.interviewerId, // Track token usage against the interviewer
       temperature: 0.7,
-      maxTokens: 1000
+      maxTokens: 1500 // Increased from 1000 to allow complete test responses
     })
 
     const agentResponse = response.content.trim()

@@ -322,13 +322,16 @@ export function resumeSession(sessionId: string): void {
  * Format transcript for HR specialist review
  */
 export function formatTranscript(session: InterviewSession): string {
-  const lines = session.transcript.map((msg) => {
-    const timestamp = msg.timestamp.toISOString().substring(11, 19)
-    const speaker = msg.speaker === 'interviewer' ? 'Interviewer' : 'Requester'
-    return `[${timestamp}] ${speaker}: ${msg.message}`
+  // Limit to recent history to avoid LLM mimicking multi-turn patterns
+  const recentTranscript = session.transcript.slice(-12) // Last 6 exchanges (12 messages)
+
+  const lines = recentTranscript.map((msg) => {
+    const speaker = msg.speaker === 'interviewer' ? 'Marcus' : 'Requester'
+    // No timestamps - prevents LLM from mimicking [HH:MM:SS] format
+    return `${speaker}: ${msg.message}`
   })
 
-  return lines.join('\n')
+  return lines.join('\n\n') // Double newline for clear separation
 }
 
 /**

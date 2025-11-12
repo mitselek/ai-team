@@ -48,7 +48,7 @@ export async function generateNextQuestion(session: InterviewSession): Promise<s
     const response = await generateCompletion(prompt, {
       agentId: session.interviewerId,
       temperature: 0.7,
-      maxTokens: 200
+      maxTokens: 1500 // Increased from 200 to allow complete responses
     })
 
     const content = response.content?.trim() || ''
@@ -88,8 +88,14 @@ You are interviewing the requester (the person who needs a new agent) to learn a
 - What expertise and skills the new agent should have
 - How the new agent should communicate and work
 
-Keep your questions natural, conversational, and ask ONE question at a time.
-Focus on understanding the NEED, not interviewing the requester about themselves.
+CRITICAL RULES:
+1. Ask ONE question at a time
+2. Do NOT generate the requester's response
+3. Do NOT include timestamps like [HH:MM:SS]
+4. Do NOT write multiple conversation turns
+5. Respond ONLY as Marcus
+
+Keep your questions natural, conversational, and focus on understanding the NEED.
 
 Interview progress:
 ${transcript || '(No messages yet)'}

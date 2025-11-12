@@ -29,9 +29,16 @@ export async function generateCompletionGoogle(
 
       const model = genAI.getGenerativeModel({ model: modelName })
 
+      log.info('Generating content with Google API...')
       const result = await model.generateContent(prompt)
+
+      log.info('Awaiting response from Google API...')
       const response = await result.response
+
+      log.info('Extracting text from response...')
       const content = response.text()
+
+      log.info({ contentLength: content.length }, 'Content extracted successfully')
 
       // Google's API doesn't provide token usage directly in the response object.
       // We'll use our estimation utility.
