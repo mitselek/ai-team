@@ -47,6 +47,8 @@ export async function generateNextQuestion(session: InterviewSession): Promise<s
   try {
     const response = await generateCompletion(prompt, {
       agentId: session.interviewerId,
+      agentRole: 'interviewer',
+      taskType: 'generate-questions',
       temperature: 0.7,
       maxTokens: 1500 // Increased from 200 to allow complete responses
     })
@@ -198,6 +200,8 @@ Keep it brief and specific.`
   try {
     const response = await generateCompletion(prompt, {
       agentId: session.interviewerId,
+      agentRole: 'interviewer',
+      taskType: 'analyze-response',
       temperature: 0.7,
       maxTokens: 150
     })
