@@ -348,6 +348,11 @@ export async function handleNameSelection(
     session.nameSelection.selectedName = selectedName
     session.nameSelection.selectedAt = new Date()
 
+    // Increment exchange counter to allow state transition
+    if (session.exchangesInCurrentState !== undefined) {
+      session.exchangesInCurrentState++
+    }
+
     log.info({ selectedName }, 'Name selection captured')
 
     const confirmMessage = `Excellent choice! I'll finalize the hire as '${selectedName}'.`
