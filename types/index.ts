@@ -105,3 +105,12 @@ export interface LogEntry {
 }
 
 export type LogLevel = 'org' | 'team' | 'agent'
+
+/**
+ * Chat message type definition
+ */
+export interface ChatMessage {
+  role: 'user' | 'agent'
+  content: string
+  timestamp: string
+}
