@@ -25,10 +25,7 @@ export function loadConfig(): LLMConfig {
           // Tested models (Phase 9)
           'haiku-4.5': 'claude-haiku-4-5-20251001',
           'sonnet-4.5': 'claude-sonnet-4-5-20250929',
-          'opus-4.1': 'claude-opus-4-1-20250805',
-          // Legacy models
-          haiku: 'claude-3-haiku-20240307',
-          sonnet: 'claude-3-5-sonnet-20241022'
+          'opus-4.1': 'claude-opus-4-1-20250805'
         },
         defaultModel: 'haiku-4.5',
         maxRetries: 3,
@@ -41,10 +38,7 @@ export function loadConfig(): LLMConfig {
           // Tested models (Phase 9)
           flash: 'gemini-2.5-flash',
           'flash-lite': 'gemini-2.5-flash-lite',
-          pro: 'gemini-2.5-pro',
-          // Legacy models
-          'flash-1.5': 'gemini-1.5-flash',
-          'pro-1.5': 'gemini-1.5-pro'
+          pro: 'gemini-2.5-pro'
         },
         defaultModel: 'flash',
         maxRetries: 3,
