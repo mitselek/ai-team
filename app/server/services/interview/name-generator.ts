@@ -84,7 +84,7 @@ function buildNameGenerationPrompt(profile: CandidateProfile, existingNames: str
     profile.personality.traits.length > 0 ? profile.personality.traits.join(', ') : 'professional'
   const toneDesc = profile.personality.tone || 'balanced'
 
-  return `Generate 3 creative, professional names for a new ${profile.role} agent.
+  return `Generate 3 professional, traditional human names for a new ${profile.role} agent.
 
 Personality traits: ${traitsDesc}
 Communication tone: ${toneDesc}
@@ -93,11 +93,15 @@ Role: ${profile.role}
 Existing team member names (avoid these): ${existingNames.join(', ') || 'None'}
 
 Requirements:
-- Names should be memorable and appropriate for a professional setting
-- Names should reflect the personality and role
+- Use traditional human first names (e.g., John, Sarah, Michael, Jennifer, David, Maria)
+- Include a surname for most names (about 70% of the time) like Smith, Johnson, Chen, Garcia, Patel, Kim, etc.
+- Some names can be just a first name (about 30% of the time)
+- Names should be culturally diverse
+- Names should feel professional and appropriate for a workplace
 - Each name should be unique and distinct
-- Avoid overly common names
 - Avoid names that are too similar to existing ones
+
+Examples: "John Smith", "Sarah Johnson", "Michael", "Jennifer Chen", "David"
 
 Generate exactly 3 names, one per line. Do not include explanations or numbering.`
 }
@@ -174,30 +178,115 @@ function isValidName(name: string): boolean {
 }
 
 /**
- * Generate a fallback name based on role
+ * Culturally diverse name pools
+ */
+const FIRST_NAMES = [
+  'Alex',
+  'Jordan',
+  'Morgan',
+  'Casey',
+  'Taylor',
+  'Riley',
+  'Jamie',
+  'John',
+  'Sarah',
+  'Michael',
+  'Jennifer',
+  'David',
+  'Maria',
+  'Robert',
+  'Lisa',
+  'James',
+  'Emily',
+  'Daniel',
+  'Jessica',
+  'Christopher',
+  'Michelle',
+  'Wei',
+  'Yuki',
+  'Raj',
+  'Priya',
+  'Ahmed',
+  'Fatima',
+  'Carlos',
+  'Ana',
+  'Omar',
+  'Leila',
+  'Hassan',
+  'Amira',
+  'Dmitri',
+  'Natasha',
+  'Ivan',
+  'Olga'
+]
+
+const SURNAMES = [
+  'Smith',
+  'Johnson',
+  'Williams',
+  'Brown',
+  'Jones',
+  'Garcia',
+  'Martinez',
+  'Rodriguez',
+  'Chen',
+  'Wang',
+  'Li',
+  'Zhang',
+  'Kim',
+  'Park',
+  'Lee',
+  'Patel',
+  'Singh',
+  'Kumar',
+  'Nguyen',
+  'Tran',
+  'Cohen',
+  'Levine',
+  'Müller',
+  'Schmidt',
+  'Rossi',
+  'Ferrari',
+  'Silva',
+  'Santos',
+  'Ivanov',
+  'Petrov',
+  'Hassan',
+  'Ahmed',
+  'Ali',
+  'Ibrahim'
+]
+
+/**
+ * Generate a fallback name based on role with optional surname
  */
 function generateFallbackName(role: string): string {
   const roleLower = role.toLowerCase()
 
   // Map role to first name
+  let firstName: string
   if (roleLower.includes('developer') || roleLower.includes('engineer')) {
-    return 'Alex'
-  }
-  if (roleLower.includes('designer')) {
-    return 'Jordan'
-  }
-  if (roleLower.includes('manager')) {
-    return 'Morgan'
-  }
-  if (roleLower.includes('analyst')) {
-    return 'Casey'
-  }
-  if (roleLower.includes('qa') || roleLower.includes('test')) {
-    return 'Taylor'
+    firstName = 'Alex'
+  } else if (roleLower.includes('designer')) {
+    firstName = 'Jordan'
+  } else if (roleLower.includes('manager')) {
+    firstName = 'Morgan'
+  } else if (roleLower.includes('analyst')) {
+    firstName = 'Casey'
+  } else if (roleLower.includes('qa') || roleLower.includes('test')) {
+    firstName = 'Taylor'
+  } else {
+    // Pick a random first name from the pool
+    firstName = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)]
   }
 
-  // Generic fallback
-  return 'Sam'
+  // Add surname approximately 70% of the time
+  if (Math.random() < 0.7) {
+    const surname = SURNAMES[Math.floor(Math.random() * SURNAMES.length)]
+    return `${firstName} ${surname}`
+  }
+
+  return firstName
 }
 
 /**
