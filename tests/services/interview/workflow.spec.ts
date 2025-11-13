@@ -3,7 +3,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   startInterview,
-  processCandidateResponse
+  processCandidateResponse,
+  handleNameSelection
 } from '../../../app/server/services/interview/workflow'
 import { agents } from '../../../app/server/data/agents'
 import { teams } from '../../../app/server/data/teams'
@@ -327,5 +328,130 @@ describe('Interview Workflow', () => {
     const newAgent = agents.find((a) => a.id !== 'interviewer-1')
     expect(newAgent).toBeDefined()
     expect(newAgent?.role).toBe('Backend Developer')
+  })
+})
+
+describe('handleNameSelection', () => {
+  const mockOptions = [
+    { name: 'Adrian', rationale: 'Conveys reliability and steady presence' },
+    { name: 'Iris', rationale: 'Represents clarity and commitment to insight' },
+    { name: 'Morgan', rationale: 'Suggests strategic thinking and flexibility' }
+  ]
+
+  beforeEach(() => {
+    // Clear arrays
+    agents.length = 0
+    teams.length = 0
+    interviewSessions.length = 0
+
+    // Add mock data
+    teams.push(JSON.parse(JSON.stringify(mockTeam)))
+    agents.push(JSON.parse(JSON.stringify(mockInterviewer)))
+
+    vi.clearAllMocks()
+  })
+
+  it('should generate and present 3 name options on first entry', async () => {
+    vi.mocked(generateCompletion).mockResolvedValue({
+      content: `Name: Adrian - Rationale: Conveys reliability and steady presence
+Name: Iris - Rationale: Represents clarity and commitment to insight
+Name: Morgan - Rationale: Suggests strategic thinking and flexibility`,
+      tokensUsed: { total: 50, input: 30, output: 20 },
+      provider: LLMProvider.ANTHROPIC,
+      model: 'mock',
+      finishReason: 'stop'
+    })
+
+    const session = await startInterview('team-1', 'interviewer-1')
+    session.currentState = 'nameSelection'
+    session.candidateProfile.role = 'Developer'
+    session.candidateProfile.expertise = ['TypeScript']
+    session.candidateProfile.preferences.communicationStyle = 'Written'
+    session.candidateProfile.preferences.autonomyLevel = 'High'
+    session.candidateProfile.preferences.workingHours = 'Flexible'
+    session.candidateProfile.personality.traits = ['analytical']
+    session.candidateProfile.personality.tone = 'professional'
+
+    const result = await handleNameSelection(session)
+
+    expect(result.complete).toBe(false)
+    expect(result.nextQuestion).toContain('three name suggestions')
+    expect(session.nameSelection?.options).toHaveLength(3)
+    expect(session.nameSelection?.selectedName).toBeNull()
+  })
+
+  it('should accept numeric selection (1)', async () => {
+    const session = await startInterview('team-1', 'interviewer-1')
+    session.currentState = 'nameSelection'
+    session.nameSelection = {
+      options: mockOptions,
+      selectedName: null,
+      selectedAt: null
+    }
+
+    const result = await handleNameSelection(session, '1')
+
+    expect(result.complete).toBe(false)
+    expect(session.nameSelection?.selectedName).toBe(mockOptions[0].name)
+    expect(session.nameSelection?.selectedAt).toBeInstanceOf(Date)
+    expect(result.nextQuestion).toContain('Excellent choice')
+  })
+
+  it('should accept numeric selection (2)', async () => {
+    const session = await startInterview('team-1', 'interviewer-1')
+    session.currentState = 'nameSelection'
+    session.nameSelection = {
+      options: mockOptions,
+      selectedName: null,
+      selectedAt: null
+    }
+
+    const result = await handleNameSelection(session, '2')
+
+    expect(result.complete).toBe(false)
+    expect(session.nameSelection?.selectedName).toBe(mockOptions[1].name)
+  })
+
+  it('should accept name directly', async () => {
+    const session = await startInterview('team-1', 'interviewer-1')
+    session.currentState = 'nameSelection'
+    session.nameSelection = {
+      options: mockOptions,
+      selectedName: null,
+      selectedAt: null
+    }
+
+    const result = await handleNameSelection(session, 'Iris')
+
+    expect(result.complete).toBe(false)
+    expect(session.nameSelection?.selectedName).toBe('Iris')
+  })
+
+  it('should reject invalid selection and prompt retry', async () => {
+    const session = await startInterview('team-1', 'interviewer-1')
+    session.currentState = 'nameSelection'
+    session.nameSelection = {
+      options: mockOptions,
+      selectedName: null,
+      selectedAt: null
+    }
+
+    const result = await handleNameSelection(session, 'invalid')
+
+    expect(result.complete).toBe(false)
+    expect(result.nextQuestion).toContain('Please choose')
+    expect(session.nameSelection?.selectedName).toBeNull()
+  })
+
+  it('should throw error if called without options or user input', async () => {
+    const session = await startInterview('team-1', 'interviewer-1')
+    session.currentState = 'nameSelection'
+    session.nameSelection = {
+      options: mockOptions,
+      selectedName: null,
+      selectedAt: null
+    }
+
+    await expect(handleNameSelection(session)).rejects.toThrow('Invalid state')
   })
 })
