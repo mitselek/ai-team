@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { createLogger } from '../../utils/logger'
 import { agents } from '../../data/agents'
 import { teams } from '../../data/teams'
+import { saveAgent } from '../persistence/filesystem'
 import type { Agent } from '@@/types'
 import type { InterviewSession } from './types'
 import {
@@ -299,6 +300,9 @@ async function createAgentFromProfile(
   }
 
   agents.push(newAgent)
+
+  // Persist agent to filesystem
+  await saveAgent(newAgent)
 
   log.info(
     {
