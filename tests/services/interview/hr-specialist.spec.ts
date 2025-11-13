@@ -230,4 +230,47 @@ describe('HR Specialist Consultation - speakerLLM Tracking', () => {
     expect(recommendation.speakerLLM?.split(':')).toHaveLength(2)
     expect(recommendation.speakerLLM?.split(':')[0]).toBe('anthropic')
   })
+
+  it('should select Sonnet 4.5 model for director final-report task', async () => {
+    const session = createSession('team-1', 'interviewer-1')
+    session.candidateProfile = {
+      role: 'Full Stack Engineer',
+      expertise: ['React', 'Node.js', 'PostgreSQL'],
+      preferences: {
+        communicationStyle: 'Balanced',
+        workingHours: 'Flexible',
+        autonomyLevel: 'High'
+      },
+      personality: {
+        traits: ['versatile', 'problem-solver'],
+        tone: 'friendly'
+      }
+    }
+
+    vi.mocked(generateCompletion).mockResolvedValue({
+      content: JSON.stringify({
+        systemPrompt: 'You are a full stack engineer...',
+        suggestedNames: ['Alex', 'Jordan', 'Morgan'],
+        feedback: 'Well-rounded technical profile'
+      }),
+      provider: LLMProvider.ANTHROPIC,
+      model: 'claude-sonnet-4-5-20250929', // Current Sonnet 4.5 model ID
+      tokensUsed: { total: 180, input: 110, output: 70 },
+      finishReason: 'stop'
+    })
+
+    const recommendation = await consultHRSpecialist(session)
+
+    // Verify correct model was selected for director + final-report
+    expect(recommendation.speakerLLM).toBe('anthropic:claude-sonnet-4-5-20250929')
+
+    // Verify generateCompletion was called with director role and final-report task
+    expect(generateCompletion).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        agentRole: 'director',
+        taskType: 'final-report'
+      })
+    )
+  })
 })
