@@ -30,6 +30,23 @@ export type InterviewStatus = 'active' | 'pending_review' | 'completed' | 'cance
 export type InterviewSpeaker = 'interviewer' | 'requester'
 
 /**
+ * Name option presented to requester during finalization
+ */
+export interface NameOption {
+  name: string
+  rationale: string
+}
+
+/**
+ * Name selection tracking for interview finalization
+ */
+export interface NameSelection {
+  options: NameOption[]
+  selectedName: string | null
+  selectedAt: Date | null
+}
+
+/**
  * Message metadata for tracking question context
  */
 export interface InterviewMessageMetadata {
@@ -123,6 +140,7 @@ export interface InterviewSession {
   // Approval workflow tracking
   agentDraft?: AgentDraft // Draft agent for review/testing
   testConversationHistory?: InterviewMessage[] // Messages during test phase
+  nameSelection?: NameSelection // Name options and selection tracking
 }
 
 /**
