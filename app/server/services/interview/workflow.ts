@@ -217,6 +217,11 @@ async function finalizeInterview(sessionId: string): Promise<{
     updateState(sessionId, 'awaiting_review')
     const recommendation = await consultHRSpecialist(session)
 
+    // Log the model used for HR consultation
+    if (recommendation.speakerLLM) {
+      log.info({ speakerLLM: recommendation.speakerLLM }, 'HR consultation completed with model')
+    }
+
     // Update profile with system prompt and suggested name
     updateProfile(sessionId, {
       systemPrompt: recommendation.systemPrompt,

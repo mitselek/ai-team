@@ -166,6 +166,8 @@ Respond in JSON format:
   try {
     const response = await generateCompletion(prompt, {
       agentId: specialistId,
+      agentRole: 'director',
+      taskType: 'final-report',
       temperature: 0.7,
       maxTokens: 2048 // Increased from 1000 to allow complete recommendations
     })
@@ -190,6 +192,9 @@ Respond in JSON format:
     if (!recommendation.feedback) {
       recommendation.feedback = 'Profile looks good. Agent is ready for onboarding.'
     }
+
+    // Capture model info
+    recommendation.speakerLLM = `${response.provider}:${response.model}`
 
     log.info('Director review completed successfully')
 

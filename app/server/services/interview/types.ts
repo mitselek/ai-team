@@ -142,6 +142,7 @@ export interface HRRecommendation {
   systemPrompt: string
   suggestedNames: string[]
   feedback: string
+  speakerLLM?: string // Format: "provider:model" (e.g., "anthropic:sonnet-4.5")
 }
 
 /**
