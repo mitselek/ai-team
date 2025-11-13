@@ -6,6 +6,22 @@ This directory contains reusable prompt templates for Gemini CLI - our AI-assist
 
 ### Workflow Automation
 
+**`sequential-issues.prompt.md`** - Sequential GitHub Issue Implementation
+
+- **Purpose**: Implement multiple GitHub issues iteratively with minimal interruption
+- **Usage**: `/sequential-issues 32 33 34 35 36 37 38` (or `32-38`)
+- **When**: Breaking down complex features into sequential sub-issues
+- **Grade**: NEW (based on proven Split TDD workflow)
+- **Features**:
+  - Split TDD approach (tests first, then implementation)
+  - Automatic quality gates (typecheck, lint, tests)
+  - 2 commits per issue (test contract + implementation)
+  - Handles 7-phase cycle per issue automatically
+  - Progress tracking and clear status updates
+  - Minimal human interruption (only stops for critical blockers)
+- **Time**: ~20-30 minutes per issue (mostly automated)
+- **Workflow**: ANALYZE → TEST → ASSESS → COMMIT → IMPLEMENT → ASSESS → COMMIT → CONTINUE
+
 **`commit4gemini.prompt.md`** - Git Commit Automation
 
 - **Purpose**: Automate conventional commit message generation
@@ -93,6 +109,29 @@ This directory contains reusable prompt templates for Gemini CLI - our AI-assist
 - **Power Level**: HIGH - Interactive prompt discovery
 
 ## Usage Patterns
+
+### Sequential Issue Implementation
+
+```bash
+# Implement a series of dependent issues automatically
+/sequential-issues 32 33 34 35 36 37 38
+
+# Or with range notation (if supported by shell)
+/sequential-issues 32-38
+
+# What happens:
+# For each issue:
+#   1. ANALYZE: Fetch issue, gather context (2-3 min)
+#   2. TEST: Generate tests first (5-10 min automated)
+#   3. ASSESS: Verify tests, fix issues (2-3 min)
+#   4. COMMIT: Commit test contract (1 min)
+#   5. IMPLEMENT: Generate production code (5-10 min automated)
+#   6. ASSESS: Verify implementation (2-3 min)
+#   7. COMMIT: Commit implementation (1 min)
+#   8. CONTINUE: Move to next issue
+#
+# Result: 14 commits (7 test + 7 impl), all tests passing, clean tree
+```
 
 ### Fire-and-Forget (Background)
 
