@@ -158,6 +158,15 @@
                 <!-- Status & Actions -->
                 <div class="flex flex-col items-end gap-2">
                   <div class="flex items-center gap-2">
+                    <!-- Chat Button -->
+                    <NuxtLink
+                      v-if="agent.status === 'active'"
+                      :to="`/agents/${agent.id}/chat`"
+                      class="rounded bg-blue-500 px-3 py-1 text-sm text-white transition-colors hover:bg-blue-600"
+                    >
+                      Chat
+                    </NuxtLink>
+
                     <!-- Start Button -->
                     <button
                       v-if="agent.status !== 'active'"
