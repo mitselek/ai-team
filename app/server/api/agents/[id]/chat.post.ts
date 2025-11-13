@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { createLogger, newCorrelationId } from '../../../utils/logger'
 import { agents } from '../../../data/agents'
 import { generateCompletion } from '../../../services/llm'
+import { saveChatSession, loadChatSession } from '../../../services/persistence/filesystem'
+import type { ChatSession, ChatMessage } from '../../../services/persistence/chat-types'
 
 const logger = createLogger('api.agents.chat')
 
@@ -65,8 +67,40 @@ export default defineEventHandler(async (event): Promise<ChatResponse | ErrorRes
     return { error: 'Agent is not active' }
   }
 
-  // Generate or use provided sessionId
+  // Load existing session or create new
+  let chatSession: ChatSession
   const finalSessionId = sessionId || uuidv4()
+
+  if (sessionId) {
+    const existing = await loadChatSession(agentId, sessionId, agent.organizationId)
+    if (existing) {
+      chatSession = existing
+      log.info(
+        { sessionId, messageCount: existing.messages.length },
+        'Loaded existing chat session'
+      )
+    } else {
+      log.warn({ sessionId }, 'Session not found, creating new session')
+      chatSession = {
+        id: finalSessionId,
+        agentId,
+        organizationId: agent.organizationId,
+        messages: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    }
+  } else {
+    log.info({ sessionId: finalSessionId }, 'Creating new chat session')
+    chatSession = {
+      id: finalSessionId,
+      agentId,
+      organizationId: agent.organizationId,
+      messages: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  }
 
   log.info({ agentId, sessionId: finalSessionId }, 'Processing chat request')
 
@@ -87,13 +121,36 @@ Please respond to the user's message.`
 
     const timestamp = new Date().toISOString()
 
+    // Persist messages: user message then agent message
+    const userMessage: ChatMessage = {
+      id: uuidv4(),
+      role: 'user',
+      content: message,
+      timestamp: new Date()
+    }
+    chatSession.messages.push(userMessage)
+
+    const agentMessage: ChatMessage = {
+      id: uuidv4(),
+      role: 'agent',
+      content: llmResponse.content,
+      timestamp: new Date(),
+      tokensUsed: llmResponse.tokensUsed?.total
+    }
+    chatSession.messages.push(agentMessage)
+
+    chatSession.updatedAt = new Date()
+
+    await saveChatSession(chatSession)
+
     log.info(
       {
         agentId,
         sessionId: finalSessionId,
-        tokensUsed: llmResponse.tokensUsed.total
+        tokensUsed: llmResponse.tokensUsed?.total,
+        messageCount: chatSession.messages.length
       },
-      'Chat response generated successfully'
+      'Chat response generated and persisted successfully'
     )
 
     return {

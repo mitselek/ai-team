@@ -3,6 +3,7 @@ import path from 'path'
 import { createLogger } from '../../utils/logger'
 import type { Organization, Team, Agent } from '@@/types'
 import type { InterviewSession, InterviewMessage } from './types'
+import type { ChatSession, ChatMessage } from './chat-types'
 
 const log = createLogger('persistence:filesystem')
 
@@ -266,6 +267,102 @@ export async function loadInterviews(orgId: string): Promise<InterviewSession[]>
       return []
     }
     log.error({ error, orgId }, 'Failed to load interviews')
+    throw error
+  }
+}
+
+// --- Chat ---
+
+export async function saveChatSession(session: ChatSession): Promise<void> {
+  const orgId = session.organizationId
+  const chatDir = path.join(DATA_DIR, orgId, 'chats', session.agentId)
+  await ensureDir(chatDir)
+  const filePath = path.join(chatDir, `${session.id}.json`)
+
+  const data = {
+    ...session,
+    createdAt: session.createdAt.toISOString(),
+    updatedAt: session.updatedAt.toISOString(),
+    messages: session.messages.map((m) => ({
+      ...m,
+      timestamp: m.timestamp.toISOString()
+    }))
+  }
+
+  try {
+    await writeFile(filePath, JSON.stringify(data, null, 2))
+  } catch (error: unknown) {
+    log.error(
+      { error, sessionId: session.id, agentId: session.agentId, orgId },
+      'Failed to save chat session'
+    )
+    throw error
+  }
+}
+
+export async function loadChatSession(
+  agentId: string,
+  sessionId: string,
+  orgId: string
+): Promise<ChatSession | null> {
+  const filePath = path.join(DATA_DIR, orgId, 'chats', agentId, `${sessionId}.json`)
+  try {
+    const content = await readFile(filePath, 'utf-8')
+    const data = JSON.parse(content)
+    return {
+      ...data,
+      createdAt: new Date(data.createdAt),
+      updatedAt: new Date(data.updatedAt),
+      messages: data.messages.map(
+        (m: ChatMessage): ChatMessage => ({
+          ...m,
+          timestamp: new Date(m.timestamp)
+        })
+      )
+    }
+  } catch (error: unknown) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      return null
+    }
+    log.error({ error, sessionId, agentId, orgId }, 'Failed to load chat session')
+    throw error
+  }
+}
+
+export async function loadChatSessions(agentId: string, orgId: string): Promise<ChatSession[]> {
+  const chatDir = path.join(DATA_DIR, orgId, 'chats', agentId)
+  try {
+    const files = await readdir(chatDir)
+    const sessions: ChatSession[] = []
+    for (const file of files) {
+      if (file.endsWith('.json')) {
+        const content = await readFile(path.join(chatDir, file), 'utf-8')
+        try {
+          const data = JSON.parse(content)
+          sessions.push({
+            ...data,
+            createdAt: new Date(data.createdAt),
+            updatedAt: new Date(data.updatedAt),
+            messages: data.messages.map(
+              (m: ChatMessage): ChatMessage => ({
+                ...m,
+                timestamp: new Date(m.timestamp)
+              })
+            )
+          })
+        } catch (err: unknown) {
+          // Skip corrupted session files but continue loading others
+          log.warn({ error: err, file, dir: chatDir }, 'Skipping corrupted chat session file')
+          continue
+        }
+      }
+    }
+    return sessions.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+  } catch (error: unknown) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      return []
+    }
+    log.error({ error, agentId, orgId }, 'Failed to load chat sessions')
     throw error
   }
 }
