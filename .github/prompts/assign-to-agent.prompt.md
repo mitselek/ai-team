@@ -6,21 +6,19 @@ Assign a GitHub issue to the GitHub Copilot coding agent for autonomous implemen
 
 ## Usage
 
-```bash
-/assign-to-agent #ISSUE_NUMBER
+```text
+/assign-to-agent <issue-number>
 ```
-
-Replace `ISSUE_NUMBER` with the actual issue number (e.g., `9`).
 
 Example:
 
-```bash
-/assign-to-agent #9
+```text
+/assign-to-agent 9
 ```
 
 ## The Prompt
 
-"I want you to assign GitHub issue #{{issue_number}} to the GitHub Copilot coding agent for autonomous implementation.
+"I want you to assign GitHub issue {{issue_number}} to the GitHub Copilot coding agent for autonomous implementation.
 
 **Step 1: Fetch Issue Details**
 
@@ -136,14 +134,14 @@ If the coding agent generates prompts or templates, those outputs must also incl
 
 ## Example Workflow
 
-User: `/assign-to-agent #9`
+User: `/assign-to-agent 9`
 
 Agent:
 
-1. Fetches Issue #9 details
+1. Fetches Issue 9 details
 2. Evaluates: "LOW RISK - Single file modification to name generator with clear specifications"
 3. Asks: "This appears to be low risk. Proceed with assignment?"
 4. User confirms
 5. Enhances issue body with technical context
 6. Calls coding agent tool
-7. Reports: "Assigned to coding agent. PR #12 created on branch copilot/update-agent-name-generator"
+7. Reports: "Assigned to coding agent. PR 12 created on branch copilot/update-agent-name-generator"
