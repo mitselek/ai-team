@@ -407,18 +407,34 @@ async function finalizeInterview(sessionId: string): Promise<{
 
     // Generate final agent name (may differ from suggested)
     updateState(sessionId, 'finalize')
-    const agentName = await generateAgentName(
-      session.candidateProfile,
-      session.teamId,
-      session.interviewerId
-    )
+
+    // Re-get session after state update
+    const updatedSession = getSession(sessionId)
+    if (!updatedSession) {
+      throw new Error(`Session ${sessionId} lost after finalize state update`)
+    }
+
+    // Use selected name if available, otherwise generate
+    let agentName: string
+    if (updatedSession.nameSelection?.selectedName) {
+      agentName = updatedSession.nameSelection.selectedName
+      log.info({ selectedName: agentName }, 'Using candidate-selected name')
+    } else {
+      agentName = await generateAgentName(
+        updatedSession.candidateProfile,
+        updatedSession.teamId,
+        updatedSession.interviewerId
+      )
+      log.info({ generatedName: agentName }, 'Generated name (no selection made)')
+    }
 
     // Use custom system prompt or generate one
     const systemPrompt =
-      session.candidateProfile.systemPrompt || generateSystemPrompt(session.candidateProfile)
+      updatedSession.candidateProfile.systemPrompt ||
+      generateSystemPrompt(updatedSession.candidateProfile)
 
     // Create the agent
-    const newAgent = await createAgentFromProfile(session, agentName, systemPrompt)
+    const newAgent = await createAgentFromProfile(updatedSession, agentName, systemPrompt)
 
     // Complete session
     completeSession(sessionId)

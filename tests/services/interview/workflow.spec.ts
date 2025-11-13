@@ -14,6 +14,10 @@ import type { Agent, Team } from '../../../types'
 import { LLMProvider } from '../../../app/server/services/llm/types'
 
 vi.mock('../../../app/server/services/llm')
+vi.mock('../../../app/server/services/persistence/filesystem', () => ({
+  saveInterview: vi.fn().mockResolvedValue(undefined),
+  saveAgent: vi.fn().mockResolvedValue(undefined)
+}))
 vi.mock('../../../app/server/utils/logger', () => ({
   createLogger: vi.fn(() => ({
     info: vi.fn(),
@@ -464,5 +468,68 @@ Name: Morgan - Rationale: Suggests strategic thinking and flexibility`,
     }
 
     await expect(handleNameSelection(session)).rejects.toThrow('Invalid state')
+  })
+})
+
+describe('Finalize with Name Selection', () => {
+  beforeEach(() => {
+    agents.length = 0
+    teams.length = 0
+    teams.push(mockTeam)
+    agents.push(mockInterviewer)
+    interviewSessions.length = 0
+    vi.clearAllMocks()
+  })
+
+  it('should use selected name when available', async () => {
+    vi.mocked(generateCompletion).mockResolvedValueOnce({
+      // HR Specialist recommendation
+      content: JSON.stringify({
+        systemPrompt: 'You are a Backend Developer specializing in Node.js.',
+        suggestedNames: ['Adrian', 'Morgan', 'Taylor'],
+        feedback: 'Excellent candidate!'
+      }),
+      tokensUsed: { total: 50, input: 30, output: 20 },
+      provider: LLMProvider.ANTHROPIC,
+      model: 'mock',
+      finishReason: 'stop'
+    })
+
+    const session = await startInterview('team-1', 'interviewer-1')
+
+    // Set state to nameSelection (one state before finalize)
+    session.currentState = 'nameSelection'
+    session.candidateProfile = {
+      role: 'Backend Developer',
+      expertise: ['Node.js', 'TypeScript'],
+      personality: {
+        traits: ['analytical', 'detail-oriented'],
+        tone: 'professional'
+      },
+      preferences: {
+        communicationStyle: 'direct',
+        workingHours: 'flexible',
+        autonomyLevel: 'high'
+      }
+    }
+
+    // Set nameSelection with selected name
+    session.nameSelection = {
+      options: [
+        { name: 'Adrian', rationale: 'Reliable' },
+        { name: 'Morgan', rationale: 'Strategic' }
+      ],
+      selectedName: 'Morgan',
+      selectedAt: new Date()
+    }
+
+    // Set exchanges to trigger transition to finalize
+    session.exchangesInCurrentState = 1
+
+    // Process response that should trigger transition to finalize and use selected name
+    const result = await processCandidateResponse(session.id, 'done')
+
+    expect(result.complete).toBe(true)
+    expect(agents.find((a) => a.name === 'Morgan')).toBeDefined()
   })
 })
