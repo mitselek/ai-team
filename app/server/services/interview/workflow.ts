@@ -186,11 +186,39 @@ Would you like to proceed with a recruitment interview, or would you prefer to d
     {
       clarityScore: analysis.clarityScore,
       keyInfoCount: analysis.keyInfo.length,
+      needsFollowUp: analysis.needsFollowUp,
       currentState: session.currentState,
       exchanges: session.exchangesInCurrentState
     },
     'Response analyzed'
   )
+
+  // If response needs follow-up and we're not already in follow_up state, transition there
+  if (analysis.needsFollowUp && session.currentState !== 'follow_up') {
+    log.info(
+      { sessionId, currentState: session.currentState },
+      'Response needs follow-up, transitioning'
+    )
+
+    updateState(sessionId, 'follow_up')
+    resetExchangeCounter(session)
+
+    const followUpQuestion = await generateNextQuestion(session)
+    if (followUpQuestion) {
+      addMessage(
+        sessionId,
+        'interviewer',
+        followUpQuestion.content,
+        undefined,
+        followUpQuestion.speakerLLM
+      )
+    }
+
+    return {
+      nextQuestion: followUpQuestion?.content || '',
+      complete: false
+    }
+  }
 
   // Check if state should transition (formal logic, not LLM judgment)
   if (shouldTransitionState(session)) {
