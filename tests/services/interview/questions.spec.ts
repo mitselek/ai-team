@@ -65,10 +65,11 @@ describe('Interview Questions', () => {
       finishReason: 'stop'
     })
 
-    const question = await generateNextQuestion(session)
+    const result = await generateNextQuestion(session)
 
-    expect(question).toBeDefined()
-    expect(question).toContain('role')
+    expect(result).toBeDefined()
+    expect(result?.content).toContain('role')
+    expect(result?.speakerLLM).toBe('anthropic:mock')
     expect(vi.mocked(generateCompletion)).toHaveBeenCalledWith(
       expect.stringContaining('role'),
       expect.objectContaining({

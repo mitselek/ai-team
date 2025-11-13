@@ -102,7 +102,8 @@ export function addMessage(
   sessionId: string,
   speaker: InterviewSpeaker,
   message: string,
-  metadata?: InterviewMessageMetadata
+  metadata?: InterviewMessageMetadata,
+  speakerLLM?: string
 ): InterviewMessage {
   const session = getSession(sessionId)
   if (!session) {
@@ -114,7 +115,8 @@ export function addMessage(
     speaker,
     message,
     timestamp: new Date(),
-    metadata
+    metadata,
+    speakerLLM
   }
 
   session.transcript.push(interviewMessage)
