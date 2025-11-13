@@ -11,6 +11,7 @@ AI Team enables organizations to create autonomous AI agent hierarchies that:
 - Create and manage their own tools with governance
 - Maintain persistent identities and accumulate experience
 - Integrate with GitHub for persistence and collaboration
+- Recruit new agents through AI-powered interview workflow (Marcus HR specialist)
 
 ## Tech Stack
 
@@ -81,19 +82,66 @@ npm run build
 ./scripts/bootstrap-marcus.sh
 ```
 
+## Recent Features
+
+**F014 - Flexible LLM Configuration** (Nov 2025):
+
+- Task-based model selection (4-tier: explicit override → task-based → role default → provider default)
+- 15 models across 3 providers (Anthropic, Google, OpenAI)
+- Role-specific models: interviewer, worker, manager, director
+- Task types: generate-questions, analyze-response, final-report, delegate-task, budget-calculation
+
+**F013 - Interview Approval Workflow** (Nov 2025):
+
+- Complete interview lifecycle: screening → deep-dive → finalization → approval
+- HR consultation with LLM-powered recommendations
+- System prompt generation with role-specific competencies
+- Auto-finalization when interview reaches 'finalize' state
+- Agent persistence to filesystem upon hire
+
+**LLM Observability Enhancements** (Nov 2025):
+
+- `speakerLLM` field in interview transcripts tracks which model generated each message
+- Format: `provider:model` (e.g., `anthropic:claude-sonnet-4-5-20241022`)
+- Hardcoded messages tagged with `system:hardcoded` sentinel value
+- HR consultation tracks model used for final recommendations
+- Full observability across interview workflow
+
+**F015 - GitHub Repository Persistence** (Nov 2025 - Phase 2a):
+
+- Each organization gets dedicated private GitHub repository
+- Manual commit capability for org state (manifest, teams, agents, interviews)
+- Foundation for automatic commit workflow (Phase 2b planned)
+- Organization-level .gitignore for selective tracking
+
 ## Data Persistence
 
-AI Team uses a hybrid persistence approach:
+AI Team uses a two-phase persistence approach:
 
-- **Filesystem (JSON)**: Organizations, teams, agents, and interview sessions
-  - Location: `data/organizations/`
+**Phase 1 - Filesystem (Current)**:
+
+- **Location**: `data/organizations/{org-id}/`
+- **What's Stored**: Organizations, teams, agents, interview sessions (JSON)
+- **Features**:
   - Auto-initialized on first startup with demo organization
   - Survives server restarts (interviews resume seamlessly)
-  - See `.specify/features/F012-persistent-organization-bootstrap/USAGE.md` for details
+  - Fire-and-forget persistence hooks (zero latency impact)
+  - Gitignored in main project (development data stays local)
+- **Details**: See `.specify/features/F012-persistent-organization-bootstrap/USAGE.md`
 
-- **GitHub API**: Coming soon for cross-environment sync
-  - Repositories, issues, wikis, PRs
-  - Collaboration and version control integration
+**Phase 2 - GitHub Repository per Organization (Implemented)**:
+
+- **Location**: Each organization has its own private GitHub repository
+- **Example**: MK Personal HQ → `https://github.com/mitselek/ai-org-mk-personal-hq`
+- **What's Tracked**: manifest.json, teams/, agents/, interviews/ (via org-level .gitignore)
+- **Features**:
+  - Version control for organizational evolution
+  - Automatic backup and history tracking
+  - Foundation for GitHub Issues (tasks), Wiki (knowledge base), PRs (approvals)
+  - Manual commits currently, automatic workflow planned (F015 Phase 2b)
+- **Details**: See `.specify/features/F015-github-persistence/planning/`
+
+Each organization directory (`data/organizations/{org-id}/`) is a separate git repository connected to its own GitHub remote, enabling isolated version control and collaboration per organization.
 
 ## Documentation
 
