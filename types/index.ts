@@ -36,6 +36,7 @@ export interface Organization {
 export interface Team {
   id: string
   name: string
+  description?: string
   organizationId: string
   leaderId: string | null
   tokenAllocation: number
