@@ -132,7 +132,7 @@ AI Team uses a two-phase persistence approach:
 **Phase 2 - GitHub Repository per Organization (Implemented)**:
 
 - **Location**: Each organization has its own private GitHub repository
-- **Example**: MK Personal HQ → `https://github.com/mitselek/ai-org-mk-personal-hq`
+- **Example**: Life Org → `https://github.com/{owner}/ai-org-life`
 - **What's Tracked**: manifest.json, teams/, agents/, interviews/ (via org-level .gitignore)
 - **Features**:
   - Version control for organizational evolution
