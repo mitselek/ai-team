@@ -122,6 +122,12 @@ export async function processCandidateResponse(
   // Add response to transcript
   addMessage(sessionId, 'requester', response)
 
+  // Handle name selection state (when already in that state with user response)
+  if (session.currentState === 'nameSelection' && !session.nameSelection?.selectedName) {
+    log.info({ sessionId }, 'Processing name selection response')
+    return await handleNameSelection(session, response)
+  }
+
   // Check for recruitment intent on first user response (ask_role state, first exchange)
   // This allows Marcus to provide guidance if the user clearly isn't here to hire
   if (session.currentState === 'ask_role' && session.exchangesInCurrentState === 0) {
@@ -235,6 +241,12 @@ Would you like to proceed with a recruitment interview, or would you prefer to d
     // Update to next state and reset counter
     updateState(sessionId, nextState)
     resetExchangeCounter(session)
+
+    // Handle name selection state
+    if (nextState === 'nameSelection') {
+      log.info({ sessionId }, 'Entering name selection state')
+      return await handleNameSelection(session)
+    }
 
     // Auto-trigger finalization when reaching 'finalize' state
     if (nextState === 'finalize') {

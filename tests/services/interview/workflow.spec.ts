@@ -297,16 +297,27 @@ describe('Interview Workflow', () => {
 
     const session = await startInterview('team-1', 'interviewer-1')
 
-    // Set state to ask_preferences (one state before finalize)
-    session.currentState = 'ask_preferences'
+    // Set state to nameSelection (one state before finalize)
+    session.currentState = 'nameSelection'
     session.candidateProfile.role = 'Backend Developer'
     session.candidateProfile.expertise = ['Node.js', 'TypeScript']
     session.candidateProfile.preferences.communicationStyle = 'Written'
     session.candidateProfile.preferences.autonomyLevel = 'High'
     session.candidateProfile.preferences.workingHours = 'Flexible'
 
+    // Set up name selection with options and selected name
+    session.nameSelection = {
+      options: [
+        { name: 'Adrian', rationale: 'Conveys reliability' },
+        { name: 'Iris', rationale: 'Represents clarity' },
+        { name: 'Morgan', rationale: 'Suggests strategic thinking' }
+      ],
+      selectedName: 'Adrian',
+      selectedAt: new Date()
+    }
+
     // Set exchanges to trigger transition to finalize
-    session.exchangesInCurrentState = 3 // Max for ask_preferences is 3
+    session.exchangesInCurrentState = 1 // Max for nameSelection is 1
 
     // Add minimum messages to transcript
     for (let i = 0; i < 10; i++) {
@@ -319,7 +330,7 @@ describe('Interview Workflow', () => {
     }
 
     // Process response that should trigger transition to finalize and auto-finalization
-    const result = await processCandidateResponse(session.id, 'I prefer flexible hours')
+    const result = await processCandidateResponse(session.id, 'Looks great!')
 
     // Verify that finalization was automatically triggered
     expect(result.complete).toBe(true)

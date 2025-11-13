@@ -46,7 +46,7 @@ const STATE_CONFIG: Record<
   },
   ask_preferences: {
     maxExchanges: 3, // Communication, autonomy, working hours
-    nextState: 'finalize' as InterviewState,
+    nextState: 'nameSelection' as InterviewState,
     topic: 'preferences'
   },
   nameSelection: {
