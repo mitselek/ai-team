@@ -8,6 +8,14 @@ import type { CandidateProfile } from './types'
 const logger = createLogger('interview:name-generator')
 
 /**
+ * Name option with rationale
+ */
+export interface NameOption {
+  name: string
+  rationale: string
+}
+
+/**
  * Generate a creative agent name based on candidate profile
  */
 export async function generateAgentName(
@@ -345,4 +353,160 @@ The name "${rejectedName}" was already rejected. Generate 3 completely different
     log.error({ error }, 'Failed to generate alternative names')
     return []
   }
+}
+
+/**
+ * Generate 3 name options with rationale based on candidate profile
+ */
+export async function generateNameOptions(
+  profile: CandidateProfile,
+  teamId: string,
+  interviewerId: string
+): Promise<NameOption[]> {
+  const log = logger.child({ teamId, role: profile.role })
+
+  log.info('Generating name options with rationale')
+
+  const existingNames = agents.filter((a) => a.teamId === teamId).map((a) => a.name)
+
+  const prompt = buildNameOptionsPrompt(profile, existingNames)
+
+  try {
+    const response = await generateCompletion(prompt, {
+      agentId: interviewerId,
+      temperature: 0.8,
+      maxTokens: 400
+    })
+
+    const options = parseNameOptions(response.content, existingNames)
+
+    if (options.length < 3) {
+      while (options.length < 3) {
+        const fallbackName = generateFallbackName(profile.role)
+        const uniqueName = makeNameUnique(fallbackName, [
+          ...existingNames,
+          ...options.map((o) => o.name)
+        ])
+        options.push({
+          name: uniqueName,
+          rationale: `Professional name suitable for ${profile.role}`
+        })
+      }
+    }
+
+    log.info({ optionsCount: options.length }, 'Name options generated')
+
+    return options.slice(0, 3)
+  } catch (error) {
+    log.error({ error }, 'Failed to generate name options')
+
+    return generateFallbackOptions(profile, existingNames)
+  }
+}
+
+/**
+ * Build prompt for name options generation with rationale
+ */
+function buildNameOptionsPrompt(profile: CandidateProfile, existingNames: string[]): string {
+  const traitsDesc =
+    profile.personality.traits.length > 0 ? profile.personality.traits.join(', ') : 'professional'
+  const toneDesc = profile.personality.tone || 'balanced'
+
+  return `Generate 3 professional, traditional human names for a new ${profile.role} agent, with a brief rationale for each name.
+
+Personality traits: ${traitsDesc}
+Communication tone: ${toneDesc}
+Role: ${profile.role}
+
+Existing team member names (avoid these): ${existingNames.join(', ') || 'None'}
+
+Requirements:
+- Use traditional human first names (e.g., John, Sarah, Michael, Jennifer, David, Maria)
+- Include a surname for most names (about 70% of the time) like Smith, Johnson, Chen, Garcia, Patel, Kim, etc.
+- Some names can be just a first name (about 30% of the time)
+- Names should be culturally diverse
+- Names should feel professional and appropriate for a workplace
+- Each name should be unique and distinct
+- Avoid names that are too similar to existing ones
+- For each name, provide a brief rationale (1 sentence) explaining why it fits the personality and role
+
+Format each option as:
+Name: [name] - Rationale: [brief explanation]
+
+Example format:
+Name: Adrian - Rationale: Conveys reliability and steady presence
+Name: Iris - Rationale: Represents clarity and commitment to insight
+Name: Morgan - Rationale: Suggests strategic thinking and flexibility
+
+Generate exactly 3 name options with rationales.`
+}
+
+/**
+ * Parse name options with rationale from LLM response
+ */
+function parseNameOptions(response: string, existingNames: string[]): NameOption[] {
+  const lines = response
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+
+  const options: NameOption[] = []
+
+  for (const line of lines) {
+    let cleanLine = line
+      .replace(/^\d+[\.\)]\s*/, '')
+      .replace(/^-\s*/, '')
+      .replace(/^[*]\s*/, '')
+      .trim()
+
+    if (cleanLine.toLowerCase().startsWith('name:')) {
+      const parts = cleanLine.substring(5).split(/\s*-\s*[Rr]ationale:\s*/)
+
+      if (parts.length >= 2) {
+        const name = parts[0].trim()
+        const rationale = parts.slice(1).join(' - ').trim()
+
+        if (isValidName(name) && !existingNames.includes(name) && rationale.length > 0) {
+          const isDuplicate = options.some((opt) => opt.name === name)
+          if (!isDuplicate) {
+            options.push({ name, rationale })
+          }
+        }
+      }
+    }
+
+    if (options.length >= 3) {
+      break
+    }
+  }
+
+  return options
+}
+
+/**
+ * Generate fallback options using existing name pools
+ */
+function generateFallbackOptions(profile: CandidateProfile, existingNames: string[]): NameOption[] {
+  const options: NameOption[] = []
+  const usedNames = new Set<string>(existingNames)
+
+  while (options.length < 3) {
+    const firstName = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)]
+    let name: string
+
+    if (Math.random() < 0.7 && options.length < 3) {
+      const surname = SURNAMES[Math.floor(Math.random() * SURNAMES.length)]
+      name = `${firstName} ${surname}`
+    } else {
+      name = firstName
+    }
+
+    if (!usedNames.has(name)) {
+      usedNames.add(name)
+      const rationale = `Professional name suitable for ${profile.role} with ${profile.personality.tone} tone`
+      options.push({ name, rationale })
+    }
+  }
+
+  return options
 }
