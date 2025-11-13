@@ -167,6 +167,15 @@
                       Chat
                     </NuxtLink>
 
+                    <!-- Interview Button (for HR agents like Marcus) -->
+                    <NuxtLink
+                      v-if="agent.status === 'active' && isHRAgent(agent)"
+                      :to="`/interviews/new?interviewerId=${agent.id}`"
+                      class="rounded bg-purple-500 px-3 py-1 text-sm text-white transition-colors hover:bg-purple-600"
+                    >
+                      Start Interview
+                    </NuxtLink>
+
                     <!-- Start Button -->
                     <button
                       v-if="agent.status !== 'active'"
@@ -280,6 +289,10 @@ const toggleTeam = (teamId: string) => {
 
 const getTeamAgents = (teamId: string): Agent[] => {
   return orgAgents.value.filter((agent) => agent.teamId === teamId)
+}
+
+const isHRAgent = (agent: Agent): boolean => {
+  return agent.name === 'Marcus' || agent.role.toLowerCase().includes('hr')
 }
 
 const getTeamTokenUsage = (teamId: string): number => {
