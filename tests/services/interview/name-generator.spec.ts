@@ -4,6 +4,7 @@ import {
   suggestAlternativeNames
 } from '../../../app/server/services/interview/name-generator'
 import { agents } from '../../../app/server/data/agents'
+import { LLMProvider } from '../../../app/server/services/llm/types'
 import type { CandidateProfile } from '../../../app/server/services/interview/types'
 
 // Mock the logger
@@ -55,7 +56,10 @@ describe('Name Generator', () => {
       // Mock LLM to return traditional names
       mockGenerateCompletion.mockResolvedValue({
         content: 'John Smith\nSarah Johnson\nMichael Chen',
-        speakerLLM: 'mock:model'
+        provider: LLMProvider.ANTHROPIC,
+        model: 'claude-haiku-4',
+        tokensUsed: { total: 50, input: 30, output: 20 },
+        finishReason: 'stop'
       })
 
       const profile = createTestProfile()
@@ -75,7 +79,10 @@ describe('Name Generator', () => {
       // Mock LLM to return a mix of names
       mockGenerateCompletion.mockResolvedValue({
         content: 'Jennifer\nDavid Garcia\nMaria Rodriguez',
-        speakerLLM: 'mock:model'
+        provider: LLMProvider.ANTHROPIC,
+        model: 'claude-haiku-4',
+        tokensUsed: { total: 50, input: 30, output: 20 },
+        finishReason: 'stop'
       })
 
       const profile = createTestProfile()
@@ -88,7 +95,10 @@ describe('Name Generator', () => {
       // Mock LLM to return diverse names
       mockGenerateCompletion.mockResolvedValue({
         content: 'Raj Patel\nYuki Tanaka\nAhmed Hassan',
-        speakerLLM: 'mock:model'
+        provider: LLMProvider.ANTHROPIC,
+        model: 'claude-haiku-4',
+        tokensUsed: { total: 50, input: 30, output: 20 },
+        finishReason: 'stop'
       })
 
       const profile = createTestProfile()
@@ -116,7 +126,10 @@ describe('Name Generator', () => {
 
       mockGenerateCompletion.mockResolvedValue({
         content: 'John Smith\nSarah Johnson\nMichael Chen',
-        speakerLLM: 'mock:model'
+        provider: LLMProvider.ANTHROPIC,
+        model: 'claude-haiku-4',
+        tokensUsed: { total: 50, input: 30, output: 20 },
+        finishReason: 'stop'
       })
 
       const profile = createTestProfile()
@@ -129,7 +142,10 @@ describe('Name Generator', () => {
     it('should handle names with spaces in validation', async () => {
       mockGenerateCompletion.mockResolvedValue({
         content: "Maria Rodriguez\nJohn O'Brien\nJean-Pierre Martin",
-        speakerLLM: 'mock:model'
+        provider: LLMProvider.ANTHROPIC,
+        model: 'claude-haiku-4',
+        tokensUsed: { total: 50, input: 30, output: 20 },
+        finishReason: 'stop'
       })
 
       const profile = createTestProfile()
@@ -201,7 +217,10 @@ describe('Name Generator', () => {
 
       mockGenerateCompletion.mockResolvedValue({
         content: 'John Smith\nSarah Johnson\nMichael Chen',
-        speakerLLM: 'mock:model'
+        provider: LLMProvider.ANTHROPIC,
+        model: 'claude-haiku-4',
+        tokensUsed: { total: 50, input: 30, output: 20 },
+        finishReason: 'stop'
       })
 
       const profile = createTestProfile()
@@ -216,7 +235,10 @@ describe('Name Generator', () => {
     it('should generate alternative names avoiding rejected name', async () => {
       mockGenerateCompletion.mockResolvedValue({
         content: 'David Garcia\nEmily Williams\nRaj Patel',
-        speakerLLM: 'mock:model'
+        provider: LLMProvider.ANTHROPIC,
+        model: 'claude-haiku-4',
+        tokensUsed: { total: 50, input: 30, output: 20 },
+        finishReason: 'stop'
       })
 
       const profile = createTestProfile()
@@ -235,7 +257,10 @@ describe('Name Generator', () => {
     it('should request traditional names in alternative suggestions', async () => {
       mockGenerateCompletion.mockResolvedValue({
         content: 'Jennifer Lee\nCarlos Martinez\nPriya Singh',
-        speakerLLM: 'mock:model'
+        provider: LLMProvider.ANTHROPIC,
+        model: 'claude-haiku-4',
+        tokensUsed: { total: 50, input: 30, output: 20 },
+        finishReason: 'stop'
       })
 
       const profile = createTestProfile()
