@@ -8,6 +8,10 @@ import type { InterviewSession, AnalysisResult } from '../../../app/server/servi
 import { LLMProvider } from '../../../app/server/services/llm/types'
 
 vi.mock('../../../app/server/services/llm')
+vi.mock('../../../app/server/services/persistence/filesystem', () => ({
+  saveInterview: vi.fn().mockResolvedValue(undefined),
+  saveAgent: vi.fn().mockResolvedValue(undefined)
+}))
 vi.mock('../../../app/server/utils/logger', () => ({
   createLogger: vi.fn(() => ({
     info: vi.fn(),
