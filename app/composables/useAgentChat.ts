@@ -6,6 +6,7 @@ export const useAgentChat = () => {
   const messages = ref<ChatMessage[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const sessionId = ref<string | null>(null)
 
   /**
    * Send a message to an agent and receive a response
@@ -35,9 +36,17 @@ export const useAgentChat = () => {
         `/api/agents/${agentId}/chat`,
         {
           method: 'POST',
-          body: { message }
+          body: {
+            message,
+            sessionId: sessionId.value || undefined
+          }
         }
       )
+
+      // Store session ID for subsequent messages
+      if (response.sessionId) {
+        sessionId.value = response.sessionId
+      }
 
       const agentMessage: ChatMessage = {
         role: 'agent',
@@ -46,7 +55,10 @@ export const useAgentChat = () => {
       }
 
       messages.value.push(agentMessage)
-      logger.info({ agentId, messageCount: messages.value.length }, 'Message sent successfully')
+      logger.info(
+        { agentId, sessionId: sessionId.value, messageCount: messages.value.length },
+        'Message sent successfully'
+      )
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to send message. Please try again.'
@@ -65,6 +77,7 @@ export const useAgentChat = () => {
   const clearMessages = (): void => {
     messages.value = []
     error.value = null
+    sessionId.value = null
     logger.info('Chat messages cleared')
   }
 
@@ -72,6 +85,7 @@ export const useAgentChat = () => {
     messages,
     loading,
     error,
+    sessionId,
     sendMessage,
     clearMessages
   }
