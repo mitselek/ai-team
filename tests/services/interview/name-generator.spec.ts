@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
   generateAgentName,
-  suggestAlternativeNames
+  suggestAlternativeNames,
+  generateNameOptions
 } from '../../../app/server/services/interview/name-generator'
 import { agents } from '../../../app/server/data/agents'
 import { LLMProvider } from '../../../app/server/services/llm/types'
@@ -273,6 +274,181 @@ describe('Name Generator', () => {
       expect(mockGenerateCompletion).toHaveBeenCalledWith(
         expect.stringContaining('Old Name'),
         expect.anything()
+      )
+    })
+  })
+
+  describe('generateNameOptions', () => {
+    it('should return exactly 3 name options', async () => {
+      mockGenerateCompletion.mockResolvedValue({
+        content: `Name: Adrian - Rationale: Conveys reliability and steady presence
+Name: Iris - Rationale: Represents clarity and commitment to insight
+Name: Morgan - Rationale: Suggests strategic thinking and flexibility`,
+        provider: LLMProvider.ANTHROPIC,
+        model: 'claude-haiku-4',
+        tokensUsed: { total: 100, input: 50, output: 50 },
+        finishReason: 'stop'
+      })
+
+      const profile = createTestProfile()
+      const options = await generateNameOptions(profile, 'test-team-1', 'interviewer-1')
+
+      expect(options).toHaveLength(3)
+    })
+
+    it('should include name and rationale for each option', async () => {
+      mockGenerateCompletion.mockResolvedValue({
+        content: `Name: Adrian - Rationale: Conveys reliability and steady presence
+Name: Iris - Rationale: Represents clarity and commitment to insight
+Name: Morgan - Rationale: Suggests strategic thinking and flexibility`,
+        provider: LLMProvider.ANTHROPIC,
+        model: 'claude-haiku-4',
+        tokensUsed: { total: 100, input: 50, output: 50 },
+        finishReason: 'stop'
+      })
+
+      const profile = createTestProfile()
+      const options = await generateNameOptions(profile, 'test-team-1', 'interviewer-1')
+
+      options.forEach((option) => {
+        expect(option.name).toBeTruthy()
+        expect(typeof option.name).toBe('string')
+        expect(option.rationale).toBeTruthy()
+        expect(typeof option.rationale).toBe('string')
+        expect(option.rationale.length).toBeGreaterThan(10)
+      })
+    })
+
+    it('should generate unique names within the 3 options', async () => {
+      mockGenerateCompletion.mockResolvedValue({
+        content: `Name: John Smith - Rationale: Professional and approachable
+Name: Sarah Chen - Rationale: Analytical and detail-oriented
+Name: Michael Garcia - Rationale: Strategic and collaborative`,
+        provider: LLMProvider.ANTHROPIC,
+        model: 'claude-haiku-4',
+        tokensUsed: { total: 100, input: 50, output: 50 },
+        finishReason: 'stop'
+      })
+
+      const profile = createTestProfile()
+      const options = await generateNameOptions(profile, 'test-team-1', 'interviewer-1')
+
+      const names = options.map((o) => o.name)
+      const uniqueNames = new Set(names)
+      expect(uniqueNames.size).toBe(3)
+    })
+
+    it('should avoid existing team member names', async () => {
+      agents.push({
+        id: 'agent-1',
+        name: 'John Smith',
+        role: 'Developer',
+        status: 'active',
+        tokenAllocation: 10000,
+        tokenUsed: 0,
+        systemPrompt: 'Test',
+        teamId: 'test-team-1',
+        seniorId: null,
+        organizationId: 'org-1',
+        createdAt: new Date(),
+        lastActiveAt: new Date()
+      })
+
+      mockGenerateCompletion.mockResolvedValue({
+        content: `Name: Sarah Chen - Rationale: Analytical and detail-oriented
+Name: Michael Garcia - Rationale: Strategic and collaborative
+Name: Emily Johnson - Rationale: Creative and innovative`,
+        provider: LLMProvider.ANTHROPIC,
+        model: 'claude-haiku-4',
+        tokensUsed: { total: 100, input: 50, output: 50 },
+        finishReason: 'stop'
+      })
+
+      const profile = createTestProfile()
+      const options = await generateNameOptions(profile, 'test-team-1', 'interviewer-1')
+
+      const generatedNames = options.map((o) => o.name)
+      expect(generatedNames).not.toContain('John Smith')
+    })
+
+    it('should handle LLM failures with fallback options', async () => {
+      mockGenerateCompletion.mockRejectedValueOnce(new Error('LLM failure'))
+
+      const profile = createTestProfile()
+      const options = await generateNameOptions(profile, 'test-team-1', 'interviewer-1')
+
+      expect(options).toHaveLength(3)
+      options.forEach((option) => {
+        expect(option.name).toBeTruthy()
+        expect(option.rationale).toBeTruthy()
+      })
+    })
+
+    it('should generate contextually appropriate rationales', async () => {
+      const profile = {
+        ...createTestProfile(),
+        role: 'Senior Developer',
+        personality: { traits: ['analytical', 'detail-oriented'], tone: 'professional' }
+      }
+
+      mockGenerateCompletion.mockResolvedValue({
+        content: `Name: Adrian - Rationale: Strong analytical skills and attention to detail
+Name: Morgan - Rationale: Strategic thinking with technical expertise
+Name: Riley - Rationale: Professional demeanor and collaborative approach`,
+        provider: LLMProvider.ANTHROPIC,
+        model: 'claude-haiku-4',
+        tokensUsed: { total: 100, input: 50, output: 50 },
+        finishReason: 'stop'
+      })
+
+      const options = await generateNameOptions(profile, 'test-team-1', 'interviewer-1')
+
+      options.forEach((option) => {
+        expect(option.rationale.split(' ').length).toBeGreaterThan(3)
+        expect(option.rationale).not.toContain('undefined')
+        expect(option.rationale).not.toContain('null')
+      })
+    })
+
+    it('should handle partial LLM responses by filling with fallbacks', async () => {
+      mockGenerateCompletion.mockResolvedValue({
+        content: `Name: Adrian - Rationale: Conveys reliability`,
+        provider: LLMProvider.ANTHROPIC,
+        model: 'claude-haiku-4',
+        tokensUsed: { total: 50, input: 30, output: 20 },
+        finishReason: 'stop'
+      })
+
+      const profile = createTestProfile()
+      const options = await generateNameOptions(profile, 'test-team-1', 'interviewer-1')
+
+      expect(options).toHaveLength(3)
+      expect(options[0].name).toBe('Adrian')
+      expect(options[1].name).toBeTruthy()
+      expect(options[2].name).toBeTruthy()
+    })
+
+    it('should use appropriate temperature for creativity', async () => {
+      mockGenerateCompletion.mockResolvedValue({
+        content: `Name: Adrian - Rationale: Professional and reliable
+Name: Morgan - Rationale: Strategic and flexible
+Name: Casey - Rationale: Analytical and thorough`,
+        provider: LLMProvider.ANTHROPIC,
+        model: 'claude-haiku-4',
+        tokensUsed: { total: 100, input: 50, output: 50 },
+        finishReason: 'stop'
+      })
+
+      const profile = createTestProfile()
+      await generateNameOptions(profile, 'test-team-1', 'interviewer-1')
+
+      expect(mockGenerateCompletion).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          agentId: 'interviewer-1',
+          temperature: 0.8,
+          maxTokens: 400
+        })
       )
     })
   })
