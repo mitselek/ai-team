@@ -72,6 +72,7 @@ export function loadConfig(): LLMConfig {
         default: { provider: LLMProvider.GOOGLE, model: 'flash' }
       },
       director: {
+        'final-report': { provider: LLMProvider.ANTHROPIC, model: 'sonnet-4.5' },
         default: { provider: LLMProvider.GOOGLE, model: 'pro' }
       }
     },
