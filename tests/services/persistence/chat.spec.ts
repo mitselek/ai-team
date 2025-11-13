@@ -135,7 +135,8 @@ describe('Chat Persistence', () => {
         ]
       }
       await saveChatSession(sessionWithoutTokens)
-      const call = (fs.writeFile as vi.Mock).mock.calls[0][1]
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const call = (fs.writeFile as any).mock.calls[0][1]
       const parsed = JSON.parse(call)
       expect(parsed.messages[0]).not.toHaveProperty('tokensUsed')
     })
@@ -225,7 +226,7 @@ describe('Chat Persistence', () => {
         'session-1.json',
         'session-2.json',
         'not-a-session.txt'
-      ])
+      ] as unknown as Awaited<ReturnType<typeof fs.readdir>>)
       vi.mocked(fs.readFile)
         .mockResolvedValueOnce(JSON.stringify(isoSession1))
         .mockResolvedValueOnce(JSON.stringify(isoSession2))
@@ -249,13 +250,18 @@ describe('Chat Persistence', () => {
     })
 
     it('should return an empty array for an agent with no sessions', async () => {
-      vi.mocked(fs.readdir).mockResolvedValue([])
+      vi.mocked(fs.readdir).mockResolvedValue(
+        [] as unknown as Awaited<ReturnType<typeof fs.readdir>>
+      )
       const result = await loadChatSessions(mockAgentId, mockOrganizationId)
       expect(result).toEqual([])
     })
 
     it('should skip corrupted session files and load valid ones', async () => {
-      vi.mocked(fs.readdir).mockResolvedValue(['session-1.json', 'corrupted.json'])
+      vi.mocked(fs.readdir).mockResolvedValue([
+        'session-1.json',
+        'corrupted.json'
+      ] as unknown as Awaited<ReturnType<typeof fs.readdir>>)
       vi.mocked(fs.readFile)
         .mockResolvedValueOnce(JSON.stringify(isoSession1))
         .mockResolvedValueOnce('{"invalid": json')
