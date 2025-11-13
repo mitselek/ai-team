@@ -144,6 +144,16 @@ export async function processCandidateResponse(
     updateState(sessionId, nextState)
     resetExchangeCounter(session)
 
+    // Auto-trigger finalization when reaching 'finalize' state
+    if (nextState === 'finalize') {
+      try {
+        return await finalizeInterview(sessionId)
+      } catch (error) {
+        log.error({ error, sessionId }, 'Failed to auto-finalize interview')
+        throw error
+      }
+    }
+
     const nextQuestion = await generateNextQuestion(session)
     if (nextQuestion) {
       addMessage(sessionId, 'interviewer', nextQuestion)

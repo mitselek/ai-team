@@ -244,4 +244,88 @@ describe('Interview Workflow', () => {
     expect(newAgent).toBeDefined()
     expect(newAgent?.role).toBe('Frontend Developer')
   })
+
+  it('should auto-trigger finalization when transitioning to finalize state', async () => {
+    vi.mocked(generateCompletion)
+      .mockResolvedValueOnce({
+        content: 'What role will you be taking on our team?',
+        tokensUsed: { total: 15, input: 10, output: 5 },
+        provider: LLMProvider.ANTHROPIC,
+        model: 'mock',
+        finishReason: 'stop'
+      })
+      .mockResolvedValueOnce({
+        content: JSON.stringify({
+          keyInfo: ['Backend Developer', 'Node.js', 'TypeScript'],
+          clarityScore: 9,
+          needsFollowUp: false,
+          followUpReason: ''
+        }),
+        tokensUsed: { total: 20, input: 15, output: 5 },
+        provider: LLMProvider.ANTHROPIC,
+        model: 'mock',
+        finishReason: 'stop'
+      })
+      .mockResolvedValueOnce({
+        content: 'INTERVIEW_COMPLETE',
+        tokensUsed: { total: 10, input: 5, output: 5 },
+        provider: LLMProvider.ANTHROPIC,
+        model: 'mock',
+        finishReason: 'stop'
+      })
+      .mockResolvedValueOnce({
+        // HR Specialist recommendation
+        content: JSON.stringify({
+          systemPrompt: 'You are Sam, a Backend Developer specializing in Node.js.',
+          suggestedNames: ['Sam', 'Taylor', 'Morgan'],
+          feedback: 'Excellent candidate!'
+        }),
+        tokensUsed: { total: 50, input: 30, output: 20 },
+        provider: LLMProvider.ANTHROPIC,
+        model: 'mock',
+        finishReason: 'stop'
+      })
+      .mockResolvedValueOnce({
+        // Name generation
+        content: 'Sam\nTaylor\nMorgan',
+        tokensUsed: { total: 20, input: 15, output: 5 },
+        provider: LLMProvider.ANTHROPIC,
+        model: 'mock',
+        finishReason: 'stop'
+      })
+
+    const session = await startInterview('team-1', 'interviewer-1')
+
+    // Set state to ask_preferences (one state before finalize)
+    session.currentState = 'ask_preferences'
+    session.candidateProfile.role = 'Backend Developer'
+    session.candidateProfile.expertise = ['Node.js', 'TypeScript']
+    session.candidateProfile.preferences.communicationStyle = 'Written'
+    session.candidateProfile.preferences.autonomyLevel = 'High'
+    session.candidateProfile.preferences.workingHours = 'Flexible'
+
+    // Set exchanges to trigger transition to finalize
+    session.exchangesInCurrentState = 3 // Max for ask_preferences is 3
+
+    // Add minimum messages to transcript
+    for (let i = 0; i < 10; i++) {
+      session.transcript.push({
+        id: `msg-${i}`,
+        speaker: i % 2 === 0 ? 'interviewer' : 'requester',
+        message: `Message ${i}`,
+        timestamp: new Date()
+      })
+    }
+
+    // Process response that should trigger transition to finalize and auto-finalization
+    const result = await processCandidateResponse(session.id, 'I prefer flexible hours')
+
+    // Verify that finalization was automatically triggered
+    expect(result.complete).toBe(true)
+    expect(session.status).toBe('completed')
+    expect(agents.length).toBe(2) // Interviewer + new agent
+    const newAgent = agents.find((a) => a.id !== 'interviewer-1')
+    expect(newAgent).toBeDefined()
+    expect(newAgent?.role).toBe('Backend Developer')
+  })
 })
