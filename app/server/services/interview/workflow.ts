@@ -59,7 +59,7 @@ export async function startInterview(
 
   // Send greeting
   const greeting = generateGreeting(interviewer.name, team.name)
-  addMessage(session.id, 'interviewer', greeting)
+  addMessage(session.id, 'interviewer', greeting, undefined, 'system:hardcoded')
 
   // Generate first question
   updateState(session.id, 'ask_role')
@@ -210,7 +210,7 @@ async function finalizeInterview(sessionId: string): Promise<{
   // Inform candidate
   const consultMessage =
     "Thank you for your responses! I'm going to consult with our HR Director to finalize your configuration. This will just take a moment..."
-  addMessage(sessionId, 'interviewer', consultMessage)
+  addMessage(sessionId, 'interviewer', consultMessage, undefined, 'system:hardcoded')
 
   try {
     // Consult HR Specialist
@@ -243,7 +243,7 @@ async function finalizeInterview(sessionId: string): Promise<{
 
     // Send welcome message
     const welcomeMessage = `Welcome aboard, ${newAgent.name}! You're now part of our team. Your manager and team members are here to support you. Feel free to start working on assigned tasks, and don't hesitate to ask questions. Good luck!`
-    addMessage(sessionId, 'interviewer', welcomeMessage)
+    addMessage(sessionId, 'interviewer', welcomeMessage, undefined, 'system:hardcoded')
 
     log.info(
       {
@@ -387,7 +387,13 @@ export async function resumeInterview(sessionId: string): Promise<InterviewSessi
   sessionModule.resumeSession(sessionId)
 
   // Send resume message
-  addMessage(sessionId, 'interviewer', "Welcome back! Let's continue where we left off.")
+  addMessage(
+    sessionId,
+    'interviewer',
+    "Welcome back! Let's continue where we left off.",
+    undefined,
+    'system:hardcoded'
+  )
 
   // Generate next question based on current state
   const nextQuestion = await generateNextQuestion(session)
