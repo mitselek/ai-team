@@ -29,7 +29,7 @@ export const useAgentChat = (agentId: string) => {
   const loadAgent = async () => {
     try {
       error.value = null
-      const response = await fetch(`/api/agents?organizationId=undefined`)
+      const response = await fetch('/api/agents')
 
       if (!response.ok) {
         error.value = 'Failed to load agent'

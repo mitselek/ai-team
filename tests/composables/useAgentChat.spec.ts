@@ -43,7 +43,7 @@ describe('useAgentChat', () => {
 
     await loadAgent()
 
-    expect(fetch).toHaveBeenCalledWith('/api/agents?organizationId=undefined')
+    expect(fetch).toHaveBeenCalledWith('/api/agents')
     expect(agent.value).toEqual(mockAgent)
     expect(error.value).toBeNull()
   })
