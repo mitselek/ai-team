@@ -26,7 +26,9 @@ export const INTERVIEW_CONFIG = {
 /**
  * Generate the next question based on interview state and context
  */
-export async function generateNextQuestion(session: InterviewSession): Promise<string | null> {
+export async function generateNextQuestion(
+  session: InterviewSession
+): Promise<{ content: string; speakerLLM: string } | null> {
   const log = logger.child({ sessionId: session.id, state: session.currentState })
 
   log.info('Generating next interview question')
@@ -78,7 +80,10 @@ export async function generateNextQuestion(session: InterviewSession): Promise<s
       'Question generated successfully'
     )
 
-    return content
+    return {
+      content,
+      speakerLLM: `${response.provider}:${response.model}`
+    }
   } catch (error) {
     log.error({ error }, 'Failed to generate question')
     throw error
@@ -180,7 +185,7 @@ export function generateGreeting(interviewerName: string, teamName: string): str
 export async function generateFollowUpQuestion(
   session: InterviewSession,
   reason: string
-): Promise<string> {
+): Promise<{ content: string; speakerLLM: string }> {
   const log = logger.child({ sessionId: session.id })
 
   log.info({ reason }, 'Generating follow-up question')
@@ -207,7 +212,10 @@ Keep it brief and specific.`
     })
 
     log.info('Follow-up question generated')
-    return response.content.trim()
+    return {
+      content: response.content.trim(),
+      speakerLLM: `${response.provider}:${response.model}`
+    }
   } catch (error) {
     log.error({ error }, 'Failed to generate follow-up question')
     throw error

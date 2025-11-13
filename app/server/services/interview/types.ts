@@ -46,6 +46,7 @@ export interface InterviewMessage {
   message: string
   timestamp: Date
   metadata?: InterviewMessageMetadata
+  speakerLLM?: string // Format: "provider:model" (e.g., "anthropic:haiku-4.5")
 }
 
 /**

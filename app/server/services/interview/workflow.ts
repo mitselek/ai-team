@@ -66,7 +66,13 @@ export async function startInterview(
   const firstQuestion = await generateNextQuestion(session)
 
   if (firstQuestion) {
-    addMessage(session.id, 'interviewer', firstQuestion)
+    addMessage(
+      session.id,
+      'interviewer',
+      firstQuestion.content,
+      undefined,
+      firstQuestion.speakerLLM
+    )
   }
 
   log.info(
@@ -157,11 +163,11 @@ export async function processCandidateResponse(
 
     const nextQuestion = await generateNextQuestion(session)
     if (nextQuestion) {
-      addMessage(sessionId, 'interviewer', nextQuestion)
+      addMessage(sessionId, 'interviewer', nextQuestion.content, undefined, nextQuestion.speakerLLM)
     }
 
     return {
-      nextQuestion: nextQuestion || '',
+      nextQuestion: nextQuestion?.content || '',
       complete: false
     }
   }
@@ -174,10 +180,10 @@ export async function processCandidateResponse(
     return await finalizeInterview(sessionId)
   }
 
-  addMessage(sessionId, 'interviewer', nextQuestion)
+  addMessage(sessionId, 'interviewer', nextQuestion.content, undefined, nextQuestion.speakerLLM)
 
   return {
-    nextQuestion,
+    nextQuestion: nextQuestion.content,
     complete: false
   }
 }
@@ -386,7 +392,7 @@ export async function resumeInterview(sessionId: string): Promise<InterviewSessi
   // Generate next question based on current state
   const nextQuestion = await generateNextQuestion(session)
   if (nextQuestion) {
-    addMessage(sessionId, 'interviewer', nextQuestion)
+    addMessage(sessionId, 'interviewer', nextQuestion.content, undefined, nextQuestion.speakerLLM)
   }
 
   log.info('Interview resumed')
