@@ -19,7 +19,8 @@ import { generateNextQuestion, generateGreeting } from './questions'
 import { analyzeResponse } from './analyzer'
 import { consultHRSpecialist } from './hr-specialist'
 import { generateSystemPrompt } from './prompt-builder'
-import { generateAgentName } from './name-generator'
+import { generateAgentName, generateNameOptions } from './name-generator'
+import { formatNameOptions, parseNameSelection } from './name-selector'
 import { INTERVIEW_CONFIG } from './questions'
 import {
   shouldTransitionState,
@@ -270,6 +271,86 @@ Would you like to proceed with a recruitment interview, or would you prefer to d
     nextQuestion: nextQuestion.content,
     complete: false
   }
+}
+
+/**
+ * Handle name selection state
+ * First entry: Generate and present 3 name options
+ * Second entry: Process user's selection
+ */
+export async function handleNameSelection(
+  session: InterviewSession,
+  userMessage?: string
+): Promise<{ nextQuestion: string; complete: boolean }> {
+  const log = logger.child({ sessionId: session.id })
+
+  // First entry: Generate options and present to user
+  if (!session.nameSelection || !session.nameSelection.options) {
+    log.info('Generating name options for candidate')
+
+    const options = await generateNameOptions(
+      session.candidateProfile,
+      session.teamId,
+      session.interviewerId
+    )
+
+    session.nameSelection = {
+      options,
+      selectedName: null,
+      selectedAt: null
+    }
+
+    const message = formatNameOptions(options)
+
+    log.info(
+      { optionCount: options.length, names: options.map((o) => o.name) },
+      'Name options presented to user'
+    )
+
+    addMessage(session.id, 'interviewer', message, undefined, 'system:name-options')
+
+    return {
+      nextQuestion: message,
+      complete: false
+    }
+  }
+
+  // Second entry: Process user selection
+  if (userMessage) {
+    const selectedName = parseNameSelection(userMessage, session.nameSelection.options)
+
+    if (!selectedName) {
+      log.info({ userInput: userMessage }, 'Invalid name selection, prompting retry')
+
+      const errorMessage =
+        'Please choose one of the three options: 1, 2, or 3 (or type the name directly).'
+      addMessage(session.id, 'interviewer', errorMessage, undefined, 'system:validation-error')
+
+      return {
+        nextQuestion: errorMessage,
+        complete: false
+      }
+    }
+
+    // Valid selection - store it
+    session.nameSelection.selectedName = selectedName
+    session.nameSelection.selectedAt = new Date()
+
+    log.info({ selectedName }, 'Name selection captured')
+
+    const confirmMessage = `Excellent choice! I'll finalize the hire as '${selectedName}'.`
+    addMessage(session.id, 'interviewer', confirmMessage, undefined, 'system:name-confirmed')
+
+    // Trigger state transition (will be handled by state machine in mitselek/ai-team#28)
+    return {
+      nextQuestion: confirmMessage,
+      complete: false
+    }
+  }
+
+  // Error case: Should never reach here
+  log.error({ session: session.id }, 'Invalid nameSelection state: no options or user input')
+  throw new Error('Invalid state: nameSelection without options or user input')
 }
 
 /**
