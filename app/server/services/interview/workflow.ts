@@ -28,6 +28,7 @@ import {
   resetExchangeCounter,
   isStateBlocked
 } from './state-machine'
+import { detectRecruitmentIntent, isMessageTooVague } from './intent-detector'
 
 const logger = createLogger('interview:workflow')
 
@@ -120,7 +121,62 @@ export async function processCandidateResponse(
   // Add response to transcript
   addMessage(sessionId, 'requester', response)
 
-  // Increment exchange counter for state machine
+  // Check for recruitment intent on first user response (ask_role state, first exchange)
+  // This allows Marcus to provide guidance if the user clearly isn't here to hire
+  if (session.currentState === 'ask_role' && session.exchangesInCurrentState === 0) {
+    const intentResult = detectRecruitmentIntent(response)
+
+    log.info(
+      {
+        intentDetected: intentResult.detected,
+        confidence: intentResult.confidence,
+        matchCount: intentResult.matchedPatterns.length
+      },
+      'Checked recruitment intent on first response'
+    )
+
+    // Only show guidance if:
+    // 1. No recruitment intent detected
+    // 2. Message is substantive (not too vague)
+    // 3. Message doesn't seem to be answering the role question
+    // This is conservative - we prefer to continue the interview when uncertain
+    const looksLikeRoleAnswer =
+      /\b(developer|engineer|specialist|manager|designer|analyst|architect|scientist|admin)/i.test(
+        response
+      )
+
+    if (!intentResult.detected && !isMessageTooVague(response) && !looksLikeRoleAnswer) {
+      const guidanceMessage = `I appreciate you reaching out! I'm Marcus, the HR Specialist here. My main role is to help with recruiting new team members.
+
+I noticed your message might not be about hiring. If you're looking to:
+- **Hire a new agent**: I can conduct a formal interview to understand your needs and help create the perfect team member
+- **Ask about something else**: I'd be happy to chat, but you might get better help from another team member
+
+Would you like to proceed with a recruitment interview, or would you prefer to discuss something else?`
+
+      addMessage(sessionId, 'interviewer', guidanceMessage, undefined, 'system:intent-guidance')
+
+      // Increment counter since we've had a user response
+      incrementExchangeCounter(session)
+
+      return {
+        nextQuestion: guidanceMessage,
+        complete: false
+      }
+    }
+
+    // If recruitment intent detected, acknowledge and continue
+    // Note: We don't increment counter here because we haven't asked a question yet
+    if (intentResult.detected) {
+      const acknowledgment = `Great! I can help with that. Let me ask you some questions to understand exactly what you're looking for.`
+
+      addMessage(sessionId, 'interviewer', acknowledgment, undefined, 'system:intent-acknowledged')
+
+      log.info('Recruitment intent detected and acknowledged, proceeding with interview')
+    }
+  }
+
+  // Increment exchange counter for state machine (for normal flow)
   incrementExchangeCounter(session)
 
   // Analyze response (extract data only, no flow control)
