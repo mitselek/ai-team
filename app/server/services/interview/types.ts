@@ -8,6 +8,7 @@ export type InterviewState =
   | 'ask_role'
   | 'ask_expertise'
   | 'ask_preferences'
+  | 'nameSelection'
   | 'follow_up'
   | 'consult_hr'
   | 'awaiting_review'

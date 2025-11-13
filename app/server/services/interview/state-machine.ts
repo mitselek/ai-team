@@ -13,6 +13,7 @@ type StateKey =
   | 'ask_role'
   | 'ask_expertise'
   | 'ask_preferences'
+  | 'nameSelection'
   | 'follow_up'
   | 'finalize'
   | 'review_prompt'
@@ -47,6 +48,11 @@ const STATE_CONFIG: Record<
     maxExchanges: 3, // Communication, autonomy, working hours
     nextState: 'finalize' as InterviewState,
     topic: 'preferences'
+  },
+  nameSelection: {
+    maxExchanges: 1,
+    nextState: 'finalize' as InterviewState,
+    topic: 'name_selection'
   },
   follow_up: {
     maxExchanges: 1,
