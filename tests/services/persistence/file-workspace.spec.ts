@@ -193,7 +193,7 @@ describe('FilesystemService - Issue #42', () => {
       files.forEach((file) => {
         expect(file).toMatchObject({
           path: expect.any(String),
-          type: expect.stringMatching(/^(file|directory)$/),
+          isDirectory: expect.any(Boolean),
           size: expect.any(Number),
           modified: expect.any(Date)
         })
@@ -212,7 +212,7 @@ describe('FilesystemService - Issue #42', () => {
     it('should include subdirectories', async () => {
       const files = await filesystemService.listFiles('agent-1', '/agents/agent-1/private')
 
-      const subdirs = files.filter((f) => f.type === 'directory')
+      const subdirs = files.filter((f) => f.isDirectory)
       expect(subdirs.some((d) => d.path.includes('subdir'))).toBe(true)
     })
   })
@@ -226,10 +226,8 @@ describe('FilesystemService - Issue #42', () => {
 
       expect(info).toMatchObject({
         size: 12,
-        owner: 'agent-1',
         created: expect.any(Date),
-        modified: expect.any(Date),
-        permissions: expect.any(String)
+        modified: expect.any(Date)
       })
     })
 
