@@ -473,15 +473,19 @@ async function finalizeInterview(sessionId: string): Promise<{
 async function createAgentFromProfile(
   session: InterviewSession,
   name: string,
-  systemPrompt: string
+  systemPrompt: string,
+  recommendation?: ReturnType<typeof consultHRSpecialist> extends Promise<infer R> ? R : never
 ): Promise<Agent> {
   const log = logger.child({ sessionId: session.id, agentName: name })
 
   log.info('Creating agent from interview profile')
 
-  const team = teams.find((t) => t.id === session.teamId)
+  // Use recommended team if available, otherwise use session teamId
+  const targetTeamId = recommendation?.teamAssignment?.teamId || session.teamId
+
+  const team = teams.find((t) => t.id === targetTeamId)
   if (!team) {
-    throw new Error(`Team ${session.teamId} not found`)
+    throw new Error(`Team ${targetTeamId} not found`)
   }
 
   const interviewer = agents.find((a) => a.id === session.interviewerId)
@@ -501,7 +505,7 @@ async function createAgentFromProfile(
     tokenAllocation,
     tokenUsed: 0,
     systemPrompt,
-    teamId: session.teamId,
+    teamId: targetTeamId,
     seniorId: interviewer.seniorId || interviewer.id, // Report to interviewer's senior or interviewer
     organizationId: team.organizationId,
     createdAt: new Date(),
