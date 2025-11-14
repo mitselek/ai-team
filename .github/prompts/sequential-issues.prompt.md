@@ -1,13 +1,13 @@
 ````prompt
-# Sequential Issue Implementation Workflow
+nr  Sequential Issue Implementation Workflow
 
 You are working on the "AI Team" project - a Nuxt 3 application for asynchronous AI agent orchestration. You will implement a sequence of GitHub issues following an iterative workflow with minimal human interruption.
 
-## User Input
+nr nr  User Input
 
 $ISSUE_NUMBERS (example: "32 33 34 35 36 37 38" or "32-38")
 
-## Your Mission
+nr nr  Your Mission
 
 Implement the specified GitHub issues **sequentially** in the order provided, following the Split TDD approach from WORKFLOW.md. Each issue will follow this cycle:
 
@@ -21,16 +21,16 @@ ISSUE N:
   6. CONTINUE → Move to next issue
 ```
 
-## Critical Workflow Principles
+nr nr  Critical Workflow Principles
 
-### Split TDD Approach (MANDATORY)
+nr nr nr  Split TDD Approach (MANDATORY)
 
 1. **Tests First**: Generate tests for the issue BEFORE implementation
 2. **Commit Tests**: Tests become the frozen contract
 3. **Implement Second**: Production code adapts to test expectations
 4. **Benefits**: Clear interface contract, self-healing code, better error messages
 
-### Minimal Interruption Philosophy
+nr nr nr  Minimal Interruption Philosophy
 
 - Work through ALL issues in sequence automatically
 - Only stop if CRITICAL blocking issue (cannot proceed)
@@ -38,16 +38,16 @@ ISSUE N:
 - Progress updates at major phase transitions
 - Final summary when all issues complete
 
-### Quality Gates (NON-NEGOTIABLE)
+nr nr nr  Quality Gates (NON-NEGOTIABLE)
 
 Before ANY commit:
 - ✅ `npm run typecheck` must pass
 - ✅ `npm run lint` must pass
 - ✅ `npm test` must pass (or tests explicitly expected to fail for TDD)
 
-## Phase-by-Phase Instructions
+nr nr  Phase-by-Phase Instructions
 
-### PHASE 1: ANALYZE (Per Issue)
+nr nr nr  PHASE 1: ANALYZE (Per Issue)
 
 **Input**: GitHub issue number
 
@@ -72,7 +72,7 @@ Before ANY commit:
 
 4. Print analysis summary:
    ```text
-   == ISSUE #N: [TITLE] ==
+   == ISSUE nr N: [TITLE] ==
 
    Objective: [one sentence]
 
@@ -90,7 +90,7 @@ Before ANY commit:
 
 **Output**: Clear understanding of what needs to be built
 
-### PHASE 2: TEST GENERATION (Split TDD)
+nr nr nr  PHASE 2: TEST GENERATION (Split TDD)
 
 **Input**: Issue requirements and gathered context
 
@@ -104,17 +104,17 @@ Before ANY commit:
 
 2. Use test-generation prompt with issue acceptance criteria:
    ```bash
-   # Create test spec from issue requirements
+   nr  Create test spec from issue requirements
    cat > /tmp/test-spec.md << 'EOF'
-   ## Feature: [Issue Title]
+   nr nr  Feature: [Issue Title]
 
-   ### Test Requirements
+   nr nr nr  Test Requirements
    [Extract from acceptance criteria]
 
-   ### Files Under Test
+   nr nr nr  Files Under Test
    [List implementation files]
 
-   ### Test Cases Required
+   nr nr nr  Test Cases Required
    - Success case: [from acceptance criteria]
    - Error case: [validation errors]
    - Edge case: [boundary conditions]
@@ -146,7 +146,7 @@ Before ANY commit:
 
 **Output**: Test file created, implementation contract defined
 
-### PHASE 3: ASSESS TESTS
+nr nr nr  PHASE 3: ASSESS TESTS
 
 **Input**: Generated test file
 
@@ -154,9 +154,9 @@ Before ANY commit:
 
 1. Run quality checks (tests WILL fail - that's expected TDD):
    ```bash
-   npm run typecheck  # Must pass
-   npm run lint       # Must pass
-   npm test           # Expected to fail (no implementation yet)
+   npm run typecheck  nr  Must pass
+   npm run lint       nr  Must pass
+   npm test           nr  Expected to fail (no implementation yet)
    ```
 
 2. Review test file for issues:
@@ -173,9 +173,9 @@ Before ANY commit:
 
 4. Re-run quality checks:
    ```bash
-   npm run typecheck  # Must pass now
-   npm run lint       # Must pass now
-   npm test           # Still failing (expected)
+   npm run typecheck  nr  Must pass now
+   npm run lint       nr  Must pass now
+   npm test           nr  Still failing (expected)
    ```
 
 5. Print assessment summary:
@@ -196,7 +196,7 @@ Before ANY commit:
 
 **Output**: Clean, passing type/lint checks, failing tests define contract
 
-### PHASE 4: COMMIT TESTS
+nr nr nr  PHASE 4: COMMIT TESTS
 
 **Input**: Assessed test file
 
@@ -215,20 +215,20 @@ Before ANY commit:
 
 3. Create commit with conventional format:
    ```bash
-   git commit -m "test(scope): add tests for [feature] (Issue #N - TDD)"
+   git commit -m "test(scope): add tests for [feature] (Issue nr N - TDD)"
    ```
 
 4. Verify commit and clean tree:
    ```bash
    git log --oneline -1
-   git status  # Should show "working tree clean"
+   git status  nr  Should show "working tree clean"
    ```
 
 5. Print commit summary:
    ```text
    == TESTS COMMITTED ==
 
-   Commit: abc1234 test(interview): add tests for team assignment (Issue #32 - TDD)
+   Commit: abc1234 test(interview): add tests for team assignment (Issue nr 32 - TDD)
    Files: 1 changed, 142 insertions(+)
    Status: Working tree clean
 
@@ -237,7 +237,7 @@ Before ANY commit:
 
 **Output**: Tests committed, contract frozen, ready for implementation
 
-### PHASE 5: IMPLEMENTATION
+nr nr nr  PHASE 5: IMPLEMENTATION
 
 **Input**: Issue requirements, committed tests, gathered context
 
@@ -246,27 +246,27 @@ Before ANY commit:
 1. Create implementation task spec from issue:
    ```bash
    cat > /tmp/impl-spec.md << 'EOF'
-   ## Implementation: [Issue Title]
+   nr nr  Implementation: [Issue Title]
 
-   ### Objective
+   nr nr nr  Objective
    [From issue]
 
-   ### Files to Modify
+   nr nr nr  Files to Modify
    [From issue "Changes Required" section]
 
-   ### Code Changes
+   nr nr nr  Code Changes
    [Include code examples from issue]
 
-   ### Acceptance Criteria
+   nr nr nr  Acceptance Criteria
    [From issue - these are now validated by tests]
 
-   ### Reference Files
+   nr nr nr  Reference Files
    [Similar code for patterns]
 
-   ### Type Definitions
+   nr nr nr  Type Definitions
    [Include relevant types from types/index.ts]
 
-   ### Validation
+   nr nr nr  Validation
    The tests in tests/[path]/[file].spec.ts MUST pass after implementation.
    EOF
    ```
@@ -302,7 +302,7 @@ Before ANY commit:
 
 **Output**: Production code created/modified
 
-### PHASE 6: ASSESS IMPLEMENTATION
+nr nr nr  PHASE 6: ASSESS IMPLEMENTATION
 
 **Input**: Generated implementation code
 
@@ -310,9 +310,9 @@ Before ANY commit:
 
 1. Run full quality checks (tests SHOULD pass now):
    ```bash
-   npm run typecheck  # Must pass
-   npm run lint       # Must pass
-   npm test           # Must pass now
+   npm run typecheck  nr  Must pass
+   npm run lint       nr  Must pass
+   npm test           nr  Must pass now
    ```
 
 2. Review implementation:
@@ -346,7 +346,7 @@ Before ANY commit:
 
 **Output**: All checks passing, implementation complete
 
-### PHASE 7: COMMIT IMPLEMENTATION
+nr nr nr  PHASE 7: COMMIT IMPLEMENTATION
 
 **Input**: Assessed implementation
 
@@ -365,29 +365,29 @@ Before ANY commit:
 
 3. Create commit referencing issue:
    ```bash
-   git commit -m "feat(scope): implement [feature] (closes #N)"
+   git commit -m "feat(scope): implement [feature] (closes nr N)"
    ```
 
 4. Verify commit and clean tree:
    ```bash
    git log --oneline -1
-   git status  # Must show "working tree clean"
+   git status  nr  Must show "working tree clean"
    ```
 
 5. Print commit summary:
    ```text
    == IMPLEMENTATION COMMITTED ==
 
-   Commit: def5678 feat(interview): implement team assignment (closes #32)
+   Commit: def5678 feat(interview): implement team assignment (closes nr 32)
    Files: 3 changed, 155 insertions(+), 15 deletions(-)
    Status: Working tree clean
 
-   Issue #32 complete. Next: Issue #33
+   Issue nr 32 complete. Next: Issue nr 33
    ```
 
 **Output**: Implementation committed, issue complete
 
-### PHASE 8: CONTINUE OR FINISH
+nr nr nr  PHASE 8: CONTINUE OR FINISH
 
 **Decision Point**: Are there more issues in the sequence?
 
@@ -396,11 +396,11 @@ Before ANY commit:
 ```text
 == CONTINUING TO NEXT ISSUE ==
 
-Completed: Issue #32
-Remaining: Issues #33, #34, #35, #36, #37, #38
+Completed: Issue nr 32
+Remaining: Issues nr 33, nr 34, nr 35, nr 36, nr 37, nr 38
 Progress: 1/7 issues complete
 
-Starting Issue #33...
+Starting Issue nr 33...
 [Return to PHASE 1: ANALYZE]
 ```
 
@@ -410,13 +410,13 @@ Starting Issue #33...
 == ALL ISSUES COMPLETE ==
 
 Implemented:
-- Issue #32: Add teamAssignment type ✅
-- Issue #33: Team analysis helper ✅
-- Issue #34: Update HR specialist prompt ✅
-- Issue #35: Parse team recommendation ✅
-- Issue #36: Use recommended team ✅
-- Issue #37: Add to transcript ✅
-- Issue #38: Write tests ✅
+- Issue nr 32: Add teamAssignment type ✅
+- Issue nr 33: Team analysis helper ✅
+- Issue nr 34: Update HR specialist prompt ✅
+- Issue nr 35: Parse team recommendation ✅
+- Issue nr 36: Use recommended team ✅
+- Issue nr 37: Add to transcript ✅
+- Issue nr 38: Write tests ✅
 
 Total commits: 14 (7 test commits, 7 implementation commits)
 Total tests added: 42
@@ -430,9 +430,9 @@ Final verification:
 Work complete. Ready for pull request.
 ```
 
-## Error Handling
+nr nr  Error Handling
 
-### When to Stop (CRITICAL BLOCKERS)
+nr nr nr  When to Stop (CRITICAL BLOCKERS)
 
 Stop and ask for help ONLY if:
 
@@ -441,7 +441,7 @@ Stop and ask for help ONLY if:
 3. **Test framework error**: Cannot run tests due to environment issue
 4. **Git conflict**: Cannot commit due to merge conflict
 
-### When to Continue (FIXABLE ISSUES)
+nr nr nr  When to Continue (FIXABLE ISSUES)
 
 Handle automatically and continue:
 
@@ -451,16 +451,16 @@ Handle automatically and continue:
 4. **Missing files**: Create necessary files if obvious
 5. **Import path errors**: Fix @@/types vs relative paths
 
-## Output Formatting Rules (MANDATORY)
+nr nr  Output Formatting Rules (MANDATORY)
 
 All output must be cleanly formatted for readability:
 
-### Progress Updates
+nr nr nr  Progress Updates
 
 Use clear phase headers:
 
 ```text
-== ISSUE #32: ADD TEAMASSIGNMENT TYPE ==
+== ISSUE nr 32: ADD TEAMASSIGNMENT TYPE ==
 
 Objective: Update HRRecommendation interface
 
@@ -472,7 +472,7 @@ Context gathering:
 Ready to generate tests.
 ```
 
-### Command Output
+nr nr nr  Command Output
 
 Always show commands in fenced blocks:
 
@@ -482,7 +482,7 @@ npm run lint
 npm test
 ```
 
-### Status Summaries
+nr nr nr  Status Summaries
 
 Use structured format:
 
@@ -493,7 +493,7 @@ Tests: ✅ PASS (8/8)
 Status: Ready to commit
 ```
 
-### Lists
+nr nr nr  Lists
 
 One item per line with blank line after:
 
@@ -506,19 +506,19 @@ Modified files:
 Next: Run quality checks
 ```
 
-### Line Length
+nr nr nr  Line Length
 
 Keep lines under ~100 characters. Wrap longer content.
 
-### Spacing
+nr nr nr  Spacing
 
 - Blank line between phases
 - Blank line between conceptual blocks
 - No run-on paragraphs (max 3 sentences)
 
-## Success Criteria
+nr nr  Success Criteria
 
-### Per Issue
+nr nr nr  Per Issue
 
 - ✅ Tests committed (TDD contract frozen)
 - ✅ Implementation committed (closes issue)
@@ -526,7 +526,7 @@ Keep lines under ~100 characters. Wrap longer content.
 - ✅ Working tree clean after commits
 - ✅ Conventional commit messages
 
-### Overall Workflow
+nr nr nr  Overall Workflow
 
 - ✅ All issues in sequence completed
 - ✅ No manual intervention required
@@ -534,7 +534,7 @@ Keep lines under ~100 characters. Wrap longer content.
 - ✅ All tests passing at end
 - ✅ Type-safe, lint-clean codebase
 
-## Time Expectations
+nr nr  Time Expectations
 
 Per issue (7 phases):
 
@@ -550,39 +550,39 @@ Per issue (7 phases):
 
 For 7 issues: ~2-3.5 hours total (mostly automated)
 
-## Important Notes
+nr nr  Important Notes
 
-### Patience is Critical
+nr nr nr  Patience is Critical
 
 - Gemini processes take 5-10 minutes
 - DO NOT interrupt or check status frequently
 - Let self-correction happen
 - Trust the process
 
-### Parallel Execution NOT Recommended Here
+nr nr nr  Parallel Execution NOT Recommended Here
 
 - Issues have dependencies (sequential order required)
 - Tests must freeze before implementation
 - Clean git history requires sequential commits
 - One issue fully complete before next
 
-### Git Hygiene
+nr nr nr  Git Hygiene
 
 Always verify clean state:
 
 ```bash
-git status  # Before AND after every commit
-git diff --cached  # Before committing
+git status  nr  Before AND after every commit
+git diff --cached  nr  Before committing
 ```
 
-### Quality Over Speed
+nr nr nr  Quality Over Speed
 
 - Every commit must pass all quality checks
 - Fix issues immediately (don't accumulate debt)
 - Tests define contract (don't modify to make pass)
 - Implementation adapts to tests (not vice versa)
 
-## Constitutional Requirements
+nr nr  Constitutional Requirements
 
 Follow all principles from `.specify/memory/constitution.md`:
 
@@ -592,7 +592,7 @@ Follow all principles from `.specify/memory/constitution.md`:
 - ✅ Test-first when appropriate
 - ✅ Import path conventions (@@/types, relative for services)
 
-## Final Checklist
+nr nr  Final Checklist
 
 Before declaring "ALL ISSUES COMPLETE":
 
@@ -605,28 +605,28 @@ Before declaring "ALL ISSUES COMPLETE":
 - [ ] All commits follow conventional format
 - [ ] No TODO comments left in code
 
-## Example Execution
+nr nr  Example Execution
 
 ```bash
-# User invokes:
+nr  User invokes:
 /sequential-issues 32 33 34 35 36 37 38
 
-# Assistant executes:
-# - ISSUE #32: 7 phases, 2 commits
-# - ISSUE #33: 7 phases, 2 commits
-# - ISSUE #34: 7 phases, 2 commits
-# - ISSUE #35: 7 phases, 2 commits
-# - ISSUE #36: 7 phases, 2 commits
-# - ISSUE #37: 7 phases, 2 commits
-# - ISSUE #38: 7 phases, 2 commits
+nr  Assistant executes:
+nr  - ISSUE nr 32: 7 phases, 2 commits
+nr  - ISSUE nr 33: 7 phases, 2 commits
+nr  - ISSUE nr 34: 7 phases, 2 commits
+nr  - ISSUE nr 35: 7 phases, 2 commits
+nr  - ISSUE nr 36: 7 phases, 2 commits
+nr  - ISSUE nr 37: 7 phases, 2 commits
+nr  - ISSUE nr 38: 7 phases, 2 commits
 
-# Result:
-# - 14 commits total
-# - All issues closed
-# - All tests passing
-# - Clean working tree
+nr  Result:
+nr  - 14 commits total
+nr  - All issues closed
+nr  - All tests passing
+nr  - Clean working tree
 ```
 
-Begin with ISSUE #[FIRST_NUMBER] and proceed sequentially until all complete.
+Begin with ISSUE nr [FIRST_NUMBER] and proceed sequentially until all complete.
 
 ````
