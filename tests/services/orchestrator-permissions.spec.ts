@@ -17,7 +17,11 @@ describe('Permission Checking Layer - Issue #47', () => {
   let mockContext: ExecutionContext
 
   beforeEach(() => {
-    toolRegistry = createToolRegistry()
+    mockPermissionService = {
+      checkFileAccess: vi.fn().mockReturnValue(true)
+    }
+
+    toolRegistry = createToolRegistry(mockPermissionService)
 
     mockContext = {
       agentId: 'agent-1',
@@ -27,10 +31,6 @@ describe('Permission Checking Layer - Issue #47', () => {
 
     mockExecutor = {
       execute: vi.fn().mockResolvedValue({ success: true })
-    }
-
-    mockPermissionService = {
-      checkFileAccess: vi.fn().mockReturnValue(true)
     }
   })
 
@@ -53,9 +53,10 @@ describe('Permission Checking Layer - Issue #47', () => {
 
       const params = { agentId: 'agent-1', path: '/agents/agent-2/private/secret.md' }
 
-      // Note: This test expects PermissionError to be thrown once permission checking is integrated
-      // For now, it will pass because permission checking is not yet implemented
-      await toolRegistry.executeTool('read_file', params, mockContext)
+      await expect(toolRegistry.executeTool('read_file', params, mockContext)).rejects.toThrow(
+        'does not have read access'
+      )
+      expect(mockExecutor.execute).not.toHaveBeenCalled()
     })
 
     it('should allow write_file when permission granted', async () => {
@@ -83,8 +84,10 @@ describe('Permission Checking Layer - Issue #47', () => {
         content: 'malicious content'
       }
 
-      // Will need PermissionError check once implemented
-      await toolRegistry.executeTool('write_file', params, mockContext)
+      await expect(toolRegistry.executeTool('write_file', params, mockContext)).rejects.toThrow(
+        'does not have write access'
+      )
+      expect(mockExecutor.execute).not.toHaveBeenCalled()
     })
 
     it('should allow delete_file when permission granted', async () => {
@@ -104,8 +107,10 @@ describe('Permission Checking Layer - Issue #47', () => {
 
       const params = { agentId: 'agent-1', path: '/teams/team-1/private/important.md' }
 
-      // Will need PermissionError check once implemented
-      await toolRegistry.executeTool('delete_file', params, mockContext)
+      await expect(toolRegistry.executeTool('delete_file', params, mockContext)).rejects.toThrow(
+        'does not have delete access'
+      )
+      expect(mockExecutor.execute).not.toHaveBeenCalled()
     })
 
     it('should allow list_files when permission granted', async () => {

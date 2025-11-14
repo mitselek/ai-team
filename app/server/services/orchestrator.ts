@@ -34,6 +34,36 @@ export class SecurityError extends Error {
 }
 
 /**
+ * Permission error for file access denials
+ */
+export class PermissionError extends Error {
+  public readonly agentId: string
+  public readonly path: string
+  public readonly operation: string
+  public readonly correlationId: string
+
+  constructor(
+    message: string,
+    agentId: string,
+    path: string,
+    operation: string,
+    correlationId: string
+  ) {
+    super(message)
+    this.name = 'PermissionError'
+    this.agentId = agentId
+    this.path = path
+    this.operation = operation
+    this.correlationId = correlationId
+
+    // Maintain proper stack trace for where our error was thrown (only available on V8)
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, PermissionError)
+    }
+  }
+}
+
+/**
  * Execution context provided to tool executors
  */
 export interface ExecutionContext {
@@ -47,6 +77,13 @@ export interface ExecutionContext {
  */
 export interface ToolExecutor {
   execute(params: Record<string, unknown>, context: ExecutionContext): Promise<unknown>
+}
+
+/**
+ * Interface for permission service
+ */
+export interface PermissionService {
+  checkFileAccess(agentId: string, path: string, operation: string): boolean
 }
 
 /**
@@ -110,9 +147,38 @@ export interface ToolRegistry {
 }
 
 /**
+ * Filesystem tools requiring permission checks
+ */
+const FILESYSTEM_TOOLS = new Set([
+  'read_file',
+  'write_file',
+  'delete_file',
+  'list_files',
+  'get_file_info'
+])
+
+/**
+ * Map tool names to filesystem operations
+ */
+function mapToolToOperation(toolName: string): 'read' | 'write' | 'delete' {
+  switch (toolName) {
+    case 'read_file':
+    case 'list_files':
+    case 'get_file_info':
+      return 'read'
+    case 'write_file':
+      return 'write'
+    case 'delete_file':
+      return 'delete'
+    default:
+      return 'read' // Default fallback
+  }
+}
+
+/**
  * Creates a new tool registry instance
  */
-export function createToolRegistry(): ToolRegistry {
+export function createToolRegistry(permissionService?: PermissionService): ToolRegistry {
   const tools = new Map<string, ToolExecutor>()
 
   return {
@@ -151,6 +217,61 @@ export function createToolRegistry(): ToolRegistry {
       // Validate identity before checking tool existence or executing
       const claimedAgentId = typeof params.agentId === 'string' ? params.agentId : undefined
       validateAgentIdentity(claimedAgentId, context, name)
+
+      // Check permissions for filesystem tools
+      if (FILESYSTEM_TOOLS.has(name) && permissionService) {
+        const path = typeof params.path === 'string' ? params.path : ''
+        const operation = mapToolToOperation(name)
+
+        // Validate path parameter
+        if (!path || path.trim() === '') {
+          logger.warn(
+            {
+              agentId: context.agentId,
+              toolName: name,
+              operation,
+              correlationId: context.correlationId,
+              organizationId: context.organizationId,
+              timestamp: new Date().toISOString()
+            },
+            'PERMISSION DENIED: Missing or empty path parameter'
+          )
+
+          throw new PermissionError(
+            `Missing or empty path parameter for ${name}`,
+            context.agentId,
+            path,
+            operation,
+            context.correlationId
+          )
+        }
+
+        const hasAccess = permissionService.checkFileAccess(context.agentId, path, operation)
+
+        if (!hasAccess) {
+          // Log access denial
+          logger.warn(
+            {
+              agentId: context.agentId,
+              toolName: name,
+              path,
+              operation,
+              correlationId: context.correlationId,
+              organizationId: context.organizationId,
+              timestamp: new Date().toISOString()
+            },
+            'PERMISSION DENIED: Filesystem access denied'
+          )
+
+          throw new PermissionError(
+            `Agent ${context.agentId} does not have ${operation} access to ${path}`,
+            context.agentId,
+            path,
+            operation,
+            context.correlationId
+          )
+        }
+      }
 
       const executor = tools.get(name)
       if (!executor) {
