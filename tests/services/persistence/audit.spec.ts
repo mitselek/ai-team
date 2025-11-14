@@ -61,7 +61,7 @@ describe('AuditService - Issue #41', () => {
       await auditService.log({
         timestamp: new Date('2025-01-01T12:00:00Z'),
         agentId: 'agent-1',
-        operation: 'write',
+        operation: 'update',
         path: '/agents/agent-1/private/test.md',
         error: 'Permission denied'
       })
