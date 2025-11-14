@@ -439,10 +439,21 @@ async function finalizeInterview(sessionId: string): Promise<{
       generateSystemPrompt(updatedSession.candidateProfile)
 
     // Create the agent
-    const newAgent = await createAgentFromProfile(updatedSession, agentName, systemPrompt)
+    const newAgent = await createAgentFromProfile(
+      updatedSession,
+      agentName,
+      systemPrompt,
+      recommendation
+    )
 
     // Complete session
     completeSession(sessionId)
+
+    // Log team assignment decision
+    if (recommendation.teamAssignment) {
+      const teamMessage = `Team Assignment: ${newAgent.name} has been assigned to the ${recommendation.teamAssignment.teamName} team. Rationale: ${recommendation.teamAssignment.rationale}`
+      addMessage(sessionId, 'interviewer', teamMessage, undefined, 'system:team-assignment')
+    }
 
     // Send welcome message
     const welcomeMessage = `Welcome aboard, ${newAgent.name}! You're now part of our team. Your manager and team members are here to support you. Feel free to start working on assigned tasks, and don't hesitate to ask questions. Good luck!`
