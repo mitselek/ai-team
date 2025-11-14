@@ -155,7 +155,7 @@ describe('AuditService - Issue #41', () => {
     })
   })
 
-  describe('queryLogs()', () => {
+  describe('query()', () => {
     beforeEach(async () => {
       // Seed test data
       await auditService.log({
@@ -197,13 +197,13 @@ describe('AuditService - Issue #41', () => {
     })
 
     it('should return all logs when no filters provided', async () => {
-      const logs = await auditService.queryLogs({})
+      const logs = await auditService.query({})
 
       expect(logs).toHaveLength(5)
     })
 
     it('should filter by agentId', async () => {
-      const logs = await auditService.queryLogs({ agentId: 'agent-1' })
+      const logs = await auditService.query({ agentId: 'agent-1' })
 
       expect(logs).toHaveLength(3)
       logs.forEach((log) => {
@@ -212,7 +212,7 @@ describe('AuditService - Issue #41', () => {
     })
 
     it('should filter by operation', async () => {
-      const logs = await auditService.queryLogs({ operation: 'read' })
+      const logs = await auditService.query({ operation: 'read' })
 
       expect(logs).toHaveLength(2)
       logs.forEach((log) => {
@@ -221,7 +221,7 @@ describe('AuditService - Issue #41', () => {
     })
 
     it('should filter by path', async () => {
-      const logs = await auditService.queryLogs({ path: '/agents/agent-1/private/file1.md' })
+      const logs = await auditService.query({ path: '/agents/agent-1/private/file1.md' })
 
       expect(logs).toHaveLength(2)
       logs.forEach((log) => {
@@ -230,7 +230,7 @@ describe('AuditService - Issue #41', () => {
     })
 
     it('should filter by startDate', async () => {
-      const logs = await auditService.queryLogs({
+      const logs = await auditService.query({
         startDate: new Date('2025-01-01T12:00:00Z')
       })
 
@@ -242,7 +242,7 @@ describe('AuditService - Issue #41', () => {
     })
 
     it('should filter by endDate', async () => {
-      const logs = await auditService.queryLogs({
+      const logs = await auditService.query({
         endDate: new Date('2025-01-01T12:00:00Z')
       })
 
@@ -254,7 +254,7 @@ describe('AuditService - Issue #41', () => {
     })
 
     it('should filter by date range', async () => {
-      const logs = await auditService.queryLogs({
+      const logs = await auditService.query({
         startDate: new Date('2025-01-01T11:00:00Z'),
         endDate: new Date('2025-01-01T13:00:00Z')
       })
@@ -269,7 +269,7 @@ describe('AuditService - Issue #41', () => {
     })
 
     it('should combine multiple filters', async () => {
-      const logs = await auditService.queryLogs({
+      const logs = await auditService.query({
         agentId: 'agent-1',
         operation: 'update'
       })
@@ -283,19 +283,19 @@ describe('AuditService - Issue #41', () => {
     })
 
     it('should return empty array when no matches', async () => {
-      const logs = await auditService.queryLogs({ agentId: 'nonexistent' })
+      const logs = await auditService.query({ agentId: 'nonexistent' })
 
       expect(logs).toHaveLength(0)
     })
 
     it('should parse timestamp as Date objects', async () => {
-      const logs = await auditService.queryLogs({ agentId: 'agent-1' })
+      const logs = await auditService.query({ agentId: 'agent-1' })
 
       expect(logs[0].timestamp).toBeInstanceOf(Date)
     })
 
     it('should return entries in chronological order', async () => {
-      const logs = await auditService.queryLogs({})
+      const logs = await auditService.query({})
 
       for (let i = 1; i < logs.length; i++) {
         expect(logs[i].timestamp.getTime()).toBeGreaterThanOrEqual(logs[i - 1].timestamp.getTime())
@@ -305,7 +305,7 @@ describe('AuditService - Issue #41', () => {
 
   describe('Edge cases', () => {
     it('should handle empty log file', async () => {
-      const logs = await auditService.queryLogs({})
+      const logs = await auditService.query({})
 
       expect(logs).toEqual([])
     })
@@ -318,7 +318,7 @@ describe('AuditService - Issue #41', () => {
         path: '/test/file.md'
       })
 
-      const logs = await auditService.queryLogs({})
+      const logs = await auditService.query({})
       expect(logs).toHaveLength(1)
     })
   })

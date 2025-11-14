@@ -54,7 +54,7 @@ describe('FilesystemService - Issue #42', () => {
 
       await filesystemService.readFile('agent-1', testPath)
 
-      const logs = await auditService.queryLogs({ agentId: 'agent-1' })
+      const logs = await auditService.query({ agentId: 'agent-1' })
       expect(logs).toHaveLength(1)
       expect(logs[0]).toMatchObject({
         agentId: 'agent-1',
@@ -100,7 +100,7 @@ describe('FilesystemService - Issue #42', () => {
     it('should log write operations to audit service', async () => {
       await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.md', 'content')
 
-      const logs = await auditService.queryLogs({ agentId: 'agent-1' })
+      const logs = await auditService.query({ agentId: 'agent-1' })
       expect(logs).toHaveLength(1)
       expect(logs[0]).toMatchObject({
         agentId: 'agent-1',
@@ -155,7 +155,7 @@ describe('FilesystemService - Issue #42', () => {
       await filesystemService.writeFile('agent-1', testPath, 'content')
       await filesystemService.deleteFile('agent-1', testPath)
 
-      const logs = await auditService.queryLogs({ operation: 'delete' })
+      const logs = await auditService.query({ operation: 'delete' })
       expect(logs).toHaveLength(1)
       expect(logs[0]).toMatchObject({
         agentId: 'agent-1',
@@ -335,7 +335,7 @@ describe('FilesystemService - Issue #42', () => {
       await filesystemService.getFileInfo('agent-1', testPath)
       await filesystemService.deleteFile('agent-1', testPath)
 
-      const logs = await auditService.queryLogs({ agentId: 'agent-1' })
+      const logs = await auditService.query({ agentId: 'agent-1' })
       expect(logs.length).toBeGreaterThanOrEqual(3) // create, read, delete (getFileInfo may not log)
 
       const operations = logs.map((l) => l.operation)
@@ -347,7 +347,7 @@ describe('FilesystemService - Issue #42', () => {
     it('should include file size in write logs', async () => {
       await filesystemService.writeFile('agent-1', '/agents/agent-1/private/sized.md', 'content')
 
-      const logs = await auditService.queryLogs({ operation: 'create' })
+      const logs = await auditService.query({ operation: 'create' })
       expect(logs[logs.length - 1]).toMatchObject({
         size: 7,
         path: '/agents/agent-1/private/sized.md'

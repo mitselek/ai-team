@@ -771,8 +771,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
         await filesystemService.writeFile(
           'agent-1',
           `/agents/agent-1/private/file${ext}`,
-          'content',
-          'text/plain'
+          'content'
         )
         const result = await filesystemService.readFile(
           'agent-1',
@@ -790,8 +789,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
           filesystemService.writeFile(
             'agent-1',
             `/agents/agent-1/private/malicious${ext}`,
-            'content',
-            'application/octet-stream'
+            'content'
           )
         ).rejects.toThrow('File type not allowed')
       }
@@ -799,12 +797,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
 
     it('should reject files without extension', async () => {
       await expect(
-        filesystemService.writeFile(
-          'agent-1',
-          '/agents/agent-1/private/noextension',
-          'content',
-          'text/plain'
-        )
+        filesystemService.writeFile('agent-1', '/agents/agent-1/private/noextension', 'content')
       ).rejects.toThrow('File type not allowed')
     })
   })
