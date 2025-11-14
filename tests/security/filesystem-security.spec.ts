@@ -438,12 +438,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     it('should reject files exceeding size limit', async () => {
       const largeContent = 'x'.repeat(6 * 1024 * 1024) // 6MB, over 5MB limit
       await expect(
-        filesystemService.writeFile(
-          'agent-1',
-          '/agents/agent-1/private/large.txt',
-          largeContent,
-          'text/plain'
-        )
+        filesystemService.writeFile('agent-1', '/agents/agent-1/private/large.txt', largeContent)
       ).rejects.toThrow('File size exceeds maximum allowed size')
     })
 
@@ -452,8 +447,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       await filesystemService.writeFile(
         'agent-1',
         '/agents/agent-1/private/small.txt',
-        smallContent,
-        'text/plain'
+        smallContent
       )
 
       const result = await filesystemService.readFile(
@@ -466,12 +460,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
 
   describe('6. Audit Logging Integrity', () => {
     it('should log all read operations', async () => {
-      await filesystemService.writeFile(
-        'agent-1',
-        '/agents/agent-1/private/test.txt',
-        'content',
-        'text/plain'
-      )
+      await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'content')
       await filesystemService.readFile('agent-1', '/agents/agent-1/private/test.txt')
 
       const logs = await auditService.query({ agentId: 'agent-1', operation: 'read' })
@@ -480,12 +469,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     })
 
     it('should log all write operations', async () => {
-      await filesystemService.writeFile(
-        'agent-1',
-        '/agents/agent-1/private/test.txt',
-        'content',
-        'text/plain'
-      )
+      await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'content')
 
       const logs = await auditService.query({ agentId: 'agent-1', operation: 'write' })
       expect(logs.length).toBeGreaterThan(0)
@@ -493,12 +477,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     })
 
     it('should log all delete operations', async () => {
-      await filesystemService.writeFile(
-        'agent-1',
-        '/agents/agent-1/private/test.txt',
-        'content',
-        'text/plain'
-      )
+      await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'content')
       await filesystemService.deleteFile('agent-1', '/agents/agent-1/private/test.txt')
 
       const logs = await auditService.query({ agentId: 'agent-1', operation: 'delete' })
@@ -520,12 +499,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     })
 
     it('should include timestamps in all audit logs', async () => {
-      await filesystemService.writeFile(
-        'agent-1',
-        '/agents/agent-1/private/test.txt',
-        'content',
-        'text/plain'
-      )
+      await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'content')
 
       const logs = await auditService.query({ agentId: 'agent-1' })
       expect(logs.length).toBeGreaterThan(0)
@@ -535,12 +509,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     })
 
     it('should preserve audit log immutability', async () => {
-      await filesystemService.writeFile(
-        'agent-1',
-        '/agents/agent-1/private/test.txt',
-        'content',
-        'text/plain'
-      )
+      await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'content')
 
       // Audit log uses append-only JSON Lines format
       // This test documents the requirement for immutability
@@ -613,8 +582,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
         filesystemService.writeFile(
           'agent-1',
           `/agents/agent-1/private/file-${i}.txt`,
-          `content-${i}`,
-          'text/plain'
+          `content-${i}`
         )
       )
 
@@ -631,12 +599,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     })
 
     it('should handle concurrent read operations safely', async () => {
-      await filesystemService.writeFile(
-        'agent-1',
-        '/agents/agent-1/private/test.txt',
-        'content',
-        'text/plain'
-      )
+      await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'content')
 
       const operations = Array.from({ length: 10 }, () =>
         filesystemService.readFile('agent-1', '/agents/agent-1/private/test.txt')
@@ -649,21 +612,11 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     })
 
     it('should handle mixed read/write operations safely', async () => {
-      await filesystemService.writeFile(
-        'agent-1',
-        '/agents/agent-1/private/test.txt',
-        'initial',
-        'text/plain'
-      )
+      await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'initial')
 
       const operations = [
         filesystemService.readFile('agent-1', '/agents/agent-1/private/test.txt'),
-        filesystemService.writeFile(
-          'agent-1',
-          '/agents/agent-1/private/test.txt',
-          'updated',
-          'text/plain'
-        ),
+        filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'updated'),
         filesystemService.readFile('agent-1', '/agents/agent-1/private/test.txt')
       ]
 
