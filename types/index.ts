@@ -14,6 +14,8 @@ export interface Agent {
   status: AgentStatus
   createdAt: Date
   lastActiveAt: Date
+  maxFiles?: number // default 1000
+  storageQuotaMB?: number // default 100
 }
 
 export type AgentStatus = 'active' | 'bored' | 'stuck' | 'paused'
@@ -41,6 +43,8 @@ export interface Team {
   leaderId: string | null
   tokenAllocation: number
   type: TeamType
+  maxFiles?: number // default 2000
+  storageQuotaGB?: number // default 1
 }
 
 export type TeamType =
