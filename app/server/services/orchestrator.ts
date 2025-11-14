@@ -4,6 +4,36 @@ import type { Agent, Task, Organization } from '@@/types'
 const logger = createLogger('orchestrator')
 
 /**
+ * Security error for identity validation failures
+ */
+export class SecurityError extends Error {
+  public readonly claimedAgentId: string | undefined
+  public readonly actualAgentId: string
+  public readonly toolName: string
+  public readonly correlationId: string
+
+  constructor(
+    message: string,
+    claimedAgentId: string | undefined,
+    actualAgentId: string,
+    toolName: string,
+    correlationId: string
+  ) {
+    super(message)
+    this.name = 'SecurityError'
+    this.claimedAgentId = claimedAgentId
+    this.actualAgentId = actualAgentId
+    this.toolName = toolName
+    this.correlationId = correlationId
+
+    // Maintain proper stack trace for where our error was thrown (only available on V8)
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, SecurityError)
+    }
+  }
+}
+
+/**
  * Execution context provided to tool executors
  */
 export interface ExecutionContext {
@@ -17,6 +47,49 @@ export interface ExecutionContext {
  */
 export interface ToolExecutor {
   execute(params: Record<string, unknown>, context: ExecutionContext): Promise<unknown>
+}
+
+/**
+ * Validates that the claimed agent identity matches the execution context
+ * @param claimedAgentId - The agent ID from the tool parameters
+ * @param context - The execution context with the actual agent ID
+ * @param toolName - The name of the tool being executed
+ * @throws SecurityError if the identity does not match
+ */
+export function validateAgentIdentity(
+  claimedAgentId: string | undefined,
+  context: ExecutionContext,
+  toolName: string
+): void {
+  // Normalize claimed ID for comparison
+  const normalizedClaimedId = typeof claimedAgentId === 'string' ? claimedAgentId : undefined
+
+  // Check for identity mismatch
+  if (normalizedClaimedId !== context.agentId) {
+    const error = new SecurityError(
+      'Agent ID mismatch - potential impersonation attempt',
+      claimedAgentId,
+      context.agentId,
+      toolName,
+      context.correlationId
+    )
+
+    // Log security violation with full context
+    logger.error(
+      {
+        securityViolation: 'agent_identity_mismatch',
+        claimedAgentId: claimedAgentId,
+        actualAgentId: context.agentId,
+        toolName,
+        correlationId: context.correlationId,
+        organizationId: context.organizationId,
+        timestamp: new Date().toISOString()
+      },
+      'SECURITY: Agent identity validation failed'
+    )
+
+    throw error
+  }
 }
 
 /**
@@ -75,6 +148,10 @@ export function createToolRegistry(): ToolRegistry {
       params: Record<string, unknown>,
       context: ExecutionContext
     ): Promise<unknown> {
+      // Validate identity before checking tool existence or executing
+      const claimedAgentId = typeof params.agentId === 'string' ? params.agentId : undefined
+      validateAgentIdentity(claimedAgentId, context, name)
+
       const executor = tools.get(name)
       if (!executor) {
         throw new Error(`Tool ${name} not found`)

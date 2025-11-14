@@ -98,16 +98,17 @@ describe('ToolRegistry - Issue #45', () => {
 
       toolRegistry.register('test_tool', testExecutor)
 
-      const result = await toolRegistry.executeTool('test_tool', { param: 'value' }, mockContext)
+      const params = { agentId: 'agent-1', param: 'value' }
+      const result = await toolRegistry.executeTool('test_tool', params, mockContext)
 
-      expect(testExecutor.execute).toHaveBeenCalledWith({ param: 'value' }, mockContext)
+      expect(testExecutor.execute).toHaveBeenCalledWith(params, mockContext)
       expect(result).toEqual({ result: 'success' })
     })
 
     it('should throw error for unknown tool', async () => {
-      await expect(toolRegistry.executeTool('unknown_tool', {}, mockContext)).rejects.toThrow(
-        'Tool unknown_tool not found'
-      )
+      await expect(
+        toolRegistry.executeTool('unknown_tool', { agentId: 'agent-1' }, mockContext)
+      ).rejects.toThrow('Tool unknown_tool not found')
     })
 
     it('should pass parameters correctly to executor', async () => {
@@ -141,9 +142,10 @@ describe('ToolRegistry - Issue #45', () => {
         correlationId: 'correlation-123'
       }
 
-      await toolRegistry.executeTool('test_tool', {}, context)
+      const params = { agentId: 'agent-2' }
+      await toolRegistry.executeTool('test_tool', params, context)
 
-      expect(testExecutor.execute).toHaveBeenCalledWith({}, context)
+      expect(testExecutor.execute).toHaveBeenCalledWith(params, context)
     })
 
     it('should propagate executor errors', async () => {
@@ -153,9 +155,9 @@ describe('ToolRegistry - Issue #45', () => {
 
       toolRegistry.register('test_tool', testExecutor)
 
-      await expect(toolRegistry.executeTool('test_tool', {}, mockContext)).rejects.toThrow(
-        'Execution failed'
-      )
+      await expect(
+        toolRegistry.executeTool('test_tool', { agentId: 'agent-1' }, mockContext)
+      ).rejects.toThrow('Execution failed')
     })
   })
 
@@ -278,9 +280,9 @@ describe('ToolRegistry - Issue #45', () => {
 
       toolRegistry.register('bad_tool', badExecutor)
 
-      await expect(toolRegistry.executeTool('bad_tool', {}, mockContext)).rejects.toThrow(
-        'Sync error'
-      )
+      await expect(
+        toolRegistry.executeTool('bad_tool', { agentId: 'agent-1' }, mockContext)
+      ).rejects.toThrow('Sync error')
     })
 
     it('should handle executor throwing async error', async () => {
@@ -290,15 +292,15 @@ describe('ToolRegistry - Issue #45', () => {
 
       toolRegistry.register('bad_tool', badExecutor)
 
-      await expect(toolRegistry.executeTool('bad_tool', {}, mockContext)).rejects.toThrow(
-        'Async error'
-      )
+      await expect(
+        toolRegistry.executeTool('bad_tool', { agentId: 'agent-1' }, mockContext)
+      ).rejects.toThrow('Async error')
     })
 
     it('should provide clear error message for missing tool', async () => {
-      await expect(toolRegistry.executeTool('missing', {}, mockContext)).rejects.toThrow(
-        'Tool missing not found'
-      )
+      await expect(
+        toolRegistry.executeTool('missing', { agentId: 'agent-1' }, mockContext)
+      ).rejects.toThrow('Tool missing not found')
     })
   })
 })
