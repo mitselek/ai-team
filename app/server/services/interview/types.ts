@@ -162,6 +162,11 @@ export interface HRRecommendation {
   suggestedNames: string[]
   feedback: string
   speakerLLM?: string // Format: "provider:model" (e.g., "anthropic:sonnet-4.5")
+  teamAssignment?: {
+    teamId: string
+    teamName: string
+    rationale: string
+  }
 }
 
 /**
