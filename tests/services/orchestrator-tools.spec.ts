@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { ToolRegistry, createToolRegistry } from '../../app/server/services/orchestrator'
-import type { ToolExecutor, ExecutionContext } from '../../app/server/services/orchestrator'
+import { createToolRegistry } from '../../app/server/services/orchestrator'
+import type {
+  ToolRegistry,
+  ToolExecutor,
+  ExecutionContext
+} from '../../app/server/services/orchestrator'
 
 describe('ToolRegistry - Issue #45', () => {
   let toolRegistry: ToolRegistry
