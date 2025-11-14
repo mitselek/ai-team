@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { FilesystemService } from '../../app/server/services/persistence/file-workspace'
 import { PermissionService } from '../../app/server/services/persistence/permissions'
 import { AuditService } from '../../app/server/services/persistence/audit'
+import type { Agent, Team } from '../../types'
 import {
   createToolRegistry,
   PermissionError,
@@ -37,15 +38,180 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
   let permissionService: PermissionService
   let auditService: AuditService
 
+  // Mock data for permission checks
+  const mockAgents = new Map<string, Agent>([
+    [
+      'agent-1',
+      {
+        id: 'agent-1',
+        name: 'Agent 1',
+        organizationId: 'org-1',
+        teamId: 'team-other', // Not in team-1
+        role: 'worker',
+        seniorId: null,
+        systemPrompt: '',
+        status: 'active',
+        tokenAllocation: 1000,
+        tokenUsed: 0,
+        createdAt: new Date(),
+        lastActiveAt: new Date()
+      }
+    ],
+    [
+      'agent-2',
+      {
+        id: 'agent-2',
+        name: 'Agent 2',
+        organizationId: 'org-1',
+        teamId: 'team-2',
+        role: 'worker',
+        seniorId: null,
+        systemPrompt: '',
+        status: 'active',
+        tokenAllocation: 1000,
+        tokenUsed: 0,
+        createdAt: new Date(),
+        lastActiveAt: new Date()
+      }
+    ],
+    [
+      'agent-in-team-1',
+      {
+        id: 'agent-in-team-1',
+        name: 'Agent in Team 1',
+        organizationId: 'org-1',
+        teamId: 'team-1',
+        role: 'worker',
+        seniorId: null,
+        systemPrompt: '',
+        status: 'active',
+        tokenAllocation: 1000,
+        tokenUsed: 0,
+        createdAt: new Date(),
+        lastActiveAt: new Date()
+      }
+    ],
+    [
+      'agent-in-team-2',
+      {
+        id: 'agent-in-team-2',
+        name: 'Agent in Team 2',
+        organizationId: 'org-1',
+        teamId: 'team-2',
+        role: 'worker',
+        seniorId: null,
+        systemPrompt: '',
+        status: 'active',
+        tokenAllocation: 1000,
+        tokenUsed: 0,
+        createdAt: new Date(),
+        lastActiveAt: new Date()
+      }
+    ],
+    [
+      'agent-outside-team',
+      {
+        id: 'agent-outside-team',
+        name: 'Agent Outside Team',
+        organizationId: 'org-1',
+        teamId: 'team-outside',
+        role: 'worker',
+        seniorId: null,
+        systemPrompt: '',
+        status: 'active',
+        tokenAllocation: 1000,
+        tokenUsed: 0,
+        createdAt: new Date(),
+        lastActiveAt: new Date()
+      }
+    ],
+    [
+      'agent-worker',
+      {
+        id: 'agent-worker',
+        name: 'Worker Agent',
+        organizationId: 'org-1',
+        teamId: 'team-worker',
+        role: 'worker',
+        seniorId: null,
+        systemPrompt: '',
+        status: 'active',
+        tokenAllocation: 1000,
+        tokenUsed: 0,
+        createdAt: new Date(),
+        lastActiveAt: new Date()
+      }
+    ],
+    [
+      'agent-outsider',
+      {
+        id: 'agent-outsider',
+        name: 'Outsider Agent',
+        organizationId: 'org-1',
+        teamId: 'team-outsider',
+        role: 'worker',
+        seniorId: null,
+        systemPrompt: '',
+        status: 'active',
+        tokenAllocation: 1000,
+        tokenUsed: 0,
+        createdAt: new Date(),
+        lastActiveAt: new Date()
+      }
+    ]
+  ])
+
+  const mockTeams = new Map<string, Team>([
+    [
+      'team-1',
+      {
+        id: 'team-1',
+        name: 'Team 1',
+        organizationId: 'org-1',
+        leaderId: 'agent-in-team-1',
+        type: 'custom',
+        tokenAllocation: 10000
+      }
+    ],
+    [
+      'team-2',
+      {
+        id: 'team-2',
+        name: 'Team 2',
+        organizationId: 'org-1',
+        leaderId: 'agent-in-team-2',
+        type: 'custom',
+        tokenAllocation: 10000
+      }
+    ],
+    [
+      'team-library',
+      {
+        id: 'team-library',
+        name: 'Library Team',
+        organizationId: 'org-1',
+        leaderId: 'leader-1',
+        type: 'library',
+        tokenAllocation: 10000
+      }
+    ]
+  ])
+
   beforeEach(async () => {
     // Clean test directory
     await rm(testDataRoot, { recursive: true, force: true })
     await mkdir(testDataRoot, { recursive: true })
 
+    // Mock data loader for PermissionService
+    const mockDataLoader = {
+      loadAgent: vi.fn(async (agentId: string) => mockAgents.get(agentId) || null),
+      loadTeam: vi.fn(async (teamId: string) => mockTeams.get(teamId) || null)
+    }
+
     // Initialize services
     auditService = new AuditService(join(testDataRoot, 'audit.jsonl'))
     filesystemService = new FilesystemService(testDataRoot, auditService)
-    permissionService = new PermissionService()
+    permissionService = new PermissionService(mockDataLoader)
   })
 
   afterEach(async () => {
@@ -275,8 +441,8 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       expect(canAccess).toBe(false)
     })
 
-    it('should prevent agents from escalating via org-level paths', () => {
-      const canAccess = permissionService.checkFileAccess(
+    it('should prevent agents from escalating via org-level paths', async () => {
+      const canAccess = await permissionService.checkFileAccess(
         'agent-1',
         '/organizations/org-1/admin/config.json',
         'write'
@@ -471,9 +637,12 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     it('should log all write operations', async () => {
       await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'content')
 
-      const logs = await auditService.query({ agentId: 'agent-1', operation: 'write' })
-      expect(logs.length).toBeGreaterThan(0)
-      expect(logs.some((log) => log.path === '/agents/agent-1/private/test.txt')).toBe(true)
+      const logs = await auditService.query({ agentId: 'agent-1' })
+      const writeLogs = logs.filter(
+        (log) => log.operation === 'create' || log.operation === 'update'
+      )
+      expect(writeLogs.length).toBeGreaterThan(0)
+      expect(writeLogs.some((log) => log.path === '/agents/agent-1/private/test.txt')).toBe(true)
     })
 
     it('should log all delete operations', async () => {

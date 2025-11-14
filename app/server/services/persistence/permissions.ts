@@ -21,47 +21,52 @@ export class PermissionService {
     path: string,
     operation: 'read' | 'write' | 'delete'
   ): Promise<boolean> {
-    // Load requesting agent
-    const agent = await this.dataLoader.loadAgent(agentId)
-    if (!agent) {
-      throw new Error('Agent not found')
-    }
-
-    // Parse path to determine workspace type and ownership
-    const pathInfo = this.parsePath(path)
-
-    // Load owner information based on workspace type
-    let targetAgent: Agent | null = null
-    let team: Team | null = null
-
-    if (pathInfo.workspace === 'agent-private' || pathInfo.workspace === 'agent-shared') {
-      targetAgent = await this.dataLoader.loadAgent(pathInfo.ownerId)
-      if (!targetAgent) {
-        throw new Error('Target agent not found')
+    try {
+      // Load requesting agent
+      const agent = await this.dataLoader.loadAgent(agentId)
+      if (!agent) {
+        throw new Error('Agent not found')
       }
-      pathInfo.orgId = targetAgent.organizationId
-    } else {
-      team = await this.dataLoader.loadTeam(pathInfo.ownerId)
-      if (!team) {
-        throw new Error('Team not found')
+
+      // Parse path to determine workspace type and ownership
+      const pathInfo = this.parsePath(path)
+
+      // Load owner information based on workspace type
+      let targetAgent: Agent | null = null
+      let team: Team | null = null
+
+      if (pathInfo.workspace === 'agent-private' || pathInfo.workspace === 'agent-shared') {
+        targetAgent = await this.dataLoader.loadAgent(pathInfo.ownerId)
+        if (!targetAgent) {
+          throw new Error('Target agent not found')
+        }
+        pathInfo.orgId = targetAgent.organizationId
+      } else {
+        team = await this.dataLoader.loadTeam(pathInfo.ownerId)
+        if (!team) {
+          throw new Error('Team not found')
+        }
+        pathInfo.orgId = team.organizationId
+        pathInfo.teamId = team.id
       }
-      pathInfo.orgId = team.organizationId
-      pathInfo.teamId = team.id
-    }
 
-    // Apply access rules based on workspace type
-    switch (pathInfo.workspace) {
-      case 'agent-private':
-        return this.checkAgentPrivateAccess(agent, targetAgent!, operation)
+      // Apply access rules based on workspace type
+      switch (pathInfo.workspace) {
+        case 'agent-private':
+          return this.checkAgentPrivateAccess(agent, targetAgent!, operation)
 
-      case 'agent-shared':
-        return this.checkAgentSharedAccess(agent, targetAgent!, operation)
+        case 'agent-shared':
+          return this.checkAgentSharedAccess(agent, targetAgent!, operation)
 
-      case 'team-private':
-        return this.checkTeamPrivateAccess(agent, team!, operation)
+        case 'team-private':
+          return this.checkTeamPrivateAccess(agent, team!, operation)
 
-      case 'team-shared':
-        return this.checkTeamSharedAccess(agent, team!, operation)
+        case 'team-shared':
+          return this.checkTeamSharedAccess(agent, team!, operation)
+      }
+    } catch (error) {
+      // Invalid paths or permission errors return false
+      return false
     }
   }
 
