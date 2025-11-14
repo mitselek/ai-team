@@ -3,6 +3,87 @@ import type { Agent, Task, Organization } from '@@/types'
 
 const logger = createLogger('orchestrator')
 
+/**
+ * Execution context provided to tool executors
+ */
+export interface ExecutionContext {
+  agentId: string
+  organizationId: string
+  correlationId: string
+}
+
+/**
+ * Interface for tool executors
+ */
+export interface ToolExecutor {
+  execute(params: Record<string, unknown>, context: ExecutionContext): Promise<unknown>
+}
+
+/**
+ * Tool Registry for managing and executing tools
+ */
+export interface ToolRegistry {
+  register(name: string, executor: ToolExecutor): void
+  unregister(name: string): void
+  getExecutor(name: string): ToolExecutor | undefined
+  listTools(): string[]
+  has(name: string): boolean
+  count(): number
+  executeTool(
+    name: string,
+    params: Record<string, unknown>,
+    context: ExecutionContext
+  ): Promise<unknown>
+}
+
+/**
+ * Creates a new tool registry instance
+ */
+export function createToolRegistry(): ToolRegistry {
+  const tools = new Map<string, ToolExecutor>()
+
+  return {
+    register(name: string, executor: ToolExecutor): void {
+      if (!name || name.trim() === '') {
+        throw new Error('Tool name cannot be empty')
+      }
+      tools.set(name, executor)
+    },
+
+    unregister(name: string): void {
+      tools.delete(name)
+    },
+
+    getExecutor(name: string): ToolExecutor | undefined {
+      return tools.get(name)
+    },
+
+    listTools(): string[] {
+      return Array.from(tools.keys()).sort()
+    },
+
+    has(name: string): boolean {
+      return tools.has(name)
+    },
+
+    count(): number {
+      return tools.size
+    },
+
+    async executeTool(
+      name: string,
+      params: Record<string, unknown>,
+      context: ExecutionContext
+    ): Promise<unknown> {
+      const executor = tools.get(name)
+      if (!executor) {
+        throw new Error(`Tool ${name} not found`)
+      }
+      return executor.execute(params, context)
+    }
+  }
+}
+
 const BOREDOM_THRESHOLD_MS = 1000 * 60 * 10 // 10 minutes
 const STUCK_THRESHOLD_MS = 1000 * 60 * 30 // 30 minutes
 
