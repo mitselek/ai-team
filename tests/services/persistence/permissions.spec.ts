@@ -437,7 +437,7 @@ describe('PermissionService - Issue #43', () => {
     it('should reject path without workspace type', async () => {
       await expect(
         permissionService.checkFileAccess('agent-1', '/agents/agent-1/file.md', 'read')
-      ).rejects.toThrow('Invalid path format')
+      ).rejects.toThrow('Invalid workspace type')
     })
 
     it('should handle non-existent agent gracefully', async () => {
