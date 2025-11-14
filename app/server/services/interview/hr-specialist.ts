@@ -5,12 +5,33 @@ import { createLogger } from '../../utils/logger'
 import { agents } from '../../data/agents'
 import { tasks } from '../../data/tasks'
 import { generateCompletion } from '../llm'
+import { loadTeams } from '../persistence/filesystem'
 import type { InterviewSession, HRRecommendation } from './types'
 import { formatTranscript } from './session'
 import { INTERVIEW_CONFIG } from './questions'
 import type { Task } from '@@/types'
 
 const logger = createLogger('interview:hr-specialist')
+
+/**
+ * Get available teams for an organization with simplified metadata for HR analysis
+ */
+export async function getAvailableTeams(organizationId: string): Promise<
+  Array<{
+    id: string
+    name: string
+    type: string
+    description: string
+  }>
+> {
+  const teams = await loadTeams(organizationId)
+  return teams.map((team) => ({
+    id: team.id,
+    name: team.name,
+    type: team.type,
+    description: team.description || 'No description'
+  }))
+}
 
 /**
  * Consult HR Specialist (Director) for system prompt and name suggestions
