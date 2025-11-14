@@ -67,7 +67,11 @@ export async function consultHRSpecialist(session: InterviewSession): Promise<HR
 
   // In MVP, we simulate Director review with LLM
   // In production, this would wait for actual Director agent to complete task
-  const recommendation = await simulateDirectorReview(session, hrSpecialist.id)
+  const recommendation = await simulateDirectorReview(
+    session,
+    hrSpecialist.id,
+    hrSpecialist.organizationId
+  )
 
   // Mark task as completed
   task.status = 'completed'
@@ -146,7 +150,8 @@ Please provide:
  */
 async function simulateDirectorReview(
   session: InterviewSession,
-  specialistId: string
+  specialistId: string,
+  organizationId: string
 ): Promise<HRRecommendation> {
   const log = logger.child({ sessionId: session.id, specialistId })
 
@@ -154,6 +159,12 @@ async function simulateDirectorReview(
 
   const transcript = formatTranscript(session)
   const profile = session.candidateProfile
+
+  // Load available teams for this organization
+  const availableTeams = await getAvailableTeams(organizationId)
+  const teamsText = availableTeams
+    .map((t) => `- ${t.name} (${t.type}): ${t.description}`)
+    .join('\n')
 
   const prompt = `You are an experienced HR Director reviewing an interview for a new team member.
 
@@ -167,6 +178,9 @@ Candidate Profile:
 - Autonomy Level: ${profile.preferences.autonomyLevel || 'Not specified'}
 - Personality Traits: ${profile.personality.traits.join(', ') || 'Not specified'}
 
+Available Teams in Organization:
+${teamsText}
+
 Your task:
 1. Generate a comprehensive, professional system prompt for this agent
    - Include their role, expertise, personality, and preferences
@@ -175,13 +189,23 @@ Your task:
 
 2. Suggest 3 creative, professional names that fit their personality and role
 
-3. Provide brief feedback or recommendations
+3. Recommend appropriate team placement:
+   - Analyze candidate's role and expertise
+   - Match with team purpose and focus
+   - Provide clear rationale for fit
+
+4. Provide brief feedback or recommendations
 
 Respond in JSON format:
 {
   "systemPrompt": "...",
   "suggestedNames": ["Name1", "Name2", "Name3"],
-  "feedback": "..."
+  "feedback": "...",
+  "teamAssignment": {
+    "teamId": "<team-id>",
+    "teamName": "<team-name>",
+    "rationale": "Brief explanation of fit"
+  }
 }`
 
   try {
