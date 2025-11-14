@@ -369,52 +369,136 @@ class AuditService {
 
 ## Implementation Phases
 
-### Phase 1: Core Infrastructure
+### Phase 1: Core Infrastructure (Difficulty: 3/5)
 
-- [ ] Add `maxFiles` and `storageQuota` fields to Agent/Team types
-- [ ] Implement Filesystem Service (basic CRUD operations)
-- [ ] Implement Permission Service (access rule engine)
-- [ ] Implement Audit Service (operation logging)
+- [ ] **[D:1]** Add `maxFiles` and `storageQuota` fields to Agent/Team types
+- [ ] **[D:3]** Implement Filesystem Service (basic CRUD operations)
+  - Path resolution and safety validation
+  - Node.js fs operations wrapper
+  - Error handling for file I/O
+- [ ] **[D:4]** Implement Permission Service (access rule engine)
+  - Path parsing logic (agent vs team, private vs shared)
+  - Complex access rules for 4 workspace types
+  - Team leader/member distinction
+  - Organization-wide read logic
+- [ ] **[D:2]** Implement Audit Service (operation logging)
+  - Simple append-only logging
+  - JSON file storage
 
-### Phase 2: MCP Integration
+**Total Phase Difficulty: 3/5** (Permission Service is complex, rest moderate)
 
-- [ ] Create MCP File Server with tool definitions
-- [ ] Implement read_file tool
-- [ ] Implement write_file tool
-- [ ] Implement delete_file tool
-- [ ] Implement list_files tool
-- [ ] Implement get_file_info tool
+### Phase 2: MCP Integration (Difficulty: 3/5)
 
-### Phase 3: Orchestrator Gateway
+- [ ] **[D:3]** Create MCP File Server with tool definitions
+  - MCP protocol compliance
+  - Tool schema definitions
+  - Server initialization
+- [ ] **[D:2]** Implement read_file tool
+  - Straightforward file read
+  - Metadata assembly
+- [ ] **[D:2]** Implement write_file tool
+  - File write with directory creation
+  - Update existing file handling
+- [ ] **[D:1]** Implement delete_file tool
+  - Simple fs.unlink wrapper
+- [ ] **[D:2]** Implement list_files tool
+  - Directory traversal
+  - Recursive vs flat listing
+- [ ] **[D:1]** Implement get_file_info tool
+  - fs.stat wrapper with metadata
 
-- [ ] Add Tool Registry to orchestrator
-- [ ] Implement identity validation layer
-- [ ] Implement permission checking layer
-- [ ] Add tool routing logic
-- [ ] Implement loud security violation logging
+**Total Phase Difficulty: 3/5** (MCP server setup is moderate, tools are simple)
 
-### Phase 4: Quota Management
+### Phase 3: Orchestrator Gateway (Difficulty: 4/5)
 
-- [ ] Implement quota calculation
-- [ ] Implement quota enforcement (warn at 100%, block at 110%)
-- [ ] Add quota monitoring dashboard
-- [ ] Implement quota adjustment API
+- [ ] **[D:3]** Add Tool Registry to orchestrator
+  - Dynamic tool loading
+  - Tool metadata management
+  - Integration with existing orchestrator
+- [ ] **[D:4]** Implement identity validation layer
+  - Security-critical: agent ID mismatch detection
+  - Execution context tracking
+  - Loud failure logging
+- [ ] **[D:3]** Implement permission checking layer
+  - Integration with Permission Service
+  - Operation type mapping (read/write/delete)
+  - Error handling and user feedback
+- [ ] **[D:2]** Add tool routing logic
+  - Tool name → executor mapping
+  - Parameter forwarding
+- [ ] **[D:2]** Implement loud security violation logging
+  - Structured logging with full context
+  - Alerting mechanism
 
-### Phase 5: Security & Validation
+**Total Phase Difficulty: 4/5** (Security-critical, complex integration)
 
-- [ ] Implement extension whitelist validation
-- [ ] Implement file size validation (5MB max)
-- [ ] Add path traversal protection
-- [ ] Security audit and penetration testing
+### Phase 4: Quota Management (Difficulty: 3/5)
 
-### Phase 6: Testing & Documentation
+- [ ] **[D:3]** Implement quota calculation
+  - Recursive directory size calculation
+  - File count tracking
+  - Caching for performance
+- [ ] **[D:2]** Implement quota enforcement (warn at 100%, block at 110%)
+  - Pre-write quota checks
+  - Warning vs blocking logic
+- [ ] **[D:3]** Add quota monitoring dashboard
+  - UI component for quota display
+  - Real-time usage calculation
+  - Visual indicators (progress bars)
+- [ ] **[D:2]** Implement quota adjustment API
+  - Update Agent/Team quota fields
+  - Validation and permission checking
 
-- [ ] Unit tests for Permission Service
-- [ ] Integration tests for MCP tools
-- [ ] E2E tests for orchestrator flow
-- [ ] Security test suite
-- [ ] API documentation
-- [ ] Agent developer guide
+**Total Phase Difficulty: 3/5** (Calculation complexity, UI work)
+
+### Phase 5: Security & Validation (Difficulty: 4/5)
+
+- [ ] **[D:1]** Implement extension whitelist validation
+  - Simple string comparison
+- [ ] **[D:1]** Implement file size validation (5MB max)
+  - Buffer.byteLength check
+- [ ] **[D:3]** Add path traversal protection
+  - Path normalization
+  - Jail/chroot-like validation
+  - Edge case testing (../../, symlinks, etc.)
+- [ ] **[D:5]** Security audit and penetration testing
+  - Comprehensive threat modeling
+  - Manual security review
+  - Automated vulnerability scanning
+  - Penetration testing scenarios
+
+**Total Phase Difficulty: 4/5** (Security audit is very complex)
+
+### Phase 6: Testing & Documentation (Difficulty: 3/5)
+
+- [ ] **[D:3]** Unit tests for Permission Service
+  - Complex test matrix (4 workspaces × 3 operations × roles)
+  - Edge cases and boundary conditions
+- [ ] **[D:2]** Integration tests for MCP tools
+  - Tool invocation scenarios
+  - Success and failure paths
+- [ ] **[D:3]** E2E tests for orchestrator flow
+  - Full request/response cycle
+  - Multi-agent scenarios
+  - Security violation scenarios
+- [ ] **[D:4]** Security test suite
+  - Identity spoofing attempts
+  - Path traversal attacks
+  - Quota bypass attempts
+  - Concurrent access issues
+- [ ] **[D:2]** API documentation
+  - Tool signatures and examples
+  - Error codes and responses
+- [ ] **[D:2]** Agent developer guide
+  - Usage examples
+  - Best practices
+  - Common patterns
+
+**Total Phase Difficulty: 3/5** (Security tests are complex, rest moderate)
+
+---
+
+**Overall Project Difficulty: 3.5/5** (Moderately complex with critical security components)
 
 ## Success Criteria
 
