@@ -56,7 +56,7 @@ export class AuditService {
     }
   }
 
-  async queryLogs(filters: AuditFilters): Promise<AuditEntry[]> {
+  async query(filters: AuditFilters): Promise<AuditEntry[]> {
     try {
       // Read entire log file
       const content = await readFile(this.logPath, 'utf-8')

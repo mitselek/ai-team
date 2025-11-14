@@ -221,8 +221,8 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
   })
 
   describe('3. Privilege Escalation Prevention', () => {
-    it('should prevent agent from accessing another agents private workspace', () => {
-      const canAccess = permissionService.checkFileAccess(
+    it('should prevent agent from accessing another agents private workspace', async () => {
+      const canAccess = await permissionService.checkFileAccess(
         'agent-1',
         '/agents/agent-2/private/secret.md',
         'read'
@@ -230,8 +230,8 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       expect(canAccess).toBe(false)
     })
 
-    it('should prevent agent from writing to another agents private workspace', () => {
-      const canAccess = permissionService.checkFileAccess(
+    it('should prevent agent from writing to another agents private workspace', async () => {
+      const canAccess = await permissionService.checkFileAccess(
         'agent-1',
         '/agents/agent-2/private/malicious.txt',
         'write'
@@ -239,8 +239,8 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       expect(canAccess).toBe(false)
     })
 
-    it('should prevent agent from deleting files in another agents private workspace', () => {
-      const canAccess = permissionService.checkFileAccess(
+    it('should prevent agent from deleting files in another agents private workspace', async () => {
+      const canAccess = await permissionService.checkFileAccess(
         'agent-1',
         '/agents/agent-2/private/important.md',
         'delete'
@@ -248,17 +248,17 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       expect(canAccess).toBe(false)
     })
 
-    it('should prevent agent from accessing team private workspace without membership', () => {
-      const canAccess = permissionService.checkFileAccess(
+    it('should prevent agent from accessing team private workspace without membership', async () => {
+      const canAccess = await permissionService.checkFileAccess(
         'agent-1',
-        '/teams/team-2/private/confidential.md',
+        '/teams/team-1/private/plans.md',
         'read'
       )
       expect(canAccess).toBe(false)
     })
 
-    it('should prevent worker agents from writing to shared library', () => {
-      const canAccess = permissionService.checkFileAccess(
+    it('should prevent worker agents from writing to shared library', async () => {
+      const canAccess = await permissionService.checkFileAccess(
         'agent-worker',
         '/library/shared/document.md',
         'write'
@@ -266,8 +266,8 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       expect(canAccess).toBe(false)
     })
 
-    it('should prevent non-library team members from deleting library content', () => {
-      const canAccess = permissionService.checkFileAccess(
+    it('should prevent non-library team members from deleting library content', async () => {
+      const canAccess = await permissionService.checkFileAccess(
         'agent-outsider',
         '/library/shared/guide.md',
         'delete'
@@ -284,41 +284,61 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       expect(canAccess).toBe(false)
     })
 
-    it('should prevent agents from accessing system-level paths', () => {
-      const canAccess = permissionService.checkFileAccess('agent-1', '/system/secrets.json', 'read')
+    it('should prevent agents from accessing system-level paths', async () => {
+      const canAccess = await permissionService.checkFileAccess(
+        'agent-1',
+        '/system/secrets.json',
+        'read'
+      )
       expect(canAccess).toBe(false)
     })
   })
 
   describe('4. Workspace Boundary Violations', () => {
-    it('should enforce agent private workspace boundaries', () => {
+    it('should enforce agent private workspace boundaries', async () => {
       expect(
-        permissionService.checkFileAccess('agent-1', '/agents/agent-1/private/file.txt', 'read')
+        await permissionService.checkFileAccess(
+          'agent-1',
+          '/agents/agent-1/private/file.txt',
+          'read'
+        )
       ).toBe(true)
       expect(
-        permissionService.checkFileAccess('agent-1', '/agents/agent-2/private/file.txt', 'read')
+        await permissionService.checkFileAccess(
+          'agent-1',
+          '/agents/agent-2/private/file.txt',
+          'read'
+        )
       ).toBe(false)
     })
 
-    it('should enforce agent shared workspace boundaries', () => {
+    it('should enforce agent shared workspace boundaries', async () => {
       expect(
-        permissionService.checkFileAccess('agent-1', '/agents/agent-1/shared/file.txt', 'read')
+        await permissionService.checkFileAccess(
+          'agent-1',
+          '/agents/agent-1/shared/file.txt',
+          'read'
+        )
       ).toBe(true)
       expect(
-        permissionService.checkFileAccess('agent-2', '/agents/agent-1/shared/file.txt', 'read')
+        await permissionService.checkFileAccess(
+          'agent-2',
+          '/agents/agent-1/shared/file.txt',
+          'read'
+        )
       ).toBe(true)
     })
 
-    it('should enforce team private workspace boundaries', () => {
+    it('should enforce team private workspace boundaries', async () => {
       expect(
-        permissionService.checkFileAccess(
+        await permissionService.checkFileAccess(
           'agent-in-team-1',
           '/teams/team-1/private/file.txt',
           'read'
         )
       ).toBe(true)
       expect(
-        permissionService.checkFileAccess(
+        await permissionService.checkFileAccess(
           'agent-in-team-2',
           '/teams/team-1/private/file.txt',
           'read'
@@ -326,16 +346,16 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       ).toBe(false)
     })
 
-    it('should enforce team shared workspace boundaries', () => {
+    it('should enforce team shared workspace boundaries', async () => {
       expect(
-        permissionService.checkFileAccess(
+        await permissionService.checkFileAccess(
           'agent-in-team-1',
           '/teams/team-1/shared/file.txt',
           'read'
         )
       ).toBe(true)
       expect(
-        permissionService.checkFileAccess(
+        await permissionService.checkFileAccess(
           'agent-outside-team',
           '/teams/team-1/shared/file.txt',
           'read'
@@ -343,11 +363,13 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       ).toBe(true)
     })
 
-    it('should reject paths that dont match any workspace pattern', () => {
-      expect(permissionService.checkFileAccess('agent-1', '/invalid/path/file.txt', 'read')).toBe(
+    it('should reject paths that dont match any workspace pattern', async () => {
+      expect(
+        await permissionService.checkFileAccess('agent-1', '/invalid/path/file.txt', 'read')
+      ).toBe(false)
+      expect(await permissionService.checkFileAccess('agent-1', '/random/file.txt', 'read')).toBe(
         false
       )
-      expect(permissionService.checkFileAccess('agent-1', '/random/file.txt', 'read')).toBe(false)
     })
 
     it('should reject empty paths', async () => {
@@ -538,9 +560,9 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       }
     })
 
-    it('should not expose agent IDs of other agents in error messages', () => {
+    it('should not expose agent IDs of other agents in error messages', async () => {
       try {
-        const canAccess = permissionService.checkFileAccess(
+        const canAccess = await permissionService.checkFileAccess(
           'agent-1',
           '/agents/agent-2/private/file.txt',
           'read'

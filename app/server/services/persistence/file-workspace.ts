@@ -47,6 +47,7 @@ export class FilesystemService {
 
   async readFile(agentId: string, path: string): Promise<FileContent> {
     try {
+      this.validatePath(path)
       this.validateExtension(path)
       const fullPath = this.resolvePath(path)
 
@@ -82,6 +83,7 @@ export class FilesystemService {
 
   async writeFile(agentId: string, path: string, content: string): Promise<OperationResult> {
     try {
+      this.validatePath(path)
       this.validateExtension(path)
       this.validateFileSize(content)
       const fullPath = this.resolvePath(path)
@@ -129,6 +131,7 @@ export class FilesystemService {
 
   async deleteFile(agentId: string, path: string): Promise<OperationResult> {
     try {
+      this.validatePath(path)
       this.validateExtension(path)
       const fullPath = this.resolvePath(path)
 
@@ -198,6 +201,7 @@ export class FilesystemService {
 
   async getFileInfo(agentId: string, path: string): Promise<FileMetadata> {
     try {
+      this.validatePath(path)
       this.validateExtension(path)
       const fullPath = this.resolvePath(path)
 
@@ -230,16 +234,34 @@ export class FilesystemService {
     }
   }
 
+  private validatePath(path: string): void {
+    // Check for absolute paths (starting with / on Linux, or drive letter on Windows)
+    if (path.startsWith('/') && !path.startsWith('/agents/') && !path.startsWith('/teams/')) {
+      throw new Error('Path must be relative')
+    }
+
+    // Check for path traversal patterns before normalization
+    if (path.includes('../') || path.includes('..\\')) {
+      throw new Error('Path traversal detected')
+    }
+
+    // Check for encoded traversal attempts
+    const decoded = decodeURIComponent(path)
+    if (decoded !== path && (decoded.includes('../') || decoded.includes('..\\'))) {
+      throw new Error('Path traversal detected')
+    }
+  }
+
   private validateExtension(path: string): void {
     const lastDot = path.lastIndexOf('.')
     if (lastDot === -1) {
-      throw new Error('File must have an extension')
+      throw new Error('File type not allowed')
     }
 
     const ext = path.substring(lastDot).toLowerCase()
 
     if (!ALLOWED_EXTENSIONS.includes(ext)) {
-      throw new Error(`File extension ${ext} not allowed`)
+      throw new Error('File type not allowed')
     }
   }
 
@@ -247,7 +269,7 @@ export class FilesystemService {
     const sizeInBytes = Buffer.byteLength(content, 'utf-8')
 
     if (sizeInBytes > MAX_FILE_SIZE) {
-      throw new Error('File exceeds 5MB limit')
+      throw new Error('File size exceeds maximum allowed size')
     }
   }
 
