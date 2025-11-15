@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="flex h-screen flex-col bg-gray-50">
     <!-- Header -->
     <div class="bg-gray-900 p-6 text-white shadow-md">
       <div class="mx-auto max-w-4xl">
@@ -17,12 +17,12 @@
     </div>
 
     <!-- Main Chat Area -->
-    <div class="mx-auto max-w-4xl p-6">
-      <div class="rounded-lg bg-white shadow-lg">
+    <div class="mx-auto flex w-full max-w-4xl flex-1 flex-col overflow-hidden px-6 pb-6">
+      <div class="flex flex-1 flex-col overflow-hidden rounded-lg bg-white shadow-lg">
         <!-- Message History -->
         <div
           ref="messageContainer"
-          class="h-96 space-y-4 overflow-y-auto border-b border-gray-200 p-6"
+          class="flex-1 space-y-4 overflow-y-auto border-b border-gray-200 p-6"
         >
           <div v-if="messages.length === 0" class="flex h-full items-center justify-center">
             <p class="text-gray-500">No messages yet. Start a conversation below.</p>
@@ -61,7 +61,7 @@
         </div>
 
         <!-- Input Area -->
-        <div class="p-6">
+        <div class="flex-shrink-0 p-6">
           <form @submit.prevent="handleSendMessage" class="flex gap-4">
             <input
               v-model="messageInput"

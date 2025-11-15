@@ -590,7 +590,7 @@ After implementing real filesystem operations, we added comprehensive workspace 
 
 **Workspace Structure**:
 
-```
+```text
 /agents/{agentId}/private/    - Owner only (read/write/delete)
 /agents/{agentId}/shared/     - All read, owner write
 /teams/{teamId}/private/      - Team members only
@@ -618,7 +618,7 @@ Use the Alex agent to validate filesystem security boundaries through the chat A
 
 #### Test Group 1: Own Private Directory (Should ALLOW)
 
-**Test 1.1 - Read Own Private File**
+**Test 1.1 - Read Own Private File**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -628,7 +628,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 **Expected**: Success - Alex can read own private files
 
-**Test 1.2 - Write to Own Private Directory**
+**Test 1.2 - Write to Own Private Directory**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -638,7 +638,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 **Expected**: Success - Alex can write to own private directory
 
-**Test 1.3 - List Own Private Directory**
+**Test 1.3 - List Own Private Directory**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -650,7 +650,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 #### Test Group 2: Own Shared Directory (Should ALLOW)
 
-**Test 2.1 - Read Own Shared File**
+**Test 2.1 - Read Own Shared File**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -660,7 +660,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 **Expected**: Success - Alex can read own shared files
 
-**Test 2.2 - Write to Own Shared Directory**
+**Test 2.2 - Write to Own Shared Directory**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -672,7 +672,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 #### Test Group 3: Other Agent Private (Should DENY)
 
-**Test 3.1 - Read Nexus Private File**
+**Test 3.1 - Read Nexus Private File**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -682,7 +682,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 **Expected**: Permission Denied - Alex cannot read other agent's private files
 
-**Test 3.2 - List Nexus Private Directory**
+**Test 3.2 - List Nexus Private Directory**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -692,7 +692,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 **Expected**: Permission Denied - Alex cannot list other agent's private directory
 
-**Test 3.3 - Write to Nexus Private Directory**
+**Test 3.3 - Write to Nexus Private Directory**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -704,7 +704,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 #### Test Group 4: Other Agent Shared (Read ALLOW, Write DENY)
 
-**Test 4.1 - Read Nexus Shared File**
+**Test 4.1 - Read Nexus Shared File**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -714,7 +714,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 **Expected**: Success - All agents can read other agents' shared files
 
-**Test 4.2 - Write to Nexus Shared Directory**
+**Test 4.2 - Write to Nexus Shared Directory**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -726,7 +726,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 #### Test Group 5: Same Team Member Access
 
-**Test 5.1 - Read Marcus Private File (Same Team)**
+**Test 5.1 - Read Marcus Private File (Same Team)**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -736,7 +736,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 **Expected**: Permission Denied - Even team members cannot access each other's private files
 
-**Test 5.2 - Read Marcus Shared File (Same Team)**
+**Test 5.2 - Read Marcus Shared File (Same Team)**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -748,7 +748,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 #### Test Group 6: Team Private Directory (Should ALLOW - Same Team)
 
-**Test 6.1 - Read Team Private File**
+**Test 6.1 - Read Team Private File**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -758,7 +758,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 **Expected**: Success - Team members can read team private files
 
-**Test 6.2 - Write to Team Private Directory**
+**Test 6.2 - Write to Team Private Directory**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -770,7 +770,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 #### Test Group 7: Team Shared Directory (Should ALLOW)
 
-**Test 7.1 - Read Team Shared File**
+**Test 7.1 - Read Team Shared File**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -780,7 +780,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 **Expected**: Success - All agents can read team shared files
 
-**Test 7.2 - Write to Team Shared Directory**
+**Test 7.2 - Write to Team Shared Directory**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -792,7 +792,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 #### Test Group 8: Organization Public (Should ALLOW)
 
-**Test 8.1 - Read Organization Public File**
+**Test 8.1 - Read Organization Public File**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
@@ -802,7 +802,7 @@ curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823
 
 **Expected**: Success - All agents can read organization public files
 
-**Test 8.2 - Write to Organization Public Directory**
+**Test 8.2 - Write to Organization Public Directory**:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/31dbe1a3-959d-4299-b5e9-4b555d8823ae/chat \
