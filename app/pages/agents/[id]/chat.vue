@@ -106,7 +106,7 @@
                     </div>
                   </button>
                 </div>
-                <div class="border-t border-gray-200 px-4 py-2">
+                <div v-if="messages.length > 0" class="border-t border-gray-200 px-4 py-2">
                   <button
                     @click="startNewConversation"
                     class="w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
