@@ -160,6 +160,12 @@ const formatTimestamp = (timestamp: string): string => {
 onMounted(() => {
   loadAgent()
   clearMessages()
+  // Focus input on page load
+  nextTick(() => {
+    if (inputElement.value) {
+      inputElement.value.focus()
+    }
+  })
 })
 
 watch(messages, () => {
