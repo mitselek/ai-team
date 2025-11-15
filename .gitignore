@@ -32,11 +32,8 @@ coverage
 *.bak
 
 # Organization data (persistent state)
-data/organizations/*/manifest.json
-data/organizations/*/teams/
-data/organizations/*/agents/
-data/organizations/*/interviews/
-data/organizations/*/logs/
+# Ignore entire organization folders (they are git repositories themselves)
+data/organizations/*/
 
 # Keep directory structure
 !data/organizations/.gitkeep
