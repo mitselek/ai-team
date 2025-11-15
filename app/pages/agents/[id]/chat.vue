@@ -113,6 +113,12 @@ const loadAgent = async () => {
     if (foundAgent) {
       agent.value = foundAgent
       logger.info({ agentId: agentId.value }, 'Agent loaded successfully')
+
+      // Focus input after agent is loaded and input is enabled
+      await nextTick()
+      if (inputElement.value) {
+        inputElement.value.focus()
+      }
     } else {
       agentError.value = true
       logger.warn({ agentId: agentId.value }, 'Agent not found')
@@ -160,12 +166,6 @@ const formatTimestamp = (timestamp: string): string => {
 onMounted(() => {
   loadAgent()
   clearMessages()
-  // Focus input on page load
-  nextTick(() => {
-    if (inputElement.value) {
-      inputElement.value.focus()
-    }
-  })
 })
 
 watch(messages, () => {
