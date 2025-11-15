@@ -7,6 +7,7 @@ export const useAgentChat = () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
   const sessionId = ref<string | null>(null)
+  const topic = ref<string | null>(null)
 
   /**
    * Send a message to an agent and receive a response
@@ -32,20 +33,27 @@ export const useAgentChat = () => {
     messages.value.push(userMessage)
 
     try {
-      const response = await $fetch<{ response: string; sessionId: string; timestamp: string }>(
-        `/api/agents/${agentId}/chat`,
-        {
-          method: 'POST',
-          body: {
-            message,
-            sessionId: sessionId.value || undefined
-          }
+      const response = await $fetch<{
+        response: string
+        sessionId: string
+        timestamp: string
+        topic?: string
+      }>(`/api/agents/${agentId}/chat`, {
+        method: 'POST',
+        body: {
+          message,
+          sessionId: sessionId.value || undefined
         }
-      )
+      })
 
       // Store session ID for subsequent messages
       if (response.sessionId) {
         sessionId.value = response.sessionId
+      }
+
+      // Update topic if provided
+      if (response.topic) {
+        topic.value = response.topic
       }
 
       const agentMessage: ChatMessage = {
@@ -78,6 +86,7 @@ export const useAgentChat = () => {
     messages.value = []
     error.value = null
     sessionId.value = null
+    topic.value = null
     logger.info('Chat messages cleared')
   }
 
@@ -86,6 +95,7 @@ export const useAgentChat = () => {
     loading,
     error,
     sessionId,
+    topic,
     sendMessage,
     clearMessages
   }

@@ -22,6 +22,26 @@ import type { ToolCall } from '../../../services/llm/types'
 const logger = createLogger('api.agents.chat')
 
 /**
+ * Build prompt to generate a concise topic for the conversation
+ */
+function buildTopicPrompt(messages: ChatMessage[]): string {
+  const conversationSummary = messages
+    .slice(0, 6) // Use first 6 messages for topic generation
+    .map((msg) => {
+      const role = msg.role === 'user' ? 'User' : 'Agent'
+      const content = msg.content.length > 200 ? msg.content.substring(0, 200) + '...' : msg.content
+      return `${role}: ${content}`
+    })
+    .join('\n\n')
+
+  return `Based on the following conversation, generate a very brief topic/title (3-6 words maximum) that captures the main subject. Respond with ONLY the topic, no explanations or punctuation:
+
+${conversationSummary}
+
+Topic:`
+}
+
+/**
  * Execute tool calls for chat via orchestrator.
  * Returns array of tool results.
  */
@@ -92,6 +112,7 @@ interface ChatResponse {
   response: string
   sessionId: string
   timestamp: string
+  topic?: string
 }
 
 interface ErrorResponse {
@@ -337,6 +358,27 @@ Please provide your final response to the user incorporating the tool results.`
 
     chatSession.updatedAt = new Date()
 
+    // Generate topic based on conversation (async, after first few messages)
+    if (chatSession.messages.length >= 2) {
+      try {
+        const topicPrompt = buildTopicPrompt(chatSession.messages)
+        const topicResponse = await generateCompletion(topicPrompt, {
+          agentId: agent.id,
+          agentRole: agent.role,
+          correlationId
+        })
+        // Extract clean topic (remove quotes, trim)
+        chatSession.topic = topicResponse.content.replace(/^["']|["']$/g, '').trim()
+        log.info(
+          { agentId, sessionId: finalSessionId, topic: chatSession.topic },
+          'Topic generated'
+        )
+      } catch (err) {
+        log.warn({ agentId, sessionId: finalSessionId, error: err }, 'Failed to generate topic')
+        // Continue without topic - not critical
+      }
+    }
+
     await saveChatSession(chatSession)
 
     log.info(
@@ -345,7 +387,8 @@ Please provide your final response to the user incorporating the tool results.`
         sessionId: finalSessionId,
         tokensUsed: 0,
         messageCount: chatSession.messages.length,
-        iterations: iteration
+        iterations: iteration,
+        topic: chatSession.topic
       },
       'Chat response generated and persisted successfully'
     )
@@ -353,7 +396,8 @@ Please provide your final response to the user incorporating the tool results.`
     return {
       response: finalResponse,
       sessionId: finalSessionId,
-      timestamp
+      timestamp,
+      topic: chatSession.topic
     }
   } catch (error: unknown) {
     log.error({ error, agentId, sessionId: finalSessionId }, 'Failed to generate chat response')

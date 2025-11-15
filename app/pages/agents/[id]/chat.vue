@@ -5,10 +5,13 @@
       <div class="mx-auto max-w-4xl">
         <div class="flex items-center justify-between">
           <!-- Agent Info -->
-          <div>
+          <div class="flex-1">
             <div v-if="agent">
               <h1 class="text-3xl font-bold">{{ agent.name }}</h1>
               <p class="text-gray-300">{{ agent.role }}</p>
+              <p v-if="topic" class="mt-2 text-sm text-gray-400">
+                <span class="font-semibold">Topic:</span> {{ topic }}
+              </p>
             </div>
             <div v-else-if="agentError" class="text-red-400">
               <p>[ERROR] Failed to load agent information</p>
@@ -218,7 +221,7 @@ import { logger } from '@/utils/logger'
 
 const route = useRoute()
 const router = useRouter()
-const { messages, loading, error, sendMessage, clearMessages, sessionId } = useAgentChat()
+const { messages, loading, error, sendMessage, clearMessages, sessionId, topic } = useAgentChat()
 
 const agentId = ref(route.params.id as string)
 const agent = ref<Agent | null>(null)
@@ -330,8 +333,9 @@ const loadSession = async (sessionIdToLoad: string) => {
       timestamp: new Date(msg.timestamp).toISOString()
     }))
 
-    // Update sessionId in composable
+    // Update sessionId and topic in composable
     sessionId.value = sessionIdToLoad
+    topic.value = response.session.topic || null
 
     showConversations.value = false
 
@@ -358,9 +362,15 @@ const startNewConversation = () => {
 }
 
 /**
- * Get preview text from session (first user message)
+ * Get preview text from session (prefer topic, fallback to first user message)
  */
 const getSessionPreview = (session: ChatSession): string => {
+  // Prefer topic if available
+  if (session.topic) {
+    return session.topic
+  }
+
+  // Fallback to first user message
   const firstUserMessage = session.messages.find((msg) => msg.role === 'user')
   if (firstUserMessage) {
     return firstUserMessage.content.length > 60
