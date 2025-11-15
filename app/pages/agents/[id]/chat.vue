@@ -64,6 +64,7 @@
         <div class="flex-shrink-0 p-6">
           <form @submit.prevent="handleSendMessage" class="flex gap-4">
             <input
+              ref="inputElement"
               v-model="messageInput"
               type="text"
               placeholder="Type your message..."
@@ -99,6 +100,7 @@ const agent = ref<Agent | null>(null)
 const agentError = ref(false)
 const messageInput = ref('')
 const messageContainer = ref<HTMLDivElement | null>(null)
+const inputElement = ref<HTMLInputElement | null>(null)
 
 /**
  * Load agent information from API
@@ -163,6 +165,10 @@ onMounted(() => {
 watch(messages, () => {
   nextTick(() => {
     scrollToBottom()
+    // Focus input after agent replies (when loading becomes false)
+    if (!loading.value && inputElement.value) {
+      inputElement.value.focus()
+    }
   })
 })
 </script>
