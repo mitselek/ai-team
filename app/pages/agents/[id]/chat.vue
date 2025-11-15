@@ -417,6 +417,16 @@ watch(showConversations, (isShown) => {
   }
 })
 
+// Watch topic changes to update the sessions list
+watch(topic, (newTopic) => {
+  if (newTopic && sessionId.value) {
+    const currentSession = sessions.value.find((s) => s.id === sessionId.value)
+    if (currentSession) {
+      currentSession.topic = newTopic
+    }
+  }
+})
+
 watch(messages, () => {
   nextTick(() => {
     scrollToBottom()
