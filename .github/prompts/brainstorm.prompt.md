@@ -77,7 +77,8 @@ When exploration is complete:
 
 1. **Summarize decisions** in structured format
 2. **Create artifact** (GitHub issue, spec doc, etc.)
-3. **Offer to commit** results
+3. **Update architectural decisions index** (if major design decisions made)
+4. **Offer to commit** results
 
 **Output Format:**
 
@@ -103,6 +104,28 @@ When exploration is complete:
 - Risks to address
 - Performance unknowns
 ```
+
+**Indexing Major Decisions:**
+
+If the session resulted in significant architectural decisions:
+
+1. Add entry to `.specify/memory/architectural-decisions.md`
+2. Include:
+   - Date of session
+   - Link to session document
+   - Context (why the session was needed)
+   - Key decisions (numbered list)
+   - Implementation status
+   - Open questions (if any)
+3. Update related sections (decision patterns, if applicable)
+
+**Criteria for "major" decisions:**
+
+- Affects multiple components or features
+- Establishes patterns for future development
+- Involves security, performance, or data model changes
+- Resolves significant uncertainty or debate
+- Changes existing architectural approach
 
 ### Session Management
 
@@ -244,6 +267,20 @@ This prompt should evolve based on real session experience.
 - Added reminder: Complete evaluation step before issue creation
 - Added guideline: Suggest breaks for sessions over 90 minutes
 - Added pattern: When unsure about architecture, research industry patterns immediately
+
+**Issue #57 (Knowledge Base Collection) - November 2025:**
+
+**Discovery:**
+
+- Major architectural decisions were scattered across feature folders and issue templates
+- No single place to discover "why" behind design choices
+- Created `.specify/memory/architectural-decisions.md` as centralized index
+
+**Improvement:**
+
+- Added Phase 4 step: Update architectural decisions index for major design sessions
+- Defined criteria for "major" decisions (multi-component, establishes patterns, security/performance impact)
+- Ensures knowledge capture happens at session completion, not retroactively
 
 ---
 
