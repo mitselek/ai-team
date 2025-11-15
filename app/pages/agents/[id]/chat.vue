@@ -274,9 +274,6 @@ const handleSendMessage = async () => {
   messageInput.value = ''
 
   await sendMessage(agentId.value, message)
-
-  await nextTick()
-  scrollToBottom()
 }
 
 /**
@@ -427,11 +424,15 @@ watch(topic, (newTopic) => {
   }
 })
 
-watch(messages, () => {
-  nextTick(() => {
-    scrollToBottom()
-  })
-})
+watch(
+  messages,
+  () => {
+    nextTick(() => {
+      scrollToBottom()
+    })
+  },
+  { deep: true }
+)
 
 // Watch loading state to focus input when agent finishes replying
 watch(loading, (isLoading, wasLoading) => {
