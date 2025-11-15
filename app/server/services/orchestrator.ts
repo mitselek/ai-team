@@ -142,7 +142,10 @@ export interface ToolRegistry {
   executeTool(
     name: string,
     params: Record<string, unknown>,
-    context: ExecutionContext
+    context: ExecutionContext,
+    organization?: Organization,
+    agent?: Agent,
+    team?: Team
   ): Promise<unknown>
 }
 
@@ -212,11 +215,82 @@ export function createToolRegistry(permissionService?: PermissionService): ToolR
     async executeTool(
       name: string,
       params: Record<string, unknown>,
-      context: ExecutionContext
+      context: ExecutionContext,
+      organization?: Organization,
+      agent?: Agent,
+      team?: Team
     ): Promise<unknown> {
       // Validate identity before checking tool existence or executing
       const claimedAgentId = typeof params.agentId === 'string' ? params.agentId : undefined
       validateAgentIdentity(claimedAgentId, context, name)
+
+      // Issue #54: Validate tool access if org/agent provided
+      if (organization && agent) {
+        // Check tool exists in organization's tool list
+        const toolDefinition = getToolDefinition(name, organization)
+        if (!toolDefinition) {
+          const error = new PermissionError(
+            `Tool '${name}' is not available in this organization`,
+            context.agentId,
+            '',
+            'execute',
+            context.correlationId
+          )
+
+          logger.warn(
+            {
+              agentId: context.agentId,
+              toolName: name,
+              correlationId: context.correlationId,
+              organizationId: context.organizationId,
+              timestamp: new Date().toISOString()
+            },
+            'PERMISSION DENIED: Tool not in organization tool list'
+          )
+
+          throw error
+        }
+
+        // Check tool not blacklisted for agent/team
+        const hasAccess = validateToolAccess(name, organization, agent, team)
+        if (!hasAccess) {
+          // Determine which blacklist blocked access
+          const teamBlocked = team?.toolBlacklist?.includes(name)
+          const agentBlocked = agent.toolBlacklist?.includes(name)
+
+          let reason = ''
+          if (teamBlocked && agentBlocked) {
+            reason = `Tool '${name}' is restricted for your role and team`
+          } else if (teamBlocked) {
+            reason = `Tool '${name}' is restricted for your team`
+          } else {
+            reason = `Tool '${name}' is restricted for your role`
+          }
+
+          const error = new PermissionError(
+            reason,
+            context.agentId,
+            '',
+            'execute',
+            context.correlationId
+          )
+
+          logger.warn(
+            {
+              agentId: context.agentId,
+              toolName: name,
+              teamBlocked,
+              agentBlocked,
+              correlationId: context.correlationId,
+              organizationId: context.organizationId,
+              timestamp: new Date().toISOString()
+            },
+            'PERMISSION DENIED: Tool blacklisted for agent/team'
+          )
+
+          throw error
+        }
+      }
 
       // Check permissions for filesystem tools
       if (FILESYSTEM_TOOLS.has(name) && permissionService) {
