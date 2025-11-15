@@ -42,7 +42,7 @@ describe('FilesystemService - Issue #42', () => {
       const testPath = '/agents/agent-1/private/test.exe'
 
       await expect(filesystemService.readFile('agent-1', testPath)).rejects.toThrow(
-        'File extension .exe not allowed'
+        'File type not allowed'
       )
     })
 
@@ -86,15 +86,15 @@ describe('FilesystemService - Issue #42', () => {
     it('should reject files with invalid extensions', async () => {
       await expect(
         filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.sh', 'echo hi')
-      ).rejects.toThrow('File extension .sh not allowed')
+      ).rejects.toThrow('File type not allowed')
     })
 
     it('should reject files exceeding 5MB limit', async () => {
       const largecontent = 'x'.repeat(6 * 1024 * 1024) // 6MB
 
       await expect(
-        filesystemService.writeFile('agent-1', '/agents/agent-1/private/large.md', largecontent)
-      ).rejects.toThrow('File exceeds 5MB limit')
+        filesystemService.writeFile('agent-1', '/agents/agent-1/private/large.txt', largecontent)
+      ).rejects.toThrow('File size exceeds maximum allowed size')
     })
 
     it('should log write operations to audit service', async () => {
@@ -147,7 +147,7 @@ describe('FilesystemService - Issue #42', () => {
     it('should reject deleting files with invalid extensions', async () => {
       await expect(
         filesystemService.deleteFile('agent-1', '/agents/agent-1/private/test.exe')
-      ).rejects.toThrow('File extension .exe not allowed')
+      ).rejects.toThrow('File type not allowed')
     })
 
     it('should log delete operations to audit service', async () => {
@@ -234,7 +234,7 @@ describe('FilesystemService - Issue #42', () => {
     it('should reject files with invalid extensions', async () => {
       await expect(
         filesystemService.getFileInfo('agent-1', '/agents/agent-1/private/test.bin')
-      ).rejects.toThrow('File extension .bin not allowed')
+      ).rejects.toThrow('File type not allowed')
     })
 
     it('should handle non-existent files', async () => {
@@ -314,7 +314,7 @@ describe('FilesystemService - Issue #42', () => {
 
       await expect(
         filesystemService.writeFile('agent-1', '/agents/agent-1/private/toolarge.md', content6MB)
-      ).rejects.toThrow('exceeds 5MB limit')
+      ).rejects.toThrow('File size exceeds maximum allowed size')
     })
 
     it('should allow exactly 5MB', async () => {

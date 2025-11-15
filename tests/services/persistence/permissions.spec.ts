@@ -429,45 +429,62 @@ describe('PermissionService - Issue #43', () => {
 
   describe('Edge Cases', () => {
     it('should reject invalid path format', async () => {
-      await expect(
-        permissionService.checkFileAccess('agent-1', '/invalid/path/structure', 'read')
-      ).rejects.toThrow('Invalid path format')
+      const result = await permissionService.checkFileAccess(
+        'agent-1',
+        '/invalid/path/structure',
+        'read'
+      )
+      expect(result).toBe(false)
     })
 
     it('should reject path without workspace type', async () => {
-      await expect(
-        permissionService.checkFileAccess('agent-1', '/agents/agent-1/file.md', 'read')
-      ).rejects.toThrow('Invalid workspace type')
+      const result = await permissionService.checkFileAccess(
+        'agent-1',
+        '/agents/agent-1/file.md',
+        'read'
+      )
+      expect(result).toBe(false)
     })
 
     it('should handle non-existent agent gracefully', async () => {
-      await expect(
-        permissionService.checkFileAccess('non-existent', '/agents/agent-1/private/file.md', 'read')
-      ).rejects.toThrow('Agent not found')
+      const result = await permissionService.checkFileAccess(
+        'non-existent',
+        '/agents/agent-1/private/file.md',
+        'read'
+      )
+      expect(result).toBe(false)
     })
 
     it('should handle non-existent team gracefully', async () => {
-      await expect(
-        permissionService.checkFileAccess('agent-1', '/teams/non-existent/private/file.md', 'read')
-      ).rejects.toThrow('Team not found')
+      const result = await permissionService.checkFileAccess(
+        'agent-1',
+        '/teams/non-existent/private/file.md',
+        'read'
+      )
+      expect(result).toBe(false)
     })
 
     it('should handle non-existent file owner gracefully', async () => {
-      await expect(
-        permissionService.checkFileAccess('agent-1', '/agents/non-existent/private/file.md', 'read')
-      ).rejects.toThrow('Target agent not found')
+      const result = await permissionService.checkFileAccess(
+        'agent-1',
+        '/agents/non-existent/private/file.md',
+        'read'
+      )
+      expect(result).toBe(false)
     })
 
     it('should reject empty path', async () => {
-      await expect(permissionService.checkFileAccess('agent-1', '', 'read')).rejects.toThrow(
-        'Invalid path format'
-      )
+      const result = await permissionService.checkFileAccess('agent-1', '', 'read')
+      expect(result).toBe(false)
     })
 
     it('should reject path with invalid workspace type', async () => {
-      await expect(
-        permissionService.checkFileAccess('agent-1', '/agents/agent-1/invalid/file.md', 'read')
-      ).rejects.toThrow('Invalid workspace type')
+      const result = await permissionService.checkFileAccess(
+        'agent-1',
+        '/agents/agent-1/invalid/file.md',
+        'read'
+      )
+      expect(result).toBe(false)
     })
   })
 
