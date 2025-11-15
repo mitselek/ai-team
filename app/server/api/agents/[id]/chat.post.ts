@@ -1,12 +1,87 @@
 import { defineEventHandler, readBody, setResponseStatus } from 'h3'
 import { v4 as uuidv4 } from 'uuid'
 import { createLogger, newCorrelationId } from '../../../utils/logger'
+import type { Logger } from 'pino'
 import { agents } from '../../../data/agents'
 import { generateCompletion } from '../../../services/llm'
-import { saveChatSession, loadChatSession } from '../../../services/persistence/filesystem'
+import {
+  saveChatSession,
+  loadChatSession,
+  loadOrganization,
+  loadTeams
+} from '../../../services/persistence/filesystem'
 import type { ChatSession, ChatMessage } from '../../../services/persistence/chat-types'
+import type { Organization, Agent, Team } from '@@/types'
+import { getAvailableTools, validateToolAccess } from '../../../services/orchestrator'
+import type { ToolCall } from '../../../services/llm/types'
 
 const logger = createLogger('api.agents.chat')
+
+/**
+ * Execute tool calls for chat (simple mock implementation).
+ * Returns array of tool results.
+ */
+async function executeToolCalls(
+  toolCalls: ToolCall[],
+  agent: Agent,
+  organization: Organization,
+  team: Team | undefined,
+  log: Logger
+): Promise<unknown[]> {
+  const results: unknown[] = []
+
+  for (const toolCall of toolCalls) {
+    try {
+      // Validate access
+      const hasAccess = validateToolAccess(toolCall.name, organization, agent, team)
+      if (!hasAccess) {
+        results.push({ error: `Access denied to tool: ${toolCall.name}` })
+        continue
+      }
+
+      // Mock tool execution
+      let result: unknown
+      switch (toolCall.name) {
+        case 'read_file':
+          result = { success: true, content: '[MOCK] File content would appear here' }
+          break
+        case 'write_file':
+          result = { success: true, message: '[MOCK] File written successfully' }
+          break
+        case 'delete_file':
+          result = { success: true, message: '[MOCK] File deleted successfully' }
+          break
+        case 'list_files':
+          result = { success: true, files: ['[MOCK] file1.txt', '[MOCK] file2.md'] }
+          break
+        case 'get_file_info':
+          result = { success: true, size: 1024, modified: '2025-01-01T00:00:00Z' }
+          break
+        default:
+          result = { error: `Unknown tool: ${toolCall.name}` }
+      }
+
+      results.push(result)
+
+      log.info({
+        agentId: agent.id,
+        toolName: toolCall.name,
+        success: true
+      })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      results.push({ error: errorMessage })
+
+      log.error({
+        agentId: agent.id,
+        toolName: toolCall.name,
+        error: errorMessage
+      })
+    }
+  }
+
+  return results
+}
 
 interface ChatRequest {
   message: string
@@ -105,6 +180,26 @@ export default defineEventHandler(async (event): Promise<ChatResponse | ErrorRes
   log.info({ agentId, sessionId: finalSessionId }, 'Processing chat request')
 
   try {
+    // Load organization and team for tool access
+    const organization = await loadOrganization(agent.organizationId)
+    if (!organization) {
+      log.error({ organizationId: agent.organizationId }, 'Organization not found')
+      setResponseStatus(event, 500)
+      return { error: 'Organization configuration error' }
+    }
+
+    const teams = await loadTeams(agent.organizationId)
+    const agentTeam = agent.teamId ? teams.find((t) => t.id === agent.teamId) : undefined
+
+    // Get available tools for this agent
+    const availableTools = getAvailableTools(organization, agent, agentTeam)
+
+    log.info({
+      agentId,
+      toolCount: availableTools.length,
+      toolNames: availableTools.map((t) => t.name)
+    })
+
     // Construct prompt with agent's system prompt as context
     const prompt = `${agent.systemPrompt}
 
@@ -112,12 +207,97 @@ User message: ${message}
 
 Please respond to the user's message.`
 
-    // Generate completion using LLM service
-    const llmResponse = await generateCompletion(prompt, {
-      agentId: agent.id,
-      agentRole: agent.role,
-      correlationId
-    })
+    // Simple tool loop (max 5 iterations for chat to keep it responsive)
+    const MAX_CHAT_ITERATIONS = 5
+    let iteration = 0
+    let finalResponse = ''
+
+    while (iteration < MAX_CHAT_ITERATIONS) {
+      iteration++
+
+      log.info({
+        agentId,
+        sessionId: finalSessionId,
+        iteration,
+        maxIterations: MAX_CHAT_ITERATIONS
+      })
+
+      // Generate completion using LLM service with tools
+      const llmResponse = await generateCompletion(prompt, {
+        agentId: agent.id,
+        agentRole: agent.role,
+        correlationId,
+        tools: availableTools.length > 0 ? availableTools : undefined
+      })
+
+      // Check if LLM wants to use tools
+      if (llmResponse.toolCalls && llmResponse.toolCalls.length > 0) {
+        log.info({
+          agentId,
+          toolCallCount: llmResponse.toolCalls.length,
+          tools: llmResponse.toolCalls.map((tc) => tc.name)
+        })
+
+        // Execute tool calls (simple mock implementation)
+        const toolResults = await executeToolCalls(
+          llmResponse.toolCalls,
+          agent,
+          organization,
+          agentTeam,
+          log
+        )
+
+        // Add tool results to prompt for next iteration
+        const toolResultsText = toolResults
+          .map((result, idx) => {
+            const toolCall = llmResponse.toolCalls![idx]
+            return `Tool ${toolCall.name} result: ${JSON.stringify(result)}`
+          })
+          .join('\n')
+
+        // Continue loop with tool results
+        const updatedPrompt = `${prompt}
+
+Previous response with tool calls: ${llmResponse.content}
+
+Tool execution results:
+${toolResultsText}
+
+Please provide your final response to the user incorporating the tool results.`
+
+        // Use updated prompt for next iteration
+        const nextResponse = await generateCompletion(updatedPrompt, {
+          agentId: agent.id,
+          agentRole: agent.role,
+          correlationId,
+          tools: availableTools.length > 0 ? availableTools : undefined
+        })
+
+        // If this response also has tool calls, continue loop
+        if (nextResponse.toolCalls && nextResponse.toolCalls.length > 0) {
+          continue
+        }
+
+        // No more tool calls, we have final response
+        finalResponse = nextResponse.content
+        break
+      }
+
+      // No tool calls, this is the final response
+      finalResponse = llmResponse.content
+      break
+    }
+
+    if (iteration >= MAX_CHAT_ITERATIONS) {
+      log.warn({
+        agentId,
+        sessionId: finalSessionId,
+        iterations: iteration
+      })
+      finalResponse =
+        finalResponse ||
+        'I apologize, but I reached the tool execution limit. Please try rephrasing your request.'
+    }
 
     const timestamp = new Date().toISOString()
 
@@ -133,9 +313,9 @@ Please respond to the user's message.`
     const agentMessage: ChatMessage = {
       id: uuidv4(),
       role: 'agent',
-      content: llmResponse.content,
+      content: finalResponse,
       timestamp: new Date(),
-      tokensUsed: llmResponse.tokensUsed?.total
+      tokensUsed: 0 // TODO: Track total tokens across all iterations
     }
     chatSession.messages.push(agentMessage)
 
@@ -147,14 +327,15 @@ Please respond to the user's message.`
       {
         agentId,
         sessionId: finalSessionId,
-        tokensUsed: llmResponse.tokensUsed?.total,
-        messageCount: chatSession.messages.length
+        tokensUsed: 0,
+        messageCount: chatSession.messages.length,
+        iterations: iteration
       },
       'Chat response generated and persisted successfully'
     )
 
     return {
-      response: llmResponse.content,
+      response: finalResponse,
       sessionId: finalSessionId,
       timestamp
     }
