@@ -74,20 +74,31 @@ describe('ToolRegistry - Issue #45', () => {
     })
 
     it('should list all registered tools', () => {
+      // Registry starts with 5 pre-registered filesystem tools
+      const initialTools = toolRegistry.listTools()
+      expect(initialTools).toHaveLength(5)
+
       toolRegistry.register('tool_1', mockExecutor)
       toolRegistry.register('tool_2', mockExecutor)
       toolRegistry.register('tool_3', mockExecutor)
 
       const tools = toolRegistry.listTools()
-      expect(tools).toHaveLength(3)
+      expect(tools).toHaveLength(8) // 5 pre-registered + 3 new
       expect(tools).toContain('tool_1')
       expect(tools).toContain('tool_2')
       expect(tools).toContain('tool_3')
     })
 
-    it('should return empty array when no tools registered', () => {
+    it('should start with pre-registered filesystem tools', () => {
       const tools = toolRegistry.listTools()
-      expect(tools).toEqual([])
+      expect(tools).toHaveLength(5)
+      expect(tools).toEqual([
+        'delete_file',
+        'get_file_info',
+        'list_files',
+        'read_file',
+        'write_file'
+      ])
     })
 
     it('should list tools in alphabetical order', () => {
@@ -96,7 +107,12 @@ describe('ToolRegistry - Issue #45', () => {
       toolRegistry.register('banana', mockExecutor)
 
       const tools = toolRegistry.listTools()
-      expect(tools).toEqual(['apple', 'banana', 'zebra'])
+      // Should contain all new tools plus pre-registered ones
+      expect(tools).toContain('apple')
+      expect(tools).toContain('banana')
+      expect(tools).toContain('zebra')
+      // Alphabetically first should be 'apple' (before 'delete_file')
+      expect(tools[0]).toBe('apple')
     })
   })
 
@@ -193,7 +209,10 @@ describe('ToolRegistry - Issue #45', () => {
       toolRegistry.unregister('tool_1')
 
       const tools = toolRegistry.listTools()
-      expect(tools).toEqual(['tool_2'])
+      // Should have 5 pre-registered + tool_2
+      expect(tools).toHaveLength(6)
+      expect(tools).toContain('tool_2')
+      expect(tools).not.toContain('tool_1')
     })
   })
 
@@ -206,16 +225,18 @@ describe('ToolRegistry - Issue #45', () => {
     })
 
     it('should get tool count', () => {
-      expect(toolRegistry.count()).toBe(0)
+      // Registry now starts with 5 pre-registered filesystem tools
+      const initialCount = toolRegistry.count()
+      expect(initialCount).toBe(5)
 
       toolRegistry.register('tool_1', mockExecutor)
-      expect(toolRegistry.count()).toBe(1)
+      expect(toolRegistry.count()).toBe(initialCount + 1)
 
       toolRegistry.register('tool_2', mockExecutor)
-      expect(toolRegistry.count()).toBe(2)
+      expect(toolRegistry.count()).toBe(initialCount + 2)
 
       toolRegistry.unregister('tool_1')
-      expect(toolRegistry.count()).toBe(1)
+      expect(toolRegistry.count()).toBe(initialCount + 1)
     })
   })
 

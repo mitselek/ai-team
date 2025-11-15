@@ -43,15 +43,24 @@ describe('Organization Configuration with Tools', () => {
     )
   })
 
-  it('should have agentId and path in all tool input schemas', async () => {
+  it('should have path in all tool input schemas (agentId from context)', async () => {
     const org = await loadOrganization(orgId)
 
     org!.tools!.forEach(
-      (tool: { inputSchema: { properties: Record<string, unknown>; required?: string[] } }) => {
-        expect(tool.inputSchema.properties.agentId).toBeDefined()
+      (tool: {
+        name: string
+        inputSchema: { properties: Record<string, unknown>; required?: string[] }
+      }) => {
+        // All tools should have path parameter
         expect(tool.inputSchema.properties.path).toBeDefined()
-        expect(tool.inputSchema.required).toContain('agentId')
-        expect(tool.inputSchema.required).toContain('path')
+
+        // agentId is no longer required in schemas (comes from execution context)
+        expect(tool.inputSchema.properties.agentId).toBeUndefined()
+
+        // Path is required for most tools (except list_files which can default to root)
+        if (tool.name !== 'list_files') {
+          expect(tool.inputSchema.required).toContain('path')
+        }
       }
     )
   })

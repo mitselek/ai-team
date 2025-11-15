@@ -293,7 +293,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       )
     })
 
-    it('should reject missing agentId in tool parameters', async () => {
+    it('should allow missing agentId in tool parameters (uses context)', async () => {
       const mockExecutor: ToolExecutor = {
         execute: vi.fn().mockResolvedValue({ success: true })
       }
@@ -307,13 +307,13 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       }
 
       const params = {
-        // Missing agentId
+        // Missing agentId - will use context.agentId
         path: '/agents/agent-1/private/file.txt'
       }
 
-      await expect(toolRegistry.executeTool('read_file', params, context)).rejects.toThrow(
-        SecurityError
-      )
+      // Should succeed - agentId comes from context
+      const result = await toolRegistry.executeTool('read_file', params, context)
+      expect(result).toEqual({ success: true })
     })
 
     it('should reject empty agentId in tool parameters', async () => {
