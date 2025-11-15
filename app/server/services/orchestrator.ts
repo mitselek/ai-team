@@ -1,5 +1,12 @@
 import { createLogger } from '../utils/logger'
 import type { Agent, Task, Organization, MCPTool, Team } from '@@/types'
+import {
+  writeFileExecutor,
+  readFileExecutor,
+  deleteFileExecutor,
+  listFilesExecutor,
+  getFileInfoExecutor
+} from './tools/filesystem-tools'
 
 const logger = createLogger('orchestrator')
 
@@ -70,6 +77,8 @@ export interface ExecutionContext {
   agentId: string
   organizationId: string
   correlationId: string
+  agent?: Agent
+  team?: Team
 }
 
 /**
@@ -88,7 +97,7 @@ export interface PermissionService {
 
 /**
  * Validates that the claimed agent identity matches the execution context
- * @param claimedAgentId - The agent ID from the tool parameters
+ * @param claimedAgentId - The agent ID from the tool parameters (optional - will use context.agentId if not provided)
  * @param context - The execution context with the actual agent ID
  * @param toolName - The name of the tool being executed
  * @throws SecurityError if the identity does not match
@@ -100,6 +109,11 @@ export function validateAgentIdentity(
 ): void {
   // Normalize claimed ID for comparison
   const normalizedClaimedId = typeof claimedAgentId === 'string' ? claimedAgentId : undefined
+
+  // If no agentId is claimed, use context.agentId (agent is acting as themselves)
+  if (normalizedClaimedId === undefined) {
+    return // Valid - agent is using their own identity from context
+  }
 
   // Check for identity mismatch
   if (normalizedClaimedId !== context.agentId) {
@@ -179,10 +193,17 @@ function mapToolToOperation(toolName: string): 'read' | 'write' | 'delete' {
 }
 
 /**
- * Creates a new tool registry instance
+ * Creates a new tool registry instance with filesystem tools pre-registered
  */
 export function createToolRegistry(permissionService?: PermissionService): ToolRegistry {
   const tools = new Map<string, ToolExecutor>()
+
+  // Pre-register filesystem tools
+  tools.set('write_file', writeFileExecutor)
+  tools.set('read_file', readFileExecutor)
+  tools.set('delete_file', deleteFileExecutor)
+  tools.set('list_files', listFilesExecutor)
+  tools.set('get_file_info', getFileInfoExecutor)
 
   return {
     register(name: string, executor: ToolExecutor): void {
@@ -351,7 +372,15 @@ export function createToolRegistry(permissionService?: PermissionService): ToolR
       if (!executor) {
         throw new Error(`Tool ${name} not found`)
       }
-      return executor.execute(params, context)
+
+      // Enhanced context with agent and team references for security
+      const enhancedContext: ExecutionContext = {
+        ...context,
+        agent,
+        team
+      }
+
+      return executor.execute(params, enhancedContext)
     }
   }
 }
