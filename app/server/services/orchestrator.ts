@@ -1,5 +1,5 @@
 import { createLogger } from '../utils/logger'
-import type { Agent, Task, Organization } from '@@/types'
+import type { Agent, Task, Organization, MCPTool, Team } from '@@/types'
 
 const logger = createLogger('orchestrator')
 
@@ -450,4 +450,82 @@ export function trackTokenUsage(
   }
 
   return { updatedAgent, updatedOrganization }
+}
+
+/**
+ * Get tools available to an agent based on organization, team, and agent blacklists.
+ *
+ * Validation chain:
+ * 1. Start with organization's tools (whitelist)
+ * 2. Remove tools in team's blacklist (if agent is in a team)
+ * 3. Remove tools in agent's blacklist
+ * 4. Return filtered list
+ *
+ * @param organization - Organization containing base tool list
+ * @param agent - Agent requesting tools
+ * @param team - Optional team the agent belongs to
+ * @returns Array of tools the agent can access
+ */
+export function getAvailableTools(
+  organization: Organization,
+  agent: Agent,
+  team?: Team
+): MCPTool[] {
+  // Start with organization tools (or empty array if none defined)
+  const orgTools = organization.tools || []
+
+  // Build combined blacklist
+  const blacklist = new Set<string>()
+
+  // Add team blacklist if agent is in a team
+  if (team?.toolBlacklist) {
+    team.toolBlacklist.forEach((toolName) => blacklist.add(toolName))
+  }
+
+  // Add agent blacklist
+  if (agent.toolBlacklist) {
+    agent.toolBlacklist.forEach((toolName) => blacklist.add(toolName))
+  }
+
+  // Filter org tools by blacklist
+  return orgTools.filter((tool) => !blacklist.has(tool.name))
+}
+
+/**
+ * Validate that an agent has access to a specific tool.
+ *
+ * Used during tool execution to ensure agent isn't trying to use
+ * a blacklisted tool.
+ *
+ * @param toolName - Name of the tool to validate
+ * @param organization - Organization containing base tool list
+ * @param agent - Agent requesting tool access
+ * @param team - Optional team the agent belongs to
+ * @returns true if agent can access the tool, false otherwise
+ */
+export function validateToolAccess(
+  toolName: string,
+  organization: Organization,
+  agent: Agent,
+  team?: Team
+): boolean {
+  const availableTools = getAvailableTools(organization, agent, team)
+  return availableTools.some((tool) => tool.name === toolName)
+}
+
+/**
+ * Get a specific tool definition by name.
+ *
+ * Used to retrieve full tool metadata when executing a tool call.
+ *
+ * @param toolName - Name of the tool to find
+ * @param organization - Organization containing tool definitions
+ * @returns Tool definition or undefined if not found
+ */
+export function getToolDefinition(
+  toolName: string,
+  organization: Organization
+): MCPTool | undefined {
+  const orgTools = organization.tools || []
+  return orgTools.find((tool) => tool.name === toolName)
 }
