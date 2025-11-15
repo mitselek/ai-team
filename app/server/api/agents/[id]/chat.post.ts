@@ -200,12 +200,27 @@ export default defineEventHandler(async (event): Promise<ChatResponse | ErrorRes
       toolNames: availableTools.map((t) => t.name)
     })
 
-    // Construct prompt with agent's system prompt as context
+    // Build conversation history from session messages
+    // Convert stored messages to the format needed for the LLM
+    let conversationHistory = ''
+
+    // Include previous messages from session for context
+    if (chatSession.messages.length > 0) {
+      conversationHistory = chatSession.messages
+        .map((msg) => {
+          const role = msg.role === 'user' ? 'User' : agent.name
+          return `${role}: ${msg.content}`
+        })
+        .join('\n\n')
+      conversationHistory += '\n\n'
+    }
+
+    // Construct prompt with agent's system prompt, conversation history, and current message
     const prompt = `${agent.systemPrompt}
 
-User message: ${message}
+${conversationHistory}User: ${message}
 
-Please respond to the user's message.`
+Please respond to the user's message, taking into account the conversation history above.`
 
     // Simple tool loop (max 5 iterations for chat to keep it responsive)
     const MAX_CHAT_ITERATIONS = 5
@@ -219,7 +234,8 @@ Please respond to the user's message.`
         agentId,
         sessionId: finalSessionId,
         iteration,
-        maxIterations: MAX_CHAT_ITERATIONS
+        maxIterations: MAX_CHAT_ITERATIONS,
+        historyLength: chatSession.messages.length
       })
 
       // Generate completion using LLM service with tools
