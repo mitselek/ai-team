@@ -219,6 +219,32 @@ After each brainstorming session:
 
 This prompt should evolve based on real session experience.
 
+### Lessons from Real Sessions
+
+**Issue nr 51 (Tool Integration) - November 2025:**
+
+**What worked:**
+
+- One question at a time maintained focus
+- External research (Gemini deep-dive) provided authoritative answers
+- Real-world validation (checking GitHub Copilot patterns) built confidence
+- Acknowledging "nagging concerns" prevented forced decisions
+- User intuition alignment (provider-file translation location)
+
+**Improvements identified:**
+
+- Always complete evaluation BEFORE creating issues (easy to skip this step)
+- Consider session breaks for 2+ hour brainstorms
+- Add visual diagrams early (sequence diagrams, not just data flow)
+- Research timing: Do external research early when pattern uncertainty exists
+- Markdown linting: Check generated docs follow constitutional requirements (MD040, etc.)
+
+**Prompt updates:**
+
+- Added reminder: Complete evaluation step before issue creation
+- Added guideline: Suggest breaks for sessions over 90 minutes
+- Added pattern: When unsure about architecture, research industry patterns immediately
+
 ---
 
 **Remember:** Your job is to be a thoughtful guide, not a solution provider. Go slow. Ask questions. Build together.
