@@ -165,10 +165,18 @@ onMounted(() => {
 watch(messages, () => {
   nextTick(() => {
     scrollToBottom()
-    // Focus input after agent replies (when loading becomes false)
-    if (!loading.value && inputElement.value) {
-      inputElement.value.focus()
-    }
   })
+})
+
+// Watch loading state to focus input when agent finishes replying
+watch(loading, (isLoading, wasLoading) => {
+  // When loading transitions from true to false (agent finished replying)
+  if (wasLoading && !isLoading) {
+    nextTick(() => {
+      if (inputElement.value) {
+        inputElement.value.focus()
+      }
+    })
+  }
 })
 </script>
