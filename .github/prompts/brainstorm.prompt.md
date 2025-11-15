@@ -268,7 +268,7 @@ This prompt should evolve based on real session experience.
 - Added guideline: Suggest breaks for sessions over 90 minutes
 - Added pattern: When unsure about architecture, research industry patterns immediately
 
-**Issue #57 (Knowledge Base Collection) - November 2025:**
+**Issue nr 57 (Knowledge Base Collection) - November 2025:**
 
 **Discovery:**
 
