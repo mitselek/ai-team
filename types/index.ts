@@ -16,6 +16,12 @@ export interface Agent {
   lastActiveAt: Date
   maxFiles?: number // default 1000
   storageQuotaMB?: number // default 100
+
+  /**
+   * Tools that this agent cannot use.
+   * Combines with team blacklist if agent is in a team.
+   */
+  toolBlacklist?: string[]
 }
 
 export type AgentStatus = 'active' | 'bored' | 'stuck' | 'paused'
@@ -30,6 +36,12 @@ export interface Organization {
   tokenPool: number
   createdAt: Date
   rootAgentId: string | null
+
+  /**
+   * Available MCP tools for this organization.
+   * Agents can use tools from this list unless blocked by blacklists.
+   */
+  tools?: MCPTool[]
 }
 
 /**
@@ -45,6 +57,12 @@ export interface Team {
   type: TeamType
   maxFiles?: number // default 2000
   storageQuotaGB?: number // default 1
+
+  /**
+   * Tools that this team cannot use.
+   * Merged with agent-level blacklist for final access control.
+   */
+  toolBlacklist?: string[]
 }
 
 export type TeamType =
@@ -118,4 +136,26 @@ export interface ChatMessage {
   role: 'user' | 'agent'
   content: string
   timestamp: string
+}
+
+/**
+ * MCP Tool Definition (Model Context Protocol)
+ *
+ * Canonical format for tool definitions across all LLM providers.
+ * This is the Single Source of Truth - provider-specific formats
+ * are translated from this standard.
+ */
+export interface MCPTool {
+  /** Unique tool name (e.g., 'read_file', 'write_file') */
+  name: string
+
+  /** Clear description of tool's purpose and usage */
+  description: string
+
+  /** JSON Schema defining the tool's input parameters */
+  inputSchema: {
+    type: 'object'
+    properties: Record<string, unknown>
+    required?: string[]
+  }
 }
