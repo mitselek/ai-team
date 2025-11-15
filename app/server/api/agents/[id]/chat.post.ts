@@ -12,13 +12,17 @@ import {
 } from '../../../services/persistence/filesystem'
 import type { ChatSession, ChatMessage } from '../../../services/persistence/chat-types'
 import type { Organization, Agent, Team } from '@@/types'
-import { getAvailableTools, validateToolAccess } from '../../../services/orchestrator'
+import {
+  getAvailableTools,
+  validateToolAccess,
+  createToolRegistry
+} from '../../../services/orchestrator'
 import type { ToolCall } from '../../../services/llm/types'
 
 const logger = createLogger('api.agents.chat')
 
 /**
- * Execute tool calls for chat (simple mock implementation).
+ * Execute tool calls for chat via orchestrator.
  * Returns array of tool results.
  */
 async function executeToolCalls(
@@ -29,37 +33,33 @@ async function executeToolCalls(
   log: Logger
 ): Promise<unknown[]> {
   const results: unknown[] = []
+  const correlationId = (log.bindings().correlationId as string) || 'unknown'
+
+  // Get tool registry for executing real filesystem operations
+  const registry = createToolRegistry()
 
   for (const toolCall of toolCalls) {
     try {
-      // Validate access
+      // Validate access (pre-check before orchestrator execution)
       const hasAccess = validateToolAccess(toolCall.name, organization, agent, team)
       if (!hasAccess) {
         results.push({ error: `Access denied to tool: ${toolCall.name}` })
         continue
       }
 
-      // Mock tool execution
-      let result: unknown
-      switch (toolCall.name) {
-        case 'read_file':
-          result = { success: true, content: '[MOCK] File content would appear here' }
-          break
-        case 'write_file':
-          result = { success: true, message: '[MOCK] File written successfully' }
-          break
-        case 'delete_file':
-          result = { success: true, message: '[MOCK] File deleted successfully' }
-          break
-        case 'list_files':
-          result = { success: true, files: ['[MOCK] file1.txt', '[MOCK] file2.md'] }
-          break
-        case 'get_file_info':
-          result = { success: true, size: 1024, modified: '2025-01-01T00:00:00Z' }
-          break
-        default:
-          result = { error: `Unknown tool: ${toolCall.name}` }
-      }
+      // Execute tool via orchestrator (real filesystem operations)
+      const result = await registry.executeTool(
+        toolCall.name,
+        toolCall.arguments,
+        {
+          agentId: agent.id,
+          organizationId: organization.id,
+          correlationId
+        },
+        organization,
+        agent,
+        team
+      )
 
       results.push(result)
 

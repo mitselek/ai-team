@@ -6,7 +6,7 @@ import type { Logger } from 'pino'
 import { generateCompletion } from '../llm'
 import { assessDelegation, selectSubordinate, delegateTask } from './delegation'
 import { reportCompletion, escalateFailure } from './status'
-import { getAvailableTools, validateToolAccess } from '../orchestrator'
+import { getAvailableTools, validateToolAccess, createToolRegistry } from '../orchestrator'
 import { loadOrganization, loadTeams } from '../persistence/filesystem'
 import type { ToolCall, LLMServiceOptions } from '../llm/types'
 
@@ -95,8 +95,8 @@ async function executeToolCalls(
         throw new Error(`Agent ${agent.id} does not have access to tool: ${toolCall.name}`)
       }
 
-      // Execute tool via mock implementation
-      const result = await executeToolCall(toolCall, agent, log)
+      // Execute tool via orchestrator (real filesystem operations)
+      const result = await executeToolCall(toolCall, agent, organization, team, log)
 
       // Add tool result to conversation
       conversationHistory.push({
@@ -134,55 +134,68 @@ async function executeToolCalls(
 }
 
 /**
- * Execute a single tool call via orchestrator.
- *
- * This is where the actual tool implementation runs.
- * For now, returns mock data. Will be replaced with real
- * filesystem operations in future phases.
+ * Execute a single tool call via orchestrator (real filesystem operations).
  *
  * @param toolCall - Tool call to execute
  * @param agent - Agent executing the tool
+ * @param organization - Organization context
+ * @param team - Team context (if available)
  * @param log - Logger instance
  * @returns Tool execution result
  */
-async function executeToolCall(toolCall: ToolCall, agent: Agent, log: Logger): Promise<unknown> {
+async function executeToolCall(
+  toolCall: ToolCall,
+  agent: Agent,
+  organization: Organization,
+  team: Team | undefined,
+  log: Logger
+): Promise<unknown> {
+  const correlationId = (log.bindings().correlationId as string) || 'unknown'
+
   log.info({
-    message: '[PROCESSOR] Executing tool (MOCK)',
+    message: '[PROCESSOR] Executing tool via orchestrator',
     agentId: agent.id,
     toolName: toolCall.name,
     arguments: toolCall.arguments
   })
 
-  // Mock responses based on tool type
-  switch (toolCall.name) {
-    case 'read_file':
-      return {
-        success: true,
-        content: '[MOCK] File content would appear here'
-      }
-    case 'write_file':
-      return {
-        success: true,
-        message: '[MOCK] File written successfully'
-      }
-    case 'delete_file':
-      return {
-        success: true,
-        message: '[MOCK] File deleted successfully'
-      }
-    case 'list_files':
-      return {
-        success: true,
-        files: ['[MOCK] file1.txt', '[MOCK] file2.md']
-      }
-    case 'get_file_info':
-      return {
-        success: true,
-        size: 1024,
-        modified: '2025-01-01T00:00:00Z'
-      }
-    default:
-      throw new Error(`Unknown tool: ${toolCall.name}`)
+  // Get tool registry for executing real filesystem operations
+  const registry = createToolRegistry()
+
+  try {
+    // Execute tool via orchestrator (real filesystem operations)
+    const result = await registry.executeTool(
+      toolCall.name,
+      toolCall.arguments,
+      {
+        agentId: agent.id,
+        organizationId: organization.id,
+        correlationId
+      },
+      organization,
+      agent,
+      team
+    )
+
+    log.info({
+      message: '[PROCESSOR] Tool executed successfully',
+      agentId: agent.id,
+      toolName: toolCall.name,
+      success: true
+    })
+
+    return result
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+
+    log.error({
+      message: '[PROCESSOR] Tool execution failed',
+      agentId: agent.id,
+      toolName: toolCall.name,
+      error: errorMessage
+    })
+
+    throw error
   }
 }
 
