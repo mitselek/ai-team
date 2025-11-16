@@ -133,6 +133,98 @@ export class MCPFileServer {
           },
           required: ['agentId', 'scope']
         }
+      },
+      {
+        name: 'read_file_by_id',
+        description: 'Read file content using discovered folderId',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            agentId: {
+              type: 'string',
+              description: 'The ID of the agent requesting access'
+            },
+            folderId: {
+              type: 'string',
+              description: 'Folder ID from list_folders'
+            },
+            filename: {
+              type: 'string',
+              description: 'Filename within folder'
+            }
+          },
+          required: ['agentId', 'folderId', 'filename']
+        }
+      },
+      {
+        name: 'write_file_by_id',
+        description: 'Write file content using discovered folderId',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            agentId: {
+              type: 'string',
+              description: 'The ID of the agent requesting access'
+            },
+            folderId: {
+              type: 'string',
+              description: 'Folder ID from list_folders'
+            },
+            filename: {
+              type: 'string',
+              description: 'Filename within folder'
+            },
+            content: {
+              type: 'string',
+              description: 'File content'
+            }
+          },
+          required: ['agentId', 'folderId', 'filename', 'content']
+        }
+      },
+      {
+        name: 'delete_file_by_id',
+        description: 'Delete file using discovered folderId',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            agentId: {
+              type: 'string',
+              description: 'The ID of the agent requesting access'
+            },
+            folderId: {
+              type: 'string',
+              description: 'Folder ID from list_folders'
+            },
+            filename: {
+              type: 'string',
+              description: 'Filename within folder'
+            }
+          },
+          required: ['agentId', 'folderId', 'filename']
+        }
+      },
+      {
+        name: 'get_file_info_by_id',
+        description: 'Get file metadata using discovered folderId',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            agentId: {
+              type: 'string',
+              description: 'The ID of the agent requesting access'
+            },
+            folderId: {
+              type: 'string',
+              description: 'Folder ID from list_folders'
+            },
+            filename: {
+              type: 'string',
+              description: 'Filename within folder'
+            }
+          },
+          required: ['agentId', 'folderId', 'filename']
+        }
       }
     ]
   }
@@ -169,6 +261,18 @@ export class MCPFileServer {
 
         case 'list_folders':
           return await this.executeListFolders(toolCall.arguments)
+
+        case 'read_file_by_id':
+          return await this.executeReadFileById(toolCall.arguments)
+
+        case 'write_file_by_id':
+          return await this.executeWriteFileById(toolCall.arguments)
+
+        case 'delete_file_by_id':
+          return await this.executeDeleteFileById(toolCall.arguments)
+
+        case 'get_file_info_by_id':
+          return await this.executeGetFileInfoById(toolCall.arguments)
 
         default:
           return this.errorResult(`Unknown tool: ${toolCall.name}`)
@@ -473,6 +577,181 @@ export class MCPFileServer {
       path: folderPath,
       fileCount: files.length,
       files
+    }
+  }
+
+  private async executeReadFileById(args: {
+    agentId?: string
+    folderId?: string
+    filename?: string
+  }): Promise<MCPToolResult> {
+    const { agentId, folderId, filename } = args
+
+    if (!agentId) {
+      return this.errorResult('Missing required parameter: agentId')
+    }
+    if (!folderId) {
+      return this.errorResult('Missing required parameter: folderId')
+    }
+    if (!filename) {
+      return this.errorResult('Missing required parameter: filename')
+    }
+
+    try {
+      // Resolve folderId to workspace path (will throw if expired/invalid)
+      const folderPath = this.resolveFolderId(folderId)
+      const fullPath = `${folderPath}${filename}`
+
+      const result = await this.filesystemService.readFile(agentId, fullPath)
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              {
+                success: true,
+                content: result.content,
+                metadata: result.metadata
+              },
+              null,
+              2
+            )
+          }
+        ]
+      }
+    } catch (error: unknown) {
+      return this.errorResult(error instanceof Error ? error.message : 'Failed to read file')
+    }
+  }
+
+  private async executeWriteFileById(args: {
+    agentId?: string
+    folderId?: string
+    filename?: string
+    content?: string
+  }): Promise<MCPToolResult> {
+    const { agentId, folderId, filename, content } = args
+
+    if (!agentId) {
+      return this.errorResult('Missing required parameter: agentId')
+    }
+    if (!folderId) {
+      return this.errorResult('Missing required parameter: folderId')
+    }
+    if (!filename) {
+      return this.errorResult('Missing required parameter: filename')
+    }
+    if (content === undefined) {
+      return this.errorResult('Missing required parameter: content')
+    }
+
+    try {
+      const folderPath = this.resolveFolderId(folderId)
+      const fullPath = `${folderPath}${filename}`
+
+      const result = await this.filesystemService.writeFile(agentId, fullPath, content)
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: result.success }, null, 2)
+          }
+        ]
+      }
+    } catch (error: unknown) {
+      return this.errorResult(error instanceof Error ? error.message : 'Failed to write file')
+    }
+  }
+
+  private async executeDeleteFileById(args: {
+    agentId?: string
+    folderId?: string
+    filename?: string
+  }): Promise<MCPToolResult> {
+    const { agentId, folderId, filename } = args
+
+    if (!agentId) {
+      return this.errorResult('Missing required parameter: agentId')
+    }
+    if (!folderId) {
+      return this.errorResult('Missing required parameter: folderId')
+    }
+    if (!filename) {
+      return this.errorResult('Missing required parameter: filename')
+    }
+
+    try {
+      const folderPath = this.resolveFolderId(folderId)
+      const fullPath = `${folderPath}${filename}`
+
+      const result = await this.filesystemService.deleteFile(agentId, fullPath)
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: result.success }, null, 2)
+          }
+        ]
+      }
+    } catch (error: unknown) {
+      // Make delete idempotent - if file doesn't exist, still return success
+      if (error instanceof Error && error.message.includes('ENOENT')) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({ success: true }, null, 2)
+            }
+          ]
+        }
+      }
+      return this.errorResult(error instanceof Error ? error.message : 'Failed to delete file')
+    }
+  }
+
+  private async executeGetFileInfoById(args: {
+    agentId?: string
+    folderId?: string
+    filename?: string
+  }): Promise<MCPToolResult> {
+    const { agentId, folderId, filename } = args
+
+    if (!agentId) {
+      return this.errorResult('Missing required parameter: agentId')
+    }
+    if (!folderId) {
+      return this.errorResult('Missing required parameter: folderId')
+    }
+    if (!filename) {
+      return this.errorResult('Missing required parameter: filename')
+    }
+
+    try {
+      const folderPath = this.resolveFolderId(folderId)
+      const fullPath = `${folderPath}${filename}`
+
+      const result = await this.filesystemService.getFileInfo(agentId, fullPath)
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              {
+                success: true,
+                metadata: result
+              },
+              null,
+              2
+            )
+          }
+        ]
+      }
+    } catch (error: unknown) {
+      return this.errorResult(error instanceof Error ? error.message : 'Failed to get file info')
     }
   }
 
