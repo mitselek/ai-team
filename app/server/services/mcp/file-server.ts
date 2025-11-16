@@ -1,7 +1,11 @@
 import type { FilesystemService } from '../persistence/file-workspace'
 import type { MCPTool, MCPToolCall, MCPToolResult } from '../llm/mcp/types'
+import { randomUUID } from 'node:crypto'
 
 export class MCPFileServer {
+  private folderIdCache = new Map<string, { path: string; timestamp: number }>()
+  private readonly FOLDER_ID_TTL_MS = 30 * 60 * 1000 // 30 minutes
+
   constructor(private readonly filesystemService: FilesystemService) {}
 
   getToolDefinitions(): MCPTool[] {
@@ -306,6 +310,65 @@ export class MCPFileServer {
         }
       ],
       isError: true
+    }
+  }
+
+  /**
+   * Generate a unique ephemeral folder ID with 30-minute TTL.
+   * Maps the folderId to the workspace path for later resolution.
+   *
+   * @param path - Workspace path (e.g., /workspaces/agent-123/private/)
+   * @returns UUID v4 folderId
+   */
+  generateFolderId(path: string): string {
+    const folderId = randomUUID()
+    this.folderIdCache.set(folderId, {
+      path,
+      timestamp: Date.now()
+    })
+    return folderId
+  }
+
+  /**
+   * Resolve a folderId to its workspace path.
+   * Checks TTL expiration and throws error if expired or not found.
+   *
+   * @param folderId - UUID from generateFolderId()
+   * @returns Workspace path
+   * @throws Error if folderId not found or expired
+   */
+  resolveFolderId(folderId: string): string {
+    const entry = this.folderIdCache.get(folderId)
+
+    if (!entry) {
+      throw new Error(
+        `Folder ID '${folderId}' not found. It may have expired. Use list_folders() to discover current folders.`
+      )
+    }
+
+    const age = Date.now() - entry.timestamp
+
+    if (age > this.FOLDER_ID_TTL_MS) {
+      // Remove expired entry
+      this.folderIdCache.delete(folderId)
+      throw new Error(
+        `Folder ID '${folderId}' has expired. Use list_folders() to discover current folders.`
+      )
+    }
+
+    return entry.path
+  }
+
+  /**
+   * Remove expired folderIds from cache.
+   * Should be called periodically to prevent memory leaks.
+   */
+  cleanupExpiredFolderIds(): void {
+    const now = Date.now()
+    for (const [folderId, entry] of this.folderIdCache.entries()) {
+      if (now - entry.timestamp > this.FOLDER_ID_TTL_MS) {
+        this.folderIdCache.delete(folderId)
+      }
     }
   }
 }

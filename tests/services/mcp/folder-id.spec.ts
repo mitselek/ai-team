@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import type { FolderScope, FolderInfo, FileListResult, FileEntry } from '@@/types'
+import type { FilesystemService } from '../../../app/server/services/persistence/file-workspace'
 
 // Mock the logger to avoid stream.write errors
 vi.mock('../../../server/utils/logger', () => ({
@@ -117,14 +118,8 @@ describe('FolderId Strategy - Generation and Resolution', () => {
     const module = await import('../../../app/server/services/mcp/file-server')
     MCPFileServer = module.MCPFileServer
 
-    // Mock filesystem service
-    const mockFilesystemService = {
-      readFile: vi.fn(),
-      writeFile: vi.fn(),
-      deleteFile: vi.fn(),
-      listFiles: vi.fn(),
-      getFileInfo: vi.fn()
-    }
+    // Mock filesystem service (partial mock is sufficient for these tests)
+    const mockFilesystemService = {} as FilesystemService
 
     fileServer = new MCPFileServer(mockFilesystemService)
   })
