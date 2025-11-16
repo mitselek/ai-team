@@ -159,3 +159,32 @@ export interface MCPTool {
     required?: string[]
   }
 }
+
+/**
+ * Folder-based file operations (F059)
+ */
+
+/** Folder scope for discovery operations */
+export type FolderScope = 'my_private' | 'my_shared' | 'team_private' | 'team_shared' | 'org_shared'
+
+/** Folder metadata returned by discovery */
+export interface FolderInfo {
+  folderId: string
+  folderName: string
+  folderType: FolderScope
+  path: string
+  fileCount: number
+}
+
+/** File entry in folder listing */
+export interface FileEntry {
+  filename: string
+  size: number
+  modified: string
+  mimeType?: string
+}
+
+/** File discovery result with folder info and files */
+export interface FileListResult extends FolderInfo {
+  files: FileEntry[]
+}

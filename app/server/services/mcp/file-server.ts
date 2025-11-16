@@ -1,7 +1,14 @@
 import type { FilesystemService } from '../persistence/file-workspace'
 import type { MCPTool, MCPToolCall, MCPToolResult } from '../llm/mcp/types'
+import type { FolderScope, FileEntry, FileListResult } from '@@/types'
+import { randomUUID } from 'node:crypto'
+import { loadAllTeams } from '../../data/organizations'
+import { loadTeamAgents } from '../../data/teams'
 
 export class MCPFileServer {
+  private folderIdCache = new Map<string, { path: string; timestamp: number }>()
+  private readonly FOLDER_ID_TTL_MS = 30 * 60 * 1000 // 30 minutes
+
   constructor(private readonly filesystemService: FilesystemService) {}
 
   getToolDefinitions(): MCPTool[] {
@@ -99,6 +106,125 @@ export class MCPFileServer {
           },
           required: ['agentId', 'path']
         }
+      },
+      {
+        name: 'list_folders',
+        description: 'Discover available workspace folders by scope',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            agentId: {
+              type: 'string',
+              description: 'The ID of the agent requesting folder discovery'
+            },
+            organizationId: {
+              type: 'string',
+              description: 'The organization ID (required for org_shared scope)'
+            },
+            teamId: {
+              type: 'string',
+              description: 'The team ID (optional, auto-derived for team scopes)'
+            },
+            scope: {
+              type: 'string',
+              enum: ['my_private', 'my_shared', 'team_private', 'team_shared', 'org_shared'],
+              description: 'The discovery scope'
+            }
+          },
+          required: ['agentId', 'scope']
+        }
+      },
+      {
+        name: 'read_file_by_id',
+        description: 'Read file content using discovered folderId',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            agentId: {
+              type: 'string',
+              description: 'The ID of the agent requesting access'
+            },
+            folderId: {
+              type: 'string',
+              description: 'Folder ID from list_folders'
+            },
+            filename: {
+              type: 'string',
+              description: 'Filename within folder'
+            }
+          },
+          required: ['agentId', 'folderId', 'filename']
+        }
+      },
+      {
+        name: 'write_file_by_id',
+        description: 'Write file content using discovered folderId',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            agentId: {
+              type: 'string',
+              description: 'The ID of the agent requesting access'
+            },
+            folderId: {
+              type: 'string',
+              description: 'Folder ID from list_folders'
+            },
+            filename: {
+              type: 'string',
+              description: 'Filename within folder'
+            },
+            content: {
+              type: 'string',
+              description: 'File content'
+            }
+          },
+          required: ['agentId', 'folderId', 'filename', 'content']
+        }
+      },
+      {
+        name: 'delete_file_by_id',
+        description: 'Delete file using discovered folderId',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            agentId: {
+              type: 'string',
+              description: 'The ID of the agent requesting access'
+            },
+            folderId: {
+              type: 'string',
+              description: 'Folder ID from list_folders'
+            },
+            filename: {
+              type: 'string',
+              description: 'Filename within folder'
+            }
+          },
+          required: ['agentId', 'folderId', 'filename']
+        }
+      },
+      {
+        name: 'get_file_info_by_id',
+        description: 'Get file metadata using discovered folderId',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            agentId: {
+              type: 'string',
+              description: 'The ID of the agent requesting access'
+            },
+            folderId: {
+              type: 'string',
+              description: 'Folder ID from list_folders'
+            },
+            filename: {
+              type: 'string',
+              description: 'Filename within folder'
+            }
+          },
+          required: ['agentId', 'folderId', 'filename']
+        }
       }
     ]
   }
@@ -132,6 +258,21 @@ export class MCPFileServer {
 
         case 'get_file_info':
           return await this.executeGetFileInfo(agentId, path)
+
+        case 'list_folders':
+          return await this.executeListFolders(toolCall.arguments)
+
+        case 'read_file_by_id':
+          return await this.executeReadFileById(toolCall.arguments)
+
+        case 'write_file_by_id':
+          return await this.executeWriteFileById(toolCall.arguments)
+
+        case 'delete_file_by_id':
+          return await this.executeDeleteFileById(toolCall.arguments)
+
+        case 'get_file_info_by_id':
+          return await this.executeGetFileInfoById(toolCall.arguments)
 
         default:
           return this.errorResult(`Unknown tool: ${toolCall.name}`)
@@ -297,6 +438,344 @@ export class MCPFileServer {
     }
   }
 
+  private async executeListFolders(args: {
+    agentId?: string
+    organizationId?: string
+    teamId?: string
+    scope?: string
+  }): Promise<MCPToolResult> {
+    const { agentId, organizationId, teamId, scope } = args
+
+    if (!agentId) {
+      return this.errorResult('Missing required parameter: agentId')
+    }
+    if (!scope) {
+      return this.errorResult('Missing required parameter: scope')
+    }
+
+    try {
+      const folders: FileListResult[] = []
+
+      switch (scope as FolderScope) {
+        case 'my_private': {
+          const folderPath = this.getWorkspaceFolder(agentId, 'private')
+          folders.push(await this.buildFolderResult(agentId, folderPath, 'my_private'))
+          break
+        }
+
+        case 'my_shared': {
+          const folderPath = this.getWorkspaceFolder(agentId, 'shared')
+          folders.push(await this.buildFolderResult(agentId, folderPath, 'my_shared'))
+          break
+        }
+
+        case 'team_private': {
+          if (!teamId) {
+            return this.errorResult('Agent is not on a team')
+          }
+          const folderPath = this.getWorkspaceFolder(teamId, 'private')
+          folders.push(await this.buildFolderResult(agentId, folderPath, 'team_private'))
+          break
+        }
+
+        case 'team_shared': {
+          if (!teamId) {
+            return this.errorResult('Agent is not on a team')
+          }
+          const folderPath = this.getWorkspaceFolder(teamId, 'shared')
+          folders.push(await this.buildFolderResult(agentId, folderPath, 'team_shared'))
+          break
+        }
+
+        case 'org_shared': {
+          if (!organizationId) {
+            return this.errorResult(
+              'Missing required parameter: organizationId for org_shared scope'
+            )
+          }
+
+          // Get all teams in org
+          const teams = loadAllTeams(organizationId)
+
+          // Add all team shared folders
+          for (const team of teams) {
+            const folderPath = this.getWorkspaceFolder(team.id, 'shared')
+            folders.push(await this.buildFolderResult(agentId, folderPath, 'org_shared'))
+          }
+
+          // Add all team members' shared folders (excluding requesting agent)
+          for (const team of teams) {
+            const teamAgents = loadTeamAgents(team.id)
+            for (const agent of teamAgents) {
+              if (agent.id !== agentId) {
+                const folderPath = this.getWorkspaceFolder(agent.id, 'shared')
+                folders.push(await this.buildFolderResult(agentId, folderPath, 'org_shared'))
+              }
+            }
+          }
+          break
+        }
+
+        default:
+          return this.errorResult(`Invalid scope: ${scope}`)
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ folders }, null, 2)
+          }
+        ]
+      }
+    } catch (error: unknown) {
+      return this.errorResult(error instanceof Error ? error.message : 'Failed to list folders')
+    }
+  }
+
+  private async buildFolderResult(
+    agentId: string,
+    folderPath: string,
+    folderType: FolderScope
+  ): Promise<FileListResult> {
+    // List files in folder
+    let fileInfos: Array<{
+      path: string
+      name: string
+      size: number
+      modified: Date
+      isDirectory: boolean
+    }> = []
+    try {
+      fileInfos = await this.filesystemService.listFiles(agentId, folderPath)
+    } catch (error: unknown) {
+      // Folder may not exist yet - return empty
+      fileInfos = []
+    }
+
+    // Map to FileEntry with mimeType
+    const files: FileEntry[] = fileInfos
+      .filter((f) => !f.isDirectory)
+      .map((f) => ({
+        filename: f.name,
+        size: f.size,
+        modified: f.modified.toISOString(),
+        mimeType: this.guessMimeType(f.name)
+      }))
+
+    // Generate ephemeral folderId
+    const folderId = this.generateFolderId(folderPath)
+
+    // Extract folder name from path
+    const pathParts = folderPath.split('/').filter((p) => p.length > 0)
+    const folderName = pathParts.length >= 2 ? `${pathParts[1]}/${pathParts[2]}` : folderPath
+
+    return {
+      folderId,
+      folderName,
+      folderType,
+      path: folderPath,
+      fileCount: files.length,
+      files
+    }
+  }
+
+  private async executeReadFileById(args: {
+    agentId?: string
+    folderId?: string
+    filename?: string
+  }): Promise<MCPToolResult> {
+    const { agentId, folderId, filename } = args
+
+    if (!agentId) {
+      return this.errorResult('Missing required parameter: agentId')
+    }
+    if (!folderId) {
+      return this.errorResult('Missing required parameter: folderId')
+    }
+    if (!filename) {
+      return this.errorResult('Missing required parameter: filename')
+    }
+
+    try {
+      // Resolve folderId to workspace path (will throw if expired/invalid)
+      const folderPath = this.resolveFolderId(folderId)
+      const fullPath = `${folderPath}${filename}`
+
+      const result = await this.filesystemService.readFile(agentId, fullPath)
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              {
+                success: true,
+                content: result.content,
+                metadata: result.metadata
+              },
+              null,
+              2
+            )
+          }
+        ]
+      }
+    } catch (error: unknown) {
+      return this.errorResult(error instanceof Error ? error.message : 'Failed to read file')
+    }
+  }
+
+  private async executeWriteFileById(args: {
+    agentId?: string
+    folderId?: string
+    filename?: string
+    content?: string
+  }): Promise<MCPToolResult> {
+    const { agentId, folderId, filename, content } = args
+
+    if (!agentId) {
+      return this.errorResult('Missing required parameter: agentId')
+    }
+    if (!folderId) {
+      return this.errorResult('Missing required parameter: folderId')
+    }
+    if (!filename) {
+      return this.errorResult('Missing required parameter: filename')
+    }
+    if (content === undefined) {
+      return this.errorResult('Missing required parameter: content')
+    }
+
+    try {
+      const folderPath = this.resolveFolderId(folderId)
+      const fullPath = `${folderPath}${filename}`
+
+      const result = await this.filesystemService.writeFile(agentId, fullPath, content)
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: result.success }, null, 2)
+          }
+        ]
+      }
+    } catch (error: unknown) {
+      return this.errorResult(error instanceof Error ? error.message : 'Failed to write file')
+    }
+  }
+
+  private async executeDeleteFileById(args: {
+    agentId?: string
+    folderId?: string
+    filename?: string
+  }): Promise<MCPToolResult> {
+    const { agentId, folderId, filename } = args
+
+    if (!agentId) {
+      return this.errorResult('Missing required parameter: agentId')
+    }
+    if (!folderId) {
+      return this.errorResult('Missing required parameter: folderId')
+    }
+    if (!filename) {
+      return this.errorResult('Missing required parameter: filename')
+    }
+
+    try {
+      const folderPath = this.resolveFolderId(folderId)
+      const fullPath = `${folderPath}${filename}`
+
+      const result = await this.filesystemService.deleteFile(agentId, fullPath)
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: result.success }, null, 2)
+          }
+        ]
+      }
+    } catch (error: unknown) {
+      // Make delete idempotent - if file doesn't exist, still return success
+      if (error instanceof Error && error.message.includes('ENOENT')) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({ success: true }, null, 2)
+            }
+          ]
+        }
+      }
+      return this.errorResult(error instanceof Error ? error.message : 'Failed to delete file')
+    }
+  }
+
+  private async executeGetFileInfoById(args: {
+    agentId?: string
+    folderId?: string
+    filename?: string
+  }): Promise<MCPToolResult> {
+    const { agentId, folderId, filename } = args
+
+    if (!agentId) {
+      return this.errorResult('Missing required parameter: agentId')
+    }
+    if (!folderId) {
+      return this.errorResult('Missing required parameter: folderId')
+    }
+    if (!filename) {
+      return this.errorResult('Missing required parameter: filename')
+    }
+
+    try {
+      const folderPath = this.resolveFolderId(folderId)
+      const fullPath = `${folderPath}${filename}`
+
+      const result = await this.filesystemService.getFileInfo(agentId, fullPath)
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              {
+                success: true,
+                metadata: result
+              },
+              null,
+              2
+            )
+          }
+        ]
+      }
+    } catch (error: unknown) {
+      return this.errorResult(error instanceof Error ? error.message : 'Failed to get file info')
+    }
+  }
+
+  private getWorkspaceFolder(entityId: string, folderType: 'private' | 'shared'): string {
+    return `/workspaces/${entityId}/${folderType}/`
+  }
+
+  private guessMimeType(filename: string): string {
+    const ext = filename.substring(filename.lastIndexOf('.')).toLowerCase()
+    const mimeMap: Record<string, string> = {
+      '.md': 'text/markdown',
+      '.txt': 'text/plain',
+      '.json': 'application/json',
+      '.yaml': 'application/x-yaml',
+      '.yml': 'application/x-yaml',
+      '.pdf': 'application/pdf',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.svg': 'image/svg+xml'
+    }
+    return mimeMap[ext] || 'application/octet-stream'
+  }
+
   private errorResult(message: string): MCPToolResult {
     return {
       content: [
@@ -306,6 +785,65 @@ export class MCPFileServer {
         }
       ],
       isError: true
+    }
+  }
+
+  /**
+   * Generate a unique ephemeral folder ID with 30-minute TTL.
+   * Maps the folderId to the workspace path for later resolution.
+   *
+   * @param path - Workspace path (e.g., /workspaces/agent-123/private/)
+   * @returns UUID v4 folderId
+   */
+  generateFolderId(path: string): string {
+    const folderId = randomUUID()
+    this.folderIdCache.set(folderId, {
+      path,
+      timestamp: Date.now()
+    })
+    return folderId
+  }
+
+  /**
+   * Resolve a folderId to its workspace path.
+   * Checks TTL expiration and throws error if expired or not found.
+   *
+   * @param folderId - UUID from generateFolderId()
+   * @returns Workspace path
+   * @throws Error if folderId not found or expired
+   */
+  resolveFolderId(folderId: string): string {
+    const entry = this.folderIdCache.get(folderId)
+
+    if (!entry) {
+      throw new Error(
+        `Folder ID '${folderId}' not found. It may have expired. Use list_folders() to discover current folders.`
+      )
+    }
+
+    const age = Date.now() - entry.timestamp
+
+    if (age > this.FOLDER_ID_TTL_MS) {
+      // Remove expired entry
+      this.folderIdCache.delete(folderId)
+      throw new Error(
+        `Folder ID '${folderId}' has expired. Use list_folders() to discover current folders.`
+      )
+    }
+
+    return entry.path
+  }
+
+  /**
+   * Remove expired folderIds from cache.
+   * Should be called periodically to prevent memory leaks.
+   */
+  cleanupExpiredFolderIds(): void {
+    const now = Date.now()
+    for (const [folderId, entry] of this.folderIdCache.entries()) {
+      if (now - entry.timestamp > this.FOLDER_ID_TTL_MS) {
+        this.folderIdCache.delete(folderId)
+      }
     }
   }
 }

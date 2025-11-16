@@ -58,6 +58,75 @@ Captures the "why" behind significant architectural choices. Each entry links to
 
 ---
 
+### Agent Workspace Awareness - Folder-Based Operations (November 16, 2025)
+
+**Session Document:** [`.specify/features/F059-workspace-awareness/brainstorming-session.md`](../features/F059-workspace-awareness/brainstorming-session.md)
+
+**GitHub Issue:** [#59](https://github.com/mitselek/ai-team/issues/59)
+
+**Status:** ✅ Design Complete - Ready for Implementation
+
+**Context:** During F051 design review, discovered agents lack knowledge of workspace structure. Path-based file operations require explicit user guidance. "Permission errors" often mask "unknown path" issues.
+
+**Key Decisions:**
+
+1. **Discovery-First Workflow:** Replace path construction with folder discovery using unique folderIds
+2. **Five Discovery Scopes:** `my_private`, `my_shared`, `team_private`, `team_shared`, `org_shared` (matches agent mental model)
+3. **Folder-Based Addressing:** `list_folders(scope)` returns folderIds, operations use `folderId + filename`
+4. **FolderId Strategy:** Ephemeral (UUID v4) for MVP, 30-minute TTL in in-memory cache
+5. **Context-Only Pattern:** `agentId` from ExecutionContext, not tool parameters (matches F051 filesystem tools)
+6. **Library Team Handling:** No special scope - appears in `org_shared` like other teams
+7. **Migration Path:** Two-phase: (1) Filesystem structure migration (agents/ → workspaces/), (2) Tool migration (co-existence → deprecate → remove)
+8. **Error Messages:** Actionable errors that guide agents (suggest `list_folders()`, show available files)
+9. **Subfolder Strategy:** Flatten filenames in MVP (e.g., `"reports/weekly.md"`), can add nested discovery later
+10. **Auto-Create Folders:** Folders created on first write operation (no explicit create_folder tool)
+11. **Rich Metadata:** Discovery returns filename, size, modified timestamp, mimeType for informed decisions
+12. **Unified Workspace Structure:** `/workspaces/{uuid}/private|shared/` for both agents and teams
+13. **Five New Tools:** `list_folders`, `read_file_by_id`, `write_file_by_id`, `delete_file_by_id`, `get_file_info_by_id`
+14. **org_shared Exclusion:** Agent's own shared folder NOT included in org_shared (use `my_shared` instead)
+
+**Whitelist Architecture (Future Refactoring):**
+
+During brainstorming, identified opportunity to improve F051 tool access control from blacklist to whitelist:
+
+**Current F051 Approach (PR #58):**
+
+- Tools defined in `org.tools: MCPTool[]` (mixed definition + config)
+- Access control via blacklists (default-allow)
+- Decision: Merge PR #58 as-is, refactor separately
+
+**Future Whitelist Design:**
+
+- Tool Registry: System-level registry in code (`app/server/services/mcp/tool-registry.ts`)
+- Three-level whitelists: `org.toolWhitelist`, `team.toolWhitelist`, `agent.toolWhitelist`
+- Access Logic: Intersection of all three levels (default-deny, principle of least privilege)
+- Separation: Tool definitions (code) vs access control (config)
+
+**Refactoring Plan:**
+
+- Merge F051 PR #58 to main (blacklist working, 100% test coverage)
+- Create separate issue for whitelist refactoring with backward compatibility
+- F059 can implement with either pattern (will use current blacklist pattern initially)
+
+**Implementation Phases:**
+
+1. **Phase 1:** Type Definitions & FolderId Strategy (3-4 hours)
+2. **Phase 2:** Folder Discovery (`list_folders`) (5-6 hours)
+3. **Phase 3:** File Operations by ID (4 new tools) (6-7 hours)
+4. **Phase 4:** Migration & Documentation (2-3 hours)
+
+**Total Estimated Time:** 16-20 hours
+
+**Implementation Status:** Design finalized November 16, 2025. Ready for sub-issue creation.
+
+**Future Enhancements:**
+
+- Pagination for large `org_shared` results (if needed)
+- Nested folder discovery with depth parameter (if agents struggle with flat lists)
+- Batch file operations (read/write multiple files)
+
+---
+
 ## Decision Patterns
 
 ### Security-First Approach

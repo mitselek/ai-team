@@ -54,7 +54,14 @@ app/
 └── assets/
 
 data/                  # Filesystem persistence (not in git)
-└── organizations/     # Org/team/agent/interview data (JSON)
+├── organizations/     # Org/team/agent/interview data (JSON)
+└── workspaces/        # Agent and team workspace directories
+    ├── agent-{id}/    # Agent private/shared folders
+    │   ├── private/
+    │   └── shared/
+    └── team-{id}/     # Team private/shared folders
+        ├── private/
+        └── shared/
 
 .github/
 └── prompts/           # Custom slash commands
@@ -83,6 +90,14 @@ npm run build
 ```
 
 ## Recent Features
+
+**F059 - Agent Workspace Awareness** (Jan 2025):
+
+- Folder-based workspace discovery with 5 scopes (`my_private`, `my_shared`, `team_private`, `team_shared`, `org_shared`)
+- Ephemeral folderId system with 30-minute TTL for secure file operations
+- New tools: `list_folders` for discovery + 4 by-ID operations (`read_file_by_id`, `write_file_by_id`, `delete_file_by_id`, `get_file_info_by_id`)
+- Unified `/workspaces/` directory structure (agent-{id}, team-{id})
+- See `docs/F059-MIGRATION.md` for migration guide and tool usage examples
 
 **F014 - Flexible LLM Configuration** (Nov 2025):
 
