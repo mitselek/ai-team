@@ -1,5 +1,12 @@
 import { createLogger } from '../utils/logger'
-import type { Agent, Task, Organization } from '@@/types'
+import type { Agent, Task, Organization, MCPTool, Team } from '@@/types'
+import {
+  writeFileExecutor,
+  readFileExecutor,
+  deleteFileExecutor,
+  listFilesExecutor,
+  getFileInfoExecutor
+} from './tools/filesystem-tools'
 
 const logger = createLogger('orchestrator')
 
@@ -70,6 +77,8 @@ export interface ExecutionContext {
   agentId: string
   organizationId: string
   correlationId: string
+  agent?: Agent
+  team?: Team
 }
 
 /**
@@ -88,7 +97,7 @@ export interface PermissionService {
 
 /**
  * Validates that the claimed agent identity matches the execution context
- * @param claimedAgentId - The agent ID from the tool parameters
+ * @param claimedAgentId - The agent ID from the tool parameters (optional - will use context.agentId if not provided)
  * @param context - The execution context with the actual agent ID
  * @param toolName - The name of the tool being executed
  * @throws SecurityError if the identity does not match
@@ -100,6 +109,11 @@ export function validateAgentIdentity(
 ): void {
   // Normalize claimed ID for comparison
   const normalizedClaimedId = typeof claimedAgentId === 'string' ? claimedAgentId : undefined
+
+  // If no agentId is claimed, use context.agentId (agent is acting as themselves)
+  if (normalizedClaimedId === undefined) {
+    return // Valid - agent is using their own identity from context
+  }
 
   // Check for identity mismatch
   if (normalizedClaimedId !== context.agentId) {
@@ -142,7 +156,10 @@ export interface ToolRegistry {
   executeTool(
     name: string,
     params: Record<string, unknown>,
-    context: ExecutionContext
+    context: ExecutionContext,
+    organization?: Organization,
+    agent?: Agent,
+    team?: Team
   ): Promise<unknown>
 }
 
@@ -176,10 +193,17 @@ function mapToolToOperation(toolName: string): 'read' | 'write' | 'delete' {
 }
 
 /**
- * Creates a new tool registry instance
+ * Creates a new tool registry instance with filesystem tools pre-registered
  */
 export function createToolRegistry(permissionService?: PermissionService): ToolRegistry {
   const tools = new Map<string, ToolExecutor>()
+
+  // Pre-register filesystem tools
+  tools.set('write_file', writeFileExecutor)
+  tools.set('read_file', readFileExecutor)
+  tools.set('delete_file', deleteFileExecutor)
+  tools.set('list_files', listFilesExecutor)
+  tools.set('get_file_info', getFileInfoExecutor)
 
   return {
     register(name: string, executor: ToolExecutor): void {
@@ -212,11 +236,82 @@ export function createToolRegistry(permissionService?: PermissionService): ToolR
     async executeTool(
       name: string,
       params: Record<string, unknown>,
-      context: ExecutionContext
+      context: ExecutionContext,
+      organization?: Organization,
+      agent?: Agent,
+      team?: Team
     ): Promise<unknown> {
       // Validate identity before checking tool existence or executing
       const claimedAgentId = typeof params.agentId === 'string' ? params.agentId : undefined
       validateAgentIdentity(claimedAgentId, context, name)
+
+      // Issue #54: Validate tool access if org/agent provided
+      if (organization && agent) {
+        // Check tool exists in organization's tool list
+        const toolDefinition = getToolDefinition(name, organization)
+        if (!toolDefinition) {
+          const error = new PermissionError(
+            `Tool '${name}' is not available in this organization`,
+            context.agentId,
+            '',
+            'execute',
+            context.correlationId
+          )
+
+          logger.warn(
+            {
+              agentId: context.agentId,
+              toolName: name,
+              correlationId: context.correlationId,
+              organizationId: context.organizationId,
+              timestamp: new Date().toISOString()
+            },
+            'PERMISSION DENIED: Tool not in organization tool list'
+          )
+
+          throw error
+        }
+
+        // Check tool not blacklisted for agent/team
+        const hasAccess = validateToolAccess(name, organization, agent, team)
+        if (!hasAccess) {
+          // Determine which blacklist blocked access
+          const teamBlocked = team?.toolBlacklist?.includes(name)
+          const agentBlocked = agent.toolBlacklist?.includes(name)
+
+          let reason = ''
+          if (teamBlocked && agentBlocked) {
+            reason = `Tool '${name}' is restricted for your role and team`
+          } else if (teamBlocked) {
+            reason = `Tool '${name}' is restricted for your team`
+          } else {
+            reason = `Tool '${name}' is restricted for your role`
+          }
+
+          const error = new PermissionError(
+            reason,
+            context.agentId,
+            '',
+            'execute',
+            context.correlationId
+          )
+
+          logger.warn(
+            {
+              agentId: context.agentId,
+              toolName: name,
+              teamBlocked,
+              agentBlocked,
+              correlationId: context.correlationId,
+              organizationId: context.organizationId,
+              timestamp: new Date().toISOString()
+            },
+            'PERMISSION DENIED: Tool blacklisted for agent/team'
+          )
+
+          throw error
+        }
+      }
 
       // Check permissions for filesystem tools
       if (FILESYSTEM_TOOLS.has(name) && permissionService) {
@@ -277,7 +372,15 @@ export function createToolRegistry(permissionService?: PermissionService): ToolR
       if (!executor) {
         throw new Error(`Tool ${name} not found`)
       }
-      return executor.execute(params, context)
+
+      // Enhanced context with agent and team references for security
+      const enhancedContext: ExecutionContext = {
+        ...context,
+        agent,
+        team
+      }
+
+      return executor.execute(params, enhancedContext)
     }
   }
 }
@@ -450,4 +553,82 @@ export function trackTokenUsage(
   }
 
   return { updatedAgent, updatedOrganization }
+}
+
+/**
+ * Get tools available to an agent based on organization, team, and agent blacklists.
+ *
+ * Validation chain:
+ * 1. Start with organization's tools (whitelist)
+ * 2. Remove tools in team's blacklist (if agent is in a team)
+ * 3. Remove tools in agent's blacklist
+ * 4. Return filtered list
+ *
+ * @param organization - Organization containing base tool list
+ * @param agent - Agent requesting tools
+ * @param team - Optional team the agent belongs to
+ * @returns Array of tools the agent can access
+ */
+export function getAvailableTools(
+  organization: Organization,
+  agent: Agent,
+  team?: Team
+): MCPTool[] {
+  // Start with organization tools (or empty array if none defined)
+  const orgTools = organization.tools || []
+
+  // Build combined blacklist
+  const blacklist = new Set<string>()
+
+  // Add team blacklist if agent is in a team
+  if (team?.toolBlacklist) {
+    team.toolBlacklist.forEach((toolName) => blacklist.add(toolName))
+  }
+
+  // Add agent blacklist
+  if (agent.toolBlacklist) {
+    agent.toolBlacklist.forEach((toolName) => blacklist.add(toolName))
+  }
+
+  // Filter org tools by blacklist
+  return orgTools.filter((tool) => !blacklist.has(tool.name))
+}
+
+/**
+ * Validate that an agent has access to a specific tool.
+ *
+ * Used during tool execution to ensure agent isn't trying to use
+ * a blacklisted tool.
+ *
+ * @param toolName - Name of the tool to validate
+ * @param organization - Organization containing base tool list
+ * @param agent - Agent requesting tool access
+ * @param team - Optional team the agent belongs to
+ * @returns true if agent can access the tool, false otherwise
+ */
+export function validateToolAccess(
+  toolName: string,
+  organization: Organization,
+  agent: Agent,
+  team?: Team
+): boolean {
+  const availableTools = getAvailableTools(organization, agent, team)
+  return availableTools.some((tool) => tool.name === toolName)
+}
+
+/**
+ * Get a specific tool definition by name.
+ *
+ * Used to retrieve full tool metadata when executing a tool call.
+ *
+ * @param toolName - Name of the tool to find
+ * @param organization - Organization containing tool definitions
+ * @returns Tool definition or undefined if not found
+ */
+export function getToolDefinition(
+  toolName: string,
+  organization: Organization
+): MCPTool | undefined {
+  const orgTools = organization.tools || []
+  return orgTools.find((tool) => tool.name === toolName)
 }

@@ -3,6 +3,7 @@ export interface ChatSession {
   agentId: string
   organizationId: string
   messages: ChatMessage[]
+  topic?: string // Auto-generated topic based on conversation
   createdAt: Date
   updatedAt: Date
 }

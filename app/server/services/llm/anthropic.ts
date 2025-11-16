@@ -1,11 +1,58 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createLogger } from '../../utils/logger'
-import type { LLMServiceOptions, LLMResponse } from './types'
+import type { MCPTool } from '@@/types'
+import type { LLMServiceOptions, LLMResponse, ToolCall } from './types'
 import { LLMProvider, LLMServiceError } from './types'
 import { getProviderConfig } from './config'
 import { withRetry } from './utils'
 
 const logger = createLogger('llm-anthropic')
+
+/**
+ * Translate MCP tool definitions to Anthropic's format.
+ *
+ * Anthropic format uses 'input_schema' (with underscore).
+ *
+ * @param mcpTools - Array of MCP tool definitions
+ * @returns Anthropic-compatible tools array
+ */
+function translateMCPToAnthropic(mcpTools: MCPTool[]) {
+  return mcpTools.map((tool) => ({
+    name: tool.name,
+    description: tool.description,
+    input_schema: tool.inputSchema // Note: underscore for Anthropic
+  }))
+}
+
+/**
+ * Extract tool calls from Anthropic response content blocks.
+ *
+ * Anthropic returns tool calls as content blocks with type='tool_use'.
+ * Each block has: { type: 'tool_use', id: string, name: string, input: object }
+ *
+ * @param responseContent - Content blocks from Anthropic API response
+ * @returns Array of standardized ToolCall objects
+ */
+function extractToolCalls(responseContent: unknown[]): ToolCall[] {
+  return responseContent
+    .filter(
+      (
+        block: unknown
+      ): block is { type: string; id: string; name: string; input: Record<string, unknown> } => {
+        return (
+          typeof block === 'object' &&
+          block !== null &&
+          'type' in block &&
+          block.type === 'tool_use'
+        )
+      }
+    )
+    .map((block) => ({
+      id: block.id,
+      name: block.name,
+      arguments: block.input
+    }))
+}
 
 export async function generateCompletionAnthropic(
   prompt: string,
@@ -18,15 +65,19 @@ export async function generateCompletionAnthropic(
 
   const execute = async (): Promise<LLMResponse> => {
     try {
+      // Translate MCP tools to Anthropic format if provided
+      const anthropicTools = options.tools ? translateMCPToAnthropic(options.tools) : undefined
+
       log.info(
         {
           model: options.model || config.defaultModel,
-          maxTokens: options.maxTokens || 4096
+          maxTokens: options.maxTokens || 4096,
+          toolsCount: anthropicTools?.length || 0
         },
         'Calling Anthropic API'
       )
 
-      const response = await client.messages.create({
+      const requestParams: Anthropic.MessageCreateParams = {
         model: options.model || config.defaultModel,
         max_tokens: options.maxTokens || 4096,
         temperature: options.temperature ?? 0.7,
@@ -36,9 +87,27 @@ export async function generateCompletionAnthropic(
             content: prompt
           }
         ]
-      })
+      }
 
-      const content = response.content[0]?.type === 'text' ? response.content[0].text : ''
+      // Add tools only if they exist
+      if (anthropicTools && anthropicTools.length > 0) {
+        requestParams.tools = anthropicTools as Anthropic.Tool[]
+      }
+
+      const response = await client.messages.create(requestParams)
+
+      // Extract text content
+      const content = (response.content as unknown[])
+        .filter((block: unknown): block is { type: string; text: string } => {
+          return (
+            typeof block === 'object' && block !== null && 'type' in block && block.type === 'text'
+          )
+        })
+        .map((block) => block.text)
+        .join('\n')
+
+      // Extract tool calls
+      const toolCalls = extractToolCalls(response.content as unknown[])
 
       const tokensUsed = {
         input: response.usage.input_tokens,
@@ -49,13 +118,15 @@ export async function generateCompletionAnthropic(
       log.info(
         {
           tokensUsed: tokensUsed.total,
-          finishReason: response.stop_reason
+          finishReason: response.stop_reason,
+          toolCallsCount: toolCalls.length
         },
         'Anthropic API call successful'
       )
 
       return {
         content,
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
         provider: LLMProvider.ANTHROPIC,
         model: response.model,
         tokensUsed,

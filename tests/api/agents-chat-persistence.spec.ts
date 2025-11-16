@@ -1,17 +1,8 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { H3Event, readBody, setResponseStatus } from 'h3'
-import postHandler from '~/server/api/agents/[id]/chat.post'
-import getSessionsHandler from '~/server/api/agents/[id]/chats.get'
-import getSessionHandler from '~/server/api/agents/[id]/chats/[sessionId].get'
-import * as persistence from '~/server/services/persistence/filesystem'
-import * as llmService from '~/server/services/llm'
-import { LLMProvider } from '~/server/services/llm/types'
-import { agents } from '~/server/data/agents'
-import type { Agent } from '@@/types'
-import type { ChatSession } from '~/server/services/persistence/chat-types'
 
 // Mock logger
-vi.mock('~/server/utils/logger', () => ({
+vi.mock('../../app/server/utils/logger', () => ({
   createLogger: () => ({
     info: vi.fn(),
     warn: vi.fn(),
@@ -32,14 +23,48 @@ vi.mock('h3', async () => {
 })
 
 // Mock persistence functions
-vi.mock('~/server/services/persistence/filesystem')
+vi.mock('../../app/server/services/persistence/filesystem', () => ({
+  loadOrganization: vi.fn(),
+  loadTeams: vi.fn(),
+  loadChatSession: vi.fn(),
+  saveChatSession: vi.fn(),
+  loadChatSessions: vi.fn()
+}))
 
 // Mock LLM service
-vi.mock('~/server/services/llm')
+vi.mock('../../app/server/services/llm', () => ({
+  generateCompletion: vi.fn()
+}))
+
+// Mock orchestrator
+vi.mock('../../app/server/services/orchestrator', () => ({
+  getAvailableTools: vi.fn(),
+  validateToolAccess: vi.fn()
+}))
+
+import postHandler from '~/server/api/agents/[id]/chat.post'
+import getSessionsHandler from '~/server/api/agents/[id]/chats.get'
+import getSessionHandler from '~/server/api/agents/[id]/chats/[sessionId].get'
+import * as persistence from '../../app/server/services/persistence/filesystem'
+import * as llmService from '../../app/server/services/llm'
+import { LLMProvider } from '../../app/server/services/llm/types'
+import { agents } from '../../app/server/data/agents'
+import type { Agent, Organization } from '@@/types'
+import type { ChatSession } from '../../app/server/services/persistence/chat-types'
 
 const mockOrganizationId = '537ba67e-0e50-47f7-931d-360b547efe90'
 const mockAgentId = 'agent-abc-123'
 const mockSessionId = 'session-def-456'
+
+const mockOrganization: Organization = {
+  id: mockOrganizationId,
+  name: 'Test Org',
+  githubRepoUrl: 'https://github.com/test/repo',
+  tokenPool: 100000,
+  rootAgentId: null,
+  tools: [],
+  createdAt: new Date()
+}
 
 const mockAgent: Agent = {
   id: mockAgentId,
@@ -73,13 +98,15 @@ const mockEvent = {
 
 describe('Agent Chat API Endpoints', () => {
   beforeEach(() => {
-    vi.resetAllMocks()
+    vi.clearAllMocks()
     agents.length = 0
     agents.push(mockAgent)
-  })
 
-  afterEach(() => {
-    vi.restoreAllMocks()
+    // Setup default mocks for new chat API architecture
+    vi.mocked(persistence.loadOrganization).mockResolvedValue(mockOrganization)
+    vi.mocked(persistence.loadTeams).mockResolvedValue([])
+    vi.mocked(persistence.loadChatSession).mockResolvedValue(null)
+    vi.mocked(persistence.saveChatSession).mockResolvedValue(undefined)
   })
 
   describe('POST /api/agents/[id]/chat', () => {
@@ -97,6 +124,11 @@ describe('Agent Chat API Endpoints', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result: any = await postHandler(mockEvent)
+
+      // If there's an error, the test should fail early with a clear message
+      if ('error' in result) {
+        throw new Error(`Chat API returned error: ${result.error}`)
+      }
 
       expect(persistence.saveChatSession).toHaveBeenCalled()
       const savedSession = vi.mocked(persistence.saveChatSession).mock.calls[0][0]
@@ -121,6 +153,11 @@ describe('Agent Chat API Endpoints', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result: any = await postHandler(mockEvent)
+
+      // If there's an error, the test should fail early with a clear message
+      if ('error' in result) {
+        throw new Error(`Chat API returned error: ${result.error}`)
+      }
 
       expect(persistence.loadChatSession).toHaveBeenCalledWith(
         mockAgentId,
@@ -148,6 +185,12 @@ describe('Agent Chat API Endpoints', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result: any = await postHandler(mockEvent)
+
+      // If there's an error, the test should fail early with a clear message
+      if ('error' in result) {
+        throw new Error(`Chat API returned error: ${result.error}`)
+      }
+
       expect(persistence.loadChatSession).toHaveBeenCalledWith(
         mockAgentId,
         'not-found-id',

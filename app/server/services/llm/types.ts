@@ -1,3 +1,5 @@
+import type { MCPTool } from '@@/types'
+
 export enum LLMProvider {
   ANTHROPIC = 'anthropic',
   OPENAI = 'openai',
@@ -26,10 +28,38 @@ export interface LLMServiceOptions {
   temperature?: number // Default 0.7
   maxTokens?: number // Default 4096
   correlationId?: string // For logging
+
+  /**
+   * Optional MCP tools available to the LLM.
+   * When provided, the LLM can request tool execution.
+   */
+  tools?: MCPTool[]
+}
+
+/**
+ * Represents a tool call request from the LLM.
+ * Standardized format across all providers.
+ */
+export interface ToolCall {
+  /** Unique identifier for this tool call */
+  id: string
+
+  /** Name of the tool to execute */
+  name: string
+
+  /** Arguments to pass to the tool */
+  arguments: Record<string, unknown>
 }
 
 export interface LLMResponse {
   content: string
+
+  /**
+   * Tool calls requested by the LLM.
+   * Empty/undefined means final text response, no tools needed.
+   */
+  toolCalls?: ToolCall[]
+
   provider: LLMProvider
   model: string
   tokensUsed: {

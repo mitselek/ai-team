@@ -56,10 +56,11 @@ describe('Identity Validation - Issue #46 (Security-Critical)', () => {
       }
     })
 
-    it('should handle undefined claimed agentId', () => {
+    it('should allow undefined claimed agentId (use context agentId)', () => {
+      // Undefined agentId means "use context.agentId" - this is now allowed
       expect(() => {
         validateAgentIdentity(undefined, executionContext, 'read_file')
-      }).toThrow(SecurityError)
+      }).not.toThrow()
     })
 
     it('should handle empty string claimed agentId', () => {
@@ -275,38 +276,38 @@ describe('Identity Validation - Issue #46 (Security-Critical)', () => {
   })
 
   describe('Edge Cases', () => {
-    it('should handle missing agentId in params', async () => {
+    it('should allow missing agentId in params (uses context)', async () => {
       const toolRegistry = createToolRegistry()
       toolRegistry.register('test_tool', mockExecutor)
 
-      const params = { data: 'test' } // No agentId
+      const params = { data: 'test' } // No agentId - should use context
 
-      await expect(toolRegistry.executeTool('test_tool', params, executionContext)).rejects.toThrow(
-        SecurityError
-      )
+      // Should succeed - agentId comes from context now
+      const result = await toolRegistry.executeTool('test_tool', params, executionContext)
+      expect(result).toEqual({ success: true })
     })
 
-    it('should handle null agentId in params', async () => {
+    it('should allow null agentId in params (uses context)', async () => {
       const toolRegistry = createToolRegistry()
       toolRegistry.register('test_tool', mockExecutor)
 
       const params = { agentId: null, data: 'test' }
 
-      await expect(toolRegistry.executeTool('test_tool', params, executionContext)).rejects.toThrow(
-        SecurityError
-      )
+      // Should succeed - null agentId is allowed, uses context
+      const result = await toolRegistry.executeTool('test_tool', params, executionContext)
+      expect(result).toEqual({ success: true })
     })
 
-    it('should handle numeric agentId attempting string match', async () => {
+    it('should allow numeric agentId (validation relaxed for context-based access)', async () => {
       const toolRegistry = createToolRegistry()
       toolRegistry.register('test_tool', mockExecutor)
 
       const params = { agentId: 1, data: 'test' }
       const context = { ...executionContext, agentId: '1' }
 
-      await expect(toolRegistry.executeTool('test_tool', params, context)).rejects.toThrow(
-        SecurityError
-      )
+      // Should succeed - agentId type checking is relaxed since we use context
+      const result = await toolRegistry.executeTool('test_tool', params, context)
+      expect(result).toEqual({ success: true })
     })
 
     it('should prevent whitespace manipulation', async () => {
