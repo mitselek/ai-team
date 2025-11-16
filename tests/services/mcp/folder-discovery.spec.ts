@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import type { FilesystemService } from '@@/app/server/services/persistence/file-workspace'
+import type { FilesystemService } from '../../../app/server/services/persistence/file-workspace'
 import type { FolderScope, FileListResult } from '@@/types'
-import type { MCPToolResult } from '@@/app/server/services/llm/mcp/types'
+import type { MCPToolResult } from '../../../app/server/services/llm/mcp/types'
 
 // Helper to safely parse MCP tool result
 function parseToolResult(result: MCPToolResult) {
@@ -20,7 +20,7 @@ describe('list_folders Tool - Issue #62', () => {
     it('should register list_folders tool', async () => {
       const mockFilesystemService = {} as FilesystemService
 
-      const { MCPFileServer } = await import('@@/app/server/services/mcp/file-server')
+      const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
 
       const tools = fileServer.getToolDefinitions()
@@ -34,7 +34,7 @@ describe('list_folders Tool - Issue #62', () => {
     it('should have scope parameter as required enum', async () => {
       const mockFilesystemService = {} as FilesystemService
 
-      const { MCPFileServer } = await import('@@/app/server/services/mcp/file-server')
+      const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
 
       const tools = fileServer.getToolDefinitions()
@@ -68,7 +68,7 @@ describe('list_folders Tool - Issue #62', () => {
         ])
       } as unknown as FilesystemService
 
-      const { MCPFileServer } = await import('@@/app/server/services/mcp/file-server')
+      const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
 
       const result = await fileServer.executeTool({
@@ -101,7 +101,7 @@ describe('list_folders Tool - Issue #62', () => {
         listFiles: vi.fn().mockResolvedValue([])
       } as unknown as FilesystemService
 
-      const { MCPFileServer } = await import('@@/app/server/services/mcp/file-server')
+      const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
 
       const result = await fileServer.executeTool({
@@ -133,7 +133,7 @@ describe('list_folders Tool - Issue #62', () => {
         ])
       } as unknown as FilesystemService
 
-      const { MCPFileServer } = await import('@@/app/server/services/mcp/file-server')
+      const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
 
       const result = await fileServer.executeTool({
@@ -159,7 +159,7 @@ describe('list_folders Tool - Issue #62', () => {
         listFiles: vi.fn().mockResolvedValue([])
       } as unknown as FilesystemService
 
-      const { MCPFileServer } = await import('@@/app/server/services/mcp/file-server')
+      const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
 
       const result = await fileServer.executeTool({
@@ -180,7 +180,7 @@ describe('list_folders Tool - Issue #62', () => {
     it('should error when agent has no team', async () => {
       const mockFilesystemService = {} as FilesystemService
 
-      const { MCPFileServer } = await import('@@/app/server/services/mcp/file-server')
+      const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
 
       const result = await fileServer.executeTool({
@@ -203,7 +203,7 @@ describe('list_folders Tool - Issue #62', () => {
         listFiles: vi.fn().mockResolvedValue([])
       } as unknown as FilesystemService
 
-      const { MCPFileServer } = await import('@@/app/server/services/mcp/file-server')
+      const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
 
       const result = await fileServer.executeTool({
@@ -224,7 +224,7 @@ describe('list_folders Tool - Issue #62', () => {
     it('should error when agent has no team', async () => {
       const mockFilesystemService = {} as FilesystemService
 
-      const { MCPFileServer } = await import('@@/app/server/services/mcp/file-server')
+      const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
 
       const result = await fileServer.executeTool({
@@ -247,7 +247,7 @@ describe('list_folders Tool - Issue #62', () => {
         listFiles: vi.fn().mockResolvedValue([])
       } as unknown as FilesystemService
 
-      const { MCPFileServer } = await import('@@/app/server/services/mcp/file-server')
+      const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
 
       // This test validates the org_shared pattern
@@ -274,7 +274,7 @@ describe('list_folders Tool - Issue #62', () => {
     it('should return empty when no other shared folders exist', async () => {
       const mockFilesystemService = {} as FilesystemService
 
-      const { MCPFileServer } = await import('@@/app/server/services/mcp/file-server')
+      const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
 
       const result = await fileServer.executeTool({
@@ -320,7 +320,7 @@ describe('list_folders Tool - Issue #62', () => {
         ])
       } as unknown as FilesystemService
 
-      const { MCPFileServer } = await import('@@/app/server/services/mcp/file-server')
+      const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
 
       const result = await fileServer.executeTool({
@@ -351,7 +351,7 @@ describe('list_folders Tool - Issue #62', () => {
         listFiles: vi.fn().mockResolvedValue([])
       } as unknown as FilesystemService
 
-      const { MCPFileServer } = await import('@@/app/server/services/mcp/file-server')
+      const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
 
       const result = await fileServer.executeTool({
@@ -377,7 +377,7 @@ describe('list_folders Tool - Issue #62', () => {
         listFiles: vi.fn().mockResolvedValue([])
       } as unknown as FilesystemService
 
-      const { MCPFileServer } = await import('@@/app/server/services/mcp/file-server')
+      const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
 
       const result = await fileServer.executeTool({

@@ -20,16 +20,17 @@ describe('MCPFileServer - Issue #44', () => {
   })
 
   describe('getToolDefinitions()', () => {
-    it('should return all 5 tool definitions', () => {
+    it('should return all 6 tool definitions', () => {
       const tools = mcpFileServer.getToolDefinitions()
 
-      expect(tools).toHaveLength(5)
+      expect(tools).toHaveLength(6)
       expect(tools.map((t) => t.name)).toEqual([
         'read_file',
         'write_file',
         'delete_file',
         'list_files',
-        'get_file_info'
+        'get_file_info',
+        'list_folders'
       ])
     })
 

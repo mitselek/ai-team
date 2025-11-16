@@ -1,6 +1,9 @@
 import type { FilesystemService } from '../persistence/file-workspace'
 import type { MCPTool, MCPToolCall, MCPToolResult } from '../llm/mcp/types'
+import type { FolderScope, FileEntry, FileListResult } from '@@/types'
 import { randomUUID } from 'node:crypto'
+import { loadAllTeams } from '../../data/organizations'
+import { loadTeamAgents } from '../../data/teams'
 
 export class MCPFileServer {
   private folderIdCache = new Map<string, { path: string; timestamp: number }>()
@@ -103,6 +106,33 @@ export class MCPFileServer {
           },
           required: ['agentId', 'path']
         }
+      },
+      {
+        name: 'list_folders',
+        description: 'Discover available workspace folders by scope',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            agentId: {
+              type: 'string',
+              description: 'The ID of the agent requesting folder discovery'
+            },
+            organizationId: {
+              type: 'string',
+              description: 'The organization ID (required for org_shared scope)'
+            },
+            teamId: {
+              type: 'string',
+              description: 'The team ID (optional, auto-derived for team scopes)'
+            },
+            scope: {
+              type: 'string',
+              enum: ['my_private', 'my_shared', 'team_private', 'team_shared', 'org_shared'],
+              description: 'The discovery scope'
+            }
+          },
+          required: ['agentId', 'scope']
+        }
       }
     ]
   }
@@ -136,6 +166,9 @@ export class MCPFileServer {
 
         case 'get_file_info':
           return await this.executeGetFileInfo(agentId, path)
+
+        case 'list_folders':
+          return await this.executeListFolders(toolCall.arguments)
 
         default:
           return this.errorResult(`Unknown tool: ${toolCall.name}`)
@@ -299,6 +332,169 @@ export class MCPFileServer {
     } catch (error: unknown) {
       return this.errorResult(error instanceof Error ? error.message : 'Failed to get file info')
     }
+  }
+
+  private async executeListFolders(args: {
+    agentId?: string
+    organizationId?: string
+    teamId?: string
+    scope?: string
+  }): Promise<MCPToolResult> {
+    const { agentId, organizationId, teamId, scope } = args
+
+    if (!agentId) {
+      return this.errorResult('Missing required parameter: agentId')
+    }
+    if (!scope) {
+      return this.errorResult('Missing required parameter: scope')
+    }
+
+    try {
+      const folders: FileListResult[] = []
+
+      switch (scope as FolderScope) {
+        case 'my_private': {
+          const folderPath = this.getWorkspaceFolder(agentId, 'private')
+          folders.push(await this.buildFolderResult(agentId, folderPath, 'my_private'))
+          break
+        }
+
+        case 'my_shared': {
+          const folderPath = this.getWorkspaceFolder(agentId, 'shared')
+          folders.push(await this.buildFolderResult(agentId, folderPath, 'my_shared'))
+          break
+        }
+
+        case 'team_private': {
+          if (!teamId) {
+            return this.errorResult('Agent is not on a team')
+          }
+          const folderPath = this.getWorkspaceFolder(teamId, 'private')
+          folders.push(await this.buildFolderResult(agentId, folderPath, 'team_private'))
+          break
+        }
+
+        case 'team_shared': {
+          if (!teamId) {
+            return this.errorResult('Agent is not on a team')
+          }
+          const folderPath = this.getWorkspaceFolder(teamId, 'shared')
+          folders.push(await this.buildFolderResult(agentId, folderPath, 'team_shared'))
+          break
+        }
+
+        case 'org_shared': {
+          if (!organizationId) {
+            return this.errorResult(
+              'Missing required parameter: organizationId for org_shared scope'
+            )
+          }
+
+          // Get all teams in org
+          const teams = loadAllTeams(organizationId)
+
+          // Add all team shared folders
+          for (const team of teams) {
+            const folderPath = this.getWorkspaceFolder(team.id, 'shared')
+            folders.push(await this.buildFolderResult(agentId, folderPath, 'org_shared'))
+          }
+
+          // Add all team members' shared folders (excluding requesting agent)
+          for (const team of teams) {
+            const teamAgents = loadTeamAgents(team.id)
+            for (const agent of teamAgents) {
+              if (agent.id !== agentId) {
+                const folderPath = this.getWorkspaceFolder(agent.id, 'shared')
+                folders.push(await this.buildFolderResult(agentId, folderPath, 'org_shared'))
+              }
+            }
+          }
+          break
+        }
+
+        default:
+          return this.errorResult(`Invalid scope: ${scope}`)
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ folders }, null, 2)
+          }
+        ]
+      }
+    } catch (error: unknown) {
+      return this.errorResult(error instanceof Error ? error.message : 'Failed to list folders')
+    }
+  }
+
+  private async buildFolderResult(
+    agentId: string,
+    folderPath: string,
+    folderType: FolderScope
+  ): Promise<FileListResult> {
+    // List files in folder
+    let fileInfos: Array<{
+      path: string
+      name: string
+      size: number
+      modified: Date
+      isDirectory: boolean
+    }> = []
+    try {
+      fileInfos = await this.filesystemService.listFiles(agentId, folderPath)
+    } catch (error: unknown) {
+      // Folder may not exist yet - return empty
+      fileInfos = []
+    }
+
+    // Map to FileEntry with mimeType
+    const files: FileEntry[] = fileInfos
+      .filter((f) => !f.isDirectory)
+      .map((f) => ({
+        filename: f.name,
+        size: f.size,
+        modified: f.modified.toISOString(),
+        mimeType: this.guessMimeType(f.name)
+      }))
+
+    // Generate ephemeral folderId
+    const folderId = this.generateFolderId(folderPath)
+
+    // Extract folder name from path
+    const pathParts = folderPath.split('/').filter((p) => p.length > 0)
+    const folderName = pathParts.length >= 2 ? `${pathParts[1]}/${pathParts[2]}` : folderPath
+
+    return {
+      folderId,
+      folderName,
+      folderType,
+      path: folderPath,
+      fileCount: files.length,
+      files
+    }
+  }
+
+  private getWorkspaceFolder(entityId: string, folderType: 'private' | 'shared'): string {
+    return `/workspaces/${entityId}/${folderType}/`
+  }
+
+  private guessMimeType(filename: string): string {
+    const ext = filename.substring(filename.lastIndexOf('.')).toLowerCase()
+    const mimeMap: Record<string, string> = {
+      '.md': 'text/markdown',
+      '.txt': 'text/plain',
+      '.json': 'application/json',
+      '.yaml': 'application/x-yaml',
+      '.yml': 'application/x-yaml',
+      '.pdf': 'application/pdf',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.svg': 'image/svg+xml'
+    }
+    return mimeMap[ext] || 'application/octet-stream'
   }
 
   private errorResult(message: string): MCPToolResult {
