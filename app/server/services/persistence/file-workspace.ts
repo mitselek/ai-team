@@ -1,6 +1,8 @@
 import { readFile, writeFile, unlink, mkdir, stat, readdir } from 'fs/promises'
 import { join, dirname, normalize, relative } from 'path'
 import { AuditService } from './audit'
+import { WorkspaceAccessService } from './workspace-access'
+import type { Agent, Team } from '@@/types'
 
 export interface FileContent {
   content: string
@@ -40,15 +42,34 @@ const ALLOWED_EXTENSIONS = [
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB in bytes
 
 export class FilesystemService {
+  private readonly workspaceAccessService: WorkspaceAccessService
+
   constructor(
     private readonly basePath: string,
     private readonly auditService: AuditService
-  ) {}
+  ) {
+    this.workspaceAccessService = new WorkspaceAccessService()
+  }
 
-  async readFile(agentId: string, path: string): Promise<FileContent> {
+  /**
+   * Set agents and teams for permission checks.
+   * This should be called with the current organization's agents/teams.
+   */
+  setAgentsAndTeams(agents: Agent[], teams: Team[]) {
+    this.workspaceAccessService.setAgentsAndTeams(agents, teams)
+  }
+
+  async readFile(agentId: string, path: string, organizationId: string): Promise<FileContent> {
     try {
+      // Validate path security first (before permission check)
       this.validatePath(path)
       this.validateExtension(path)
+
+      // Then check permissions (prepend orgId for permission check)
+      const permissionPath = `${organizationId}${path}`
+      if (!this.workspaceAccessService.canRead(agentId, permissionPath, organizationId)) {
+        throw new Error(`Permission denied: Agent ${agentId} cannot read file at ${path}`)
+      }
       const fullPath = this.resolvePath(path)
 
       const content = await readFile(fullPath, 'utf-8')
@@ -81,11 +102,23 @@ export class FilesystemService {
     }
   }
 
-  async writeFile(agentId: string, path: string, content: string): Promise<OperationResult> {
+  async writeFile(
+    agentId: string,
+    path: string,
+    content: string,
+    organizationId: string
+  ): Promise<OperationResult> {
     try {
+      // Validate path security first (before permission check)
       this.validatePath(path)
       this.validateExtension(path)
       this.validateFileSize(content)
+
+      // Then check permissions (prepend orgId for permission check)
+      const permissionPath = `${organizationId}${path}`
+      if (!this.workspaceAccessService.canWrite(agentId, permissionPath, organizationId)) {
+        throw new Error(`Permission denied: Agent ${agentId} cannot write file at ${path}`)
+      }
       const fullPath = this.resolvePath(path)
 
       // Determine if this is create or update
@@ -129,10 +162,21 @@ export class FilesystemService {
     }
   }
 
-  async deleteFile(agentId: string, path: string): Promise<OperationResult> {
+  async deleteFile(
+    agentId: string,
+    path: string,
+    organizationId: string
+  ): Promise<OperationResult> {
     try {
+      // Validate path security first (before permission check)
       this.validatePath(path)
       this.validateExtension(path)
+
+      // Then check permissions (prepend orgId for permission check)
+      const permissionPath = `${organizationId}${path}`
+      if (!this.workspaceAccessService.canDelete(agentId, permissionPath, organizationId)) {
+        throw new Error(`Permission denied: Agent ${agentId} cannot delete file at ${path}`)
+      }
       const fullPath = this.resolvePath(path)
 
       await unlink(fullPath)
@@ -236,7 +280,7 @@ export class FilesystemService {
 
   private validatePath(path: string): void {
     // Check for absolute paths (starting with / on Linux, or drive letter on Windows)
-    if (path.startsWith('/') && !path.startsWith('/agents/') && !path.startsWith('/teams/')) {
+    if (path.startsWith('/') && !path.startsWith('/workspaces/')) {
       throw new Error('Path must be relative')
     }
 
