@@ -369,7 +369,7 @@ git commit -m "feat(orchestrator): add WorkspacePermissionService (F068-1)
 - Folder existence and creation validation
 - Structured logging for all permission checks
 
-Related to #68, #69"
+Related to nr 68, nr 69"
 ```
 
 ## Output Formatting (MANDATORY)
