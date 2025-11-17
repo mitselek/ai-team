@@ -1,4 +1,191 @@
-import type { Organization, Team, Agent } from '@@/types'
+import type { Organization, Team, Agent, MCPTool } from '@@/types'
+
+/**
+ * MCP Tool definitions for organization
+ * All filesystem tools including F059 folder-based operations
+ */
+export const MCP_TOOLS: MCPTool[] = [
+  {
+    name: 'read_file',
+    description: 'Read file content from agent/team workspace',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        agentId: {
+          type: 'string',
+          description: '(Auto-injected) The ID of the agent requesting access'
+        },
+        path: {
+          type: 'string',
+          description: 'Path to the file (e.g., /agents/{agentId}/private/file.md)'
+        }
+      },
+      required: ['path']
+    }
+  },
+  {
+    name: 'write_file',
+    description: 'Write file content to agent/team workspace',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        agentId: {
+          type: 'string',
+          description: '(Auto-injected) The ID of the agent requesting access'
+        },
+        path: {
+          type: 'string',
+          description: 'Path to the file (e.g., /agents/{agentId}/private/file.md)'
+        },
+        content: { type: 'string', description: 'Content to write to the file' }
+      },
+      required: ['path', 'content']
+    }
+  },
+  {
+    name: 'delete_file',
+    description: 'Delete file from agent/team workspace',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        agentId: {
+          type: 'string',
+          description: '(Auto-injected) The ID of the agent requesting access'
+        },
+        path: {
+          type: 'string',
+          description: 'Path to the file (e.g., /agents/{agentId}/private/file.md)'
+        }
+      },
+      required: ['path']
+    }
+  },
+  {
+    name: 'list_files',
+    description: 'List files in a directory within agent/team workspace',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        agentId: {
+          type: 'string',
+          description: '(Auto-injected) The ID of the agent requesting access'
+        },
+        path: {
+          type: 'string',
+          description: 'Path to the directory (e.g., /agents/{agentId}/private)'
+        }
+      },
+      required: ['path']
+    }
+  },
+  {
+    name: 'get_file_info',
+    description: 'Get metadata for a file in agent/team workspace',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        agentId: {
+          type: 'string',
+          description: '(Auto-injected) The ID of the agent requesting access'
+        },
+        path: {
+          type: 'string',
+          description: 'Path to the file (e.g., /agents/{agentId}/private/file.md)'
+        }
+      },
+      required: ['path']
+    }
+  },
+  {
+    name: 'list_folders',
+    description: 'Discover available workspace folders by scope',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        agentId: {
+          type: 'string',
+          description: '(Auto-injected) The ID of the agent requesting folder discovery'
+        },
+        organizationId: { type: 'string', description: '(Auto-injected) The organization ID' },
+        teamId: {
+          type: 'string',
+          description: 'The team ID (optional, auto-derived for team scopes)'
+        },
+        scope: {
+          type: 'string',
+          enum: ['my_private', 'my_shared', 'team_private', 'team_shared', 'org_shared'],
+          description: 'The discovery scope'
+        }
+      },
+      required: ['scope']
+    }
+  },
+  {
+    name: 'read_file_by_id',
+    description: 'Read file content using discovered folderId',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        agentId: {
+          type: 'string',
+          description: '(Auto-injected) The ID of the agent requesting access'
+        },
+        folderId: { type: 'string', description: 'Folder ID from list_folders' },
+        filename: { type: 'string', description: 'Filename within folder' }
+      },
+      required: ['folderId', 'filename']
+    }
+  },
+  {
+    name: 'write_file_by_id',
+    description: 'Write file content using discovered folderId',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        agentId: {
+          type: 'string',
+          description: '(Auto-injected) The ID of the agent requesting access'
+        },
+        folderId: { type: 'string', description: 'Folder ID from list_folders' },
+        filename: { type: 'string', description: 'Filename within folder' },
+        content: { type: 'string', description: 'File content' }
+      },
+      required: ['folderId', 'filename', 'content']
+    }
+  },
+  {
+    name: 'delete_file_by_id',
+    description: 'Delete file using discovered folderId',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        agentId: {
+          type: 'string',
+          description: '(Auto-injected) The ID of the agent requesting access'
+        },
+        folderId: { type: 'string', description: 'Folder ID from list_folders' },
+        filename: { type: 'string', description: 'Filename within folder' }
+      },
+      required: ['folderId', 'filename']
+    }
+  },
+  {
+    name: 'get_file_info_by_id',
+    description: 'Get file metadata using discovered folderId',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        agentId: {
+          type: 'string',
+          description: '(Auto-injected) The ID of the agent requesting access'
+        },
+        folderId: { type: 'string', description: 'Folder ID from list_folders' },
+        filename: { type: 'string', description: 'Filename within folder' }
+      },
+      required: ['folderId', 'filename']
+    }
+  }
+]
 
 /**
  * Initial organization definition (without runtime fields)
@@ -7,7 +194,8 @@ export const INITIAL_ORG: Omit<Organization, 'id' | 'createdAt'> = {
   name: 'Demo AI Org',
   githubRepoUrl: 'https://github.com/demo/ai-org',
   tokenPool: 10000000, // 10M tokens
-  rootAgentId: null
+  rootAgentId: null,
+  tools: MCP_TOOLS
 }
 
 /**

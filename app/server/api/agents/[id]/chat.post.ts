@@ -243,8 +243,9 @@ ${conversationHistory}User: ${message}
 
 Please respond to the user's message, taking into account the conversation history above.`
 
-    // Simple tool loop (max 5 iterations for chat to keep it responsive)
-    const MAX_CHAT_ITERATIONS = 5
+    // Tool loop - resets for each user message to allow retries
+    // Increased from 5 to 15 to accommodate F059 folder discovery workflows
+    const MAX_CHAT_ITERATIONS = 15
     let iteration = 0
     let finalResponse = ''
 
