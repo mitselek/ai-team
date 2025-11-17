@@ -69,7 +69,7 @@ describe('Task Processor', () => {
       tokenPool: 1000000,
       rootAgentId: 'agent-1',
       createdAt: new Date(),
-      tools: []
+      toolWhitelist: []
     }
 
     vi.mocked(loadOrganization).mockResolvedValue(mockOrg)
@@ -98,7 +98,7 @@ describe('Task Processor', () => {
       tokenPool: 1000000,
       rootAgentId: 'agent-1',
       createdAt: new Date(),
-      tools: []
+      toolWhitelist: []
     }
 
     vi.mocked(loadOrganization).mockResolvedValue(mockOrg)

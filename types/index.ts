@@ -18,10 +18,11 @@ export interface Agent {
   storageQuotaMB?: number // default 100
 
   /**
-   * Tools that this agent cannot use.
-   * Combines with team blacklist if agent is in a team.
+   * Tools that this agent can use (whitelist).
+   * Must be subset of team's toolWhitelist (if agent is in team).
+   * If not specified, agent inherits team's whitelist.
    */
-  toolBlacklist?: string[]
+  toolWhitelist?: string[]
 }
 
 export type AgentStatus = 'active' | 'bored' | 'stuck' | 'paused'
@@ -38,10 +39,11 @@ export interface Organization {
   rootAgentId: string | null
 
   /**
-   * Available MCP tools for this organization.
-   * Agents can use tools from this list unless blocked by blacklists.
+   * Tools enabled for this organization (whitelist).
+   * Only tools in this list can be used by teams/agents.
+   * Tool definitions are centrally managed in ToolRegistry.
    */
-  tools?: MCPTool[]
+  toolWhitelist?: string[]
 }
 
 /**
@@ -59,10 +61,11 @@ export interface Team {
   storageQuotaGB?: number // default 1
 
   /**
-   * Tools that this team cannot use.
-   * Merged with agent-level blacklist for final access control.
+   * Tools that this team can use (whitelist).
+   * Must be subset of organization's toolWhitelist.
+   * If not specified, team inherits organization's whitelist.
    */
-  toolBlacklist?: string[]
+  toolWhitelist?: string[]
 }
 
 export type TeamType =

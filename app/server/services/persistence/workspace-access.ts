@@ -86,10 +86,28 @@ export class WorkspaceAccessService {
    */
   canWrite(agentId: string, filePath: string, organizationId: string): boolean {
     const workspaceInfo = this.extractWorkspaceInfo(filePath, organizationId)
+
+    console.error('[DEBUG canWrite]', {
+      agentId,
+      filePath,
+      organizationId,
+      workspaceInfo,
+      agentsCount: this.agents.length,
+      teamsCount: this.teams.length
+    })
+
     if (!workspaceInfo) return false
 
     const { entityId, scope } = workspaceInfo
     const agent = this.agents.find((a) => a.id === agentId)
+
+    console.error('[DEBUG canWrite - agent check]', {
+      agentFound: !!agent,
+      agentOrgId: agent?.organizationId,
+      expectedOrgId: organizationId,
+      agentTeamId: agent?.teamId
+    })
+
     if (!agent || agent.organizationId !== organizationId) return false
 
     switch (scope) {
@@ -100,7 +118,13 @@ export class WorkspaceAccessService {
           return entityId === agentId
         } else {
           // team_private: Only team members can write
-          return this.isTeamMember(agentId, entityId)
+          const isTeamMemberResult = this.isTeamMember(agentId, entityId)
+          console.error('[DEBUG canWrite - team_private]', {
+            entityId,
+            agentId,
+            isTeamMemberResult
+          })
+          return isTeamMemberResult
         }
 
       case 'shared':
@@ -110,7 +134,14 @@ export class WorkspaceAccessService {
           return entityId === agentId
         } else {
           // team_shared: Only team members can write
-          return this.isTeamMember(agentId, entityId)
+          const isTeamMemberResult = this.isTeamMember(agentId, entityId)
+          console.error('[DEBUG canWrite - team_shared]', {
+            entityId,
+            agentId,
+            agentTeamId: agent?.teamId,
+            isTeamMemberResult
+          })
+          return isTeamMemberResult
         }
 
       default:

@@ -631,9 +631,7 @@ export class MCPFileServer {
       }
       // Resolve folderId to workspace path (will throw if expired/invalid)
       const folderPath = this.resolveFolderId(folderId)
-      // Strip organizationId prefix since FilesystemService will add it back
-      const pathWithoutOrg = folderPath.replace(`${this.organizationId}/`, '')
-      const fullPath = `${pathWithoutOrg}${filename}`
+      const fullPath = `${folderPath}${filename}`
 
       const result = await this.filesystemService.readFile(agentId, fullPath, this.organizationId)
 
@@ -684,9 +682,16 @@ export class MCPFileServer {
         return this.errorResult('Organization ID not set')
       }
       const folderPath = this.resolveFolderId(folderId)
-      // Strip organizationId prefix since FilesystemService will add it back
-      const pathWithoutOrg = folderPath.replace(`${this.organizationId}/`, '')
-      const fullPath = `${pathWithoutOrg}${filename}`
+      const fullPath = `${folderPath}${filename}`
+
+      console.error('[DEBUG writeFileById]', {
+        agentId,
+        folderId,
+        filename,
+        organizationId: this.organizationId,
+        folderPath,
+        fullPath
+      })
 
       const result = await this.filesystemService.writeFile(
         agentId,
@@ -730,9 +735,7 @@ export class MCPFileServer {
         return this.errorResult('Organization ID not set')
       }
       const folderPath = this.resolveFolderId(folderId)
-      // Strip organizationId prefix since FilesystemService will add it back
-      const pathWithoutOrg = folderPath.replace(`${this.organizationId}/`, '')
-      const fullPath = `${pathWithoutOrg}${filename}`
+      const fullPath = `${folderPath}${filename}`
 
       const result = await this.filesystemService.deleteFile(agentId, fullPath, this.organizationId)
 
@@ -779,11 +782,7 @@ export class MCPFileServer {
 
     try {
       const folderPath = this.resolveFolderId(folderId)
-      // Strip organizationId prefix since FilesystemService will add it back
-      const pathWithoutOrg = this.organizationId
-        ? folderPath.replace(`${this.organizationId}/`, '')
-        : folderPath
-      const fullPath = `${pathWithoutOrg}${filename}`
+      const fullPath = `${folderPath}${filename}`
 
       const result = await this.filesystemService.getFileInfo(agentId, fullPath)
 

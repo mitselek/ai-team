@@ -6,8 +6,10 @@ import {
   type ExecutionContext
 } from '../../app/server/services/orchestrator'
 import type { Organization, Agent, Team } from '@@/types'
+import { ToolRegistry as MCPToolRegistry } from '../../app/server/services/mcp/tool-registry'
+import { registerAllTools } from '../../app/server/services/mcp/register-tools'
 
-describe('Orchestrator executeTool - Issue #54', () => {
+describe('Orchestrator executeTool - Whitelist Pattern', () => {
   let registry: ReturnType<typeof createToolRegistry>
   let mockOrg: Organization
   let mockAgent: Agent
@@ -15,6 +17,11 @@ describe('Orchestrator executeTool - Issue #54', () => {
   let context: ExecutionContext
 
   beforeEach(() => {
+    // Initialize Tool Registry
+    const mcpRegistry = MCPToolRegistry.getInstance()
+    mcpRegistry.clear()
+    registerAllTools()
+
     registry = createToolRegistry()
 
     mockOrg = {
@@ -24,44 +31,7 @@ describe('Orchestrator executeTool - Issue #54', () => {
       tokenPool: 1000000,
       rootAgentId: 'agent-1',
       createdAt: new Date(),
-      tools: [
-        {
-          name: 'read_file',
-          description: 'Read a file',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              agentId: { type: 'string' },
-              path: { type: 'string' }
-            },
-            required: ['agentId', 'path']
-          }
-        },
-        {
-          name: 'write_file',
-          description: 'Write a file',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              agentId: { type: 'string' },
-              path: { type: 'string' },
-              content: { type: 'string' }
-            },
-            required: ['agentId', 'path', 'content']
-          }
-        },
-        {
-          name: 'custom_tool',
-          description: 'Custom tool',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              agentId: { type: 'string' }
-            },
-            required: ['agentId']
-          }
-        }
-      ]
+      toolWhitelist: ['read_file', 'write_file', 'custom_tool']
     }
 
     mockAgent = {
@@ -127,9 +97,9 @@ describe('Orchestrator executeTool - Issue #54', () => {
     })
   })
 
-  describe('team blacklist validation', () => {
-    it('should throw PermissionError if tool in team blacklist', async () => {
-      mockTeam.toolBlacklist = ['write_file']
+  describe('team whitelist validation', () => {
+    it('should throw PermissionError if tool not in team whitelist', async () => {
+      mockTeam.toolWhitelist = ['read_file'] // Only read_file allowed
 
       await expect(
         registry.executeTool(
@@ -151,11 +121,11 @@ describe('Orchestrator executeTool - Issue #54', () => {
           mockAgent,
           mockTeam
         )
-      ).rejects.toThrow("Tool 'write_file' is restricted for your team")
+      ).rejects.toThrow('not enabled for your organization, team, or role')
     })
 
-    it('should allow tool if not in team blacklist', async () => {
-      mockTeam.toolBlacklist = ['write_file']
+    it('should allow tool if in team whitelist', async () => {
+      mockTeam.toolWhitelist = ['read_file']
 
       const result = await registry.executeTool(
         'read_file',
@@ -170,9 +140,9 @@ describe('Orchestrator executeTool - Issue #54', () => {
     })
   })
 
-  describe('agent blacklist validation', () => {
-    it('should throw PermissionError if tool in agent blacklist', async () => {
-      mockAgent.toolBlacklist = ['write_file']
+  describe('agent whitelist validation', () => {
+    it('should throw PermissionError if tool not in agent whitelist', async () => {
+      mockAgent.toolWhitelist = ['read_file'] // Only read_file allowed
 
       await expect(
         registry.executeTool('write_file', { agentId: 'agent-1' }, context, mockOrg, mockAgent)
@@ -180,11 +150,11 @@ describe('Orchestrator executeTool - Issue #54', () => {
 
       await expect(
         registry.executeTool('write_file', { agentId: 'agent-1' }, context, mockOrg, mockAgent)
-      ).rejects.toThrow("Tool 'write_file' is restricted for your role")
+      ).rejects.toThrow('not enabled for your organization, team, or role')
     })
 
-    it('should allow tool if not in agent blacklist', async () => {
-      mockAgent.toolBlacklist = ['write_file']
+    it('should allow tool if in agent whitelist', async () => {
+      mockAgent.toolWhitelist = ['read_file']
 
       const result = await registry.executeTool(
         'read_file',
@@ -198,10 +168,10 @@ describe('Orchestrator executeTool - Issue #54', () => {
     })
   })
 
-  describe('combined blacklist validation', () => {
-    it('should throw with combined message if tool in both blacklists', async () => {
-      mockTeam.toolBlacklist = ['write_file']
-      mockAgent.toolBlacklist = ['write_file']
+  describe('combined whitelist validation', () => {
+    it('should throw if tool not in intersection of whitelists', async () => {
+      mockTeam.toolWhitelist = ['read_file', 'write_file']
+      mockAgent.toolWhitelist = ['read_file'] // Only read_file in intersection
 
       await expect(
         registry.executeTool(
@@ -212,12 +182,12 @@ describe('Orchestrator executeTool - Issue #54', () => {
           mockAgent,
           mockTeam
         )
-      ).rejects.toThrow("Tool 'write_file' is restricted for your role and team")
+      ).rejects.toThrow('not enabled for your organization, team, or role')
     })
 
-    it('should allow tool if not in any blacklist', async () => {
-      mockTeam.toolBlacklist = ['write_file']
-      mockAgent.toolBlacklist = ['custom_tool']
+    it('should allow tool if in intersection of whitelists', async () => {
+      mockTeam.toolWhitelist = ['read_file', 'write_file']
+      mockAgent.toolWhitelist = ['read_file']
 
       const result = await registry.executeTool(
         'read_file',
@@ -251,9 +221,9 @@ describe('Orchestrator executeTool - Issue #54', () => {
     })
   })
 
-  describe('error messages - Issue #54 requirement', () => {
-    it('should have specific error message for team restriction', async () => {
-      mockTeam.toolBlacklist = ['write_file']
+  describe('error messages - whitelist pattern', () => {
+    it('should have specific error message for whitelist restriction', async () => {
+      mockTeam.toolWhitelist = ['read_file'] // write_file not in whitelist
 
       try {
         await registry.executeTool(
@@ -267,12 +237,14 @@ describe('Orchestrator executeTool - Issue #54', () => {
         expect.fail('Should have thrown PermissionError')
       } catch (error) {
         expect(error).toBeInstanceOf(PermissionError)
-        expect((error as Error).message).toContain('restricted for your team')
+        expect((error as Error).message).toContain(
+          'not enabled for your organization, team, or role'
+        )
       }
     })
 
-    it('should have specific error message for role restriction', async () => {
-      mockAgent.toolBlacklist = ['write_file']
+    it('should have specific error message for agent whitelist restriction', async () => {
+      mockAgent.toolWhitelist = ['read_file'] // write_file not in whitelist
 
       try {
         await registry.executeTool(
@@ -285,13 +257,15 @@ describe('Orchestrator executeTool - Issue #54', () => {
         expect.fail('Should have thrown PermissionError')
       } catch (error) {
         expect(error).toBeInstanceOf(PermissionError)
-        expect((error as Error).message).toContain('restricted for your role')
+        expect((error as Error).message).toContain(
+          'not enabled for your organization, team, or role'
+        )
       }
     })
 
-    it('should have combined error message for both restrictions', async () => {
-      mockTeam.toolBlacklist = ['write_file']
-      mockAgent.toolBlacklist = ['write_file']
+    it('should have error message for intersection restriction', async () => {
+      mockTeam.toolWhitelist = ['read_file', 'write_file']
+      mockAgent.toolWhitelist = ['read_file'] // write_file not in agent whitelist
 
       try {
         await registry.executeTool(
@@ -305,7 +279,9 @@ describe('Orchestrator executeTool - Issue #54', () => {
         expect.fail('Should have thrown PermissionError')
       } catch (error) {
         expect(error).toBeInstanceOf(PermissionError)
-        expect((error as Error).message).toContain('restricted for your role and team')
+        expect((error as Error).message).toContain(
+          'not enabled for your organization, team, or role'
+        )
       }
     })
   })

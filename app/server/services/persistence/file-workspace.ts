@@ -73,9 +73,8 @@ export class FilesystemService {
       this.validatePath(path)
       this.validateExtension(path)
 
-      // Then check permissions (prepend orgId for permission check)
-      const permissionPath = `${organizationId}${path}`
-      if (!this.workspaceAccessService.canRead(agentId, permissionPath, organizationId)) {
+      // Then check permissions (path already includes orgId for workspace files)
+      if (!this.workspaceAccessService.canRead(agentId, path, organizationId)) {
         throw new Error(`Permission denied: Agent ${agentId} cannot read file at ${path}`)
       }
       const fullPath = this.resolvePath(path)
@@ -122,12 +121,26 @@ export class FilesystemService {
       this.validateExtension(path)
       this.validateFileSize(content)
 
-      // Then check permissions (prepend orgId for permission check)
-      const permissionPath = `${organizationId}${path}`
-      if (!this.workspaceAccessService.canWrite(agentId, permissionPath, organizationId)) {
+      // Then check permissions (path already includes orgId for workspace files)
+      const canWriteResult = this.workspaceAccessService.canWrite(agentId, path, organizationId)
+      console.error('[DEBUG writeFile permission]', {
+        agentId,
+        path,
+        organizationId,
+        canWriteResult
+      })
+
+      if (!canWriteResult) {
         throw new Error(`Permission denied: Agent ${agentId} cannot write file at ${path}`)
       }
       const fullPath = this.resolvePath(path)
+
+      console.error('[DEBUG writeFile fullPath]', {
+        path,
+        basePath: this.basePath,
+        fullPath,
+        willWriteTo: fullPath
+      })
 
       // Determine if this is create or update
       let isUpdate = false
@@ -180,9 +193,8 @@ export class FilesystemService {
       this.validatePath(path)
       this.validateExtension(path)
 
-      // Then check permissions (prepend orgId for permission check)
-      const permissionPath = `${organizationId}${path}`
-      if (!this.workspaceAccessService.canDelete(agentId, permissionPath, organizationId)) {
+      // Then check permissions (path already includes orgId for workspace files)
+      if (!this.workspaceAccessService.canDelete(agentId, path, organizationId)) {
         throw new Error(`Permission denied: Agent ${agentId} cannot delete file at ${path}`)
       }
       const fullPath = this.resolvePath(path)

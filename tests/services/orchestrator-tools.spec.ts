@@ -10,7 +10,9 @@ import type {
   ToolExecutor,
   ExecutionContext
 } from '../../app/server/services/orchestrator'
-import type { MCPTool, Organization, Team, Agent } from '@@/types'
+import type { Organization, Team, Agent } from '@@/types'
+import { ToolRegistry as MCPToolRegistry } from '../../app/server/services/mcp/tool-registry'
+import { registerAllTools } from '../../app/server/services/mcp/register-tools'
 
 describe('ToolRegistry - Issue #45', () => {
   let toolRegistry: ToolRegistry
@@ -337,36 +339,15 @@ describe('ToolRegistry - Issue #45', () => {
 })
 
 // Issue #51 - Tool Validation Tests
-describe('Orchestrator Tool Validation - Issue #51', () => {
-  // Sample data
-  const sampleTools: MCPTool[] = [
-    {
-      name: 'read_file',
-      description: 'Read file',
-      inputSchema: { type: 'object', properties: {}, required: [] }
-    },
-    {
-      name: 'write_file',
-      description: 'Write file',
-      inputSchema: { type: 'object', properties: {}, required: [] }
-    },
-    {
-      name: 'delete_file',
-      description: 'Delete file',
-      inputSchema: { type: 'object', properties: {}, required: [] }
-    },
-    {
-      name: 'list_files',
-      description: 'List files',
-      inputSchema: { type: 'object', properties: {}, required: [] }
-    },
-    {
-      name: 'get_file_info',
-      description: 'Get file info',
-      inputSchema: { type: 'object', properties: {}, required: [] }
-    }
-  ]
+describe('Orchestrator Tool Validation - Whitelist Pattern', () => {
+  // Initialize Tool Registry before tests
+  beforeEach(() => {
+    const registry = MCPToolRegistry.getInstance()
+    registry.clear()
+    registerAllTools()
+  })
 
+  // Sample data with whitelists
   const sampleOrg: Organization = {
     id: 'org-test',
     name: 'Test Org',
@@ -374,7 +355,7 @@ describe('Orchestrator Tool Validation - Issue #51', () => {
     githubRepoUrl: 'https://github.com/test/test-org',
     tokenPool: 10000000,
     rootAgentId: 'agent-root',
-    tools: sampleTools
+    toolWhitelist: ['read_file', 'write_file', 'delete_file', 'list_files', 'get_file_info']
   }
 
   const sampleAgent: Agent = {
@@ -393,7 +374,7 @@ describe('Orchestrator Tool Validation - Issue #51', () => {
   }
 
   describe('getAvailableTools', () => {
-    it('should return all org tools when no blacklists', () => {
+    it('should return all org tools when no agent/team whitelists', () => {
       const available = getAvailableTools(sampleOrg, sampleAgent)
 
       expect(available).toHaveLength(5)
@@ -406,13 +387,13 @@ describe('Orchestrator Tool Validation - Issue #51', () => {
       ])
     })
 
-    it('should filter tools based on agent blacklist', () => {
-      const agentWithBlacklist: Agent = {
+    it('should restrict tools based on agent whitelist', () => {
+      const agentWithWhitelist: Agent = {
         ...sampleAgent,
-        toolBlacklist: ['delete_file', 'write_file']
+        toolWhitelist: ['read_file', 'list_files', 'get_file_info']
       }
 
-      const available = getAvailableTools(sampleOrg, agentWithBlacklist)
+      const available = getAvailableTools(sampleOrg, agentWithWhitelist)
 
       expect(available).toHaveLength(3)
       expect(available.map((t) => t.name)).toEqual(['read_file', 'list_files', 'get_file_info'])
@@ -420,13 +401,16 @@ describe('Orchestrator Tool Validation - Issue #51', () => {
       expect(available.map((t) => t.name)).not.toContain('write_file')
     })
 
-    it('should filter tools based on team blacklist', () => {
+    it('should restrict tools based on team whitelist', () => {
       const team: Team = {
         id: 'team-test',
         name: 'Test Team',
         organizationId: 'org-test',
-        toolBlacklist: ['delete_file']
-      } as Team
+        leaderId: null,
+        tokenAllocation: 1000000,
+        type: 'custom',
+        toolWhitelist: ['read_file', 'write_file', 'list_files', 'get_file_info']
+      }
 
       const available = getAvailableTools(sampleOrg, sampleAgent, team)
 
@@ -434,46 +418,51 @@ describe('Orchestrator Tool Validation - Issue #51', () => {
       expect(available.map((t) => t.name)).not.toContain('delete_file')
     })
 
-    it('should combine team and agent blacklists', () => {
+    it('should use intersection of org, team, and agent whitelists', () => {
       const team: Team = {
         id: 'team-test',
         name: 'Test Team',
         organizationId: 'org-test',
-        toolBlacklist: ['delete_file']
-      } as Team
-
-      const agentWithBlacklist: Agent = {
-        ...sampleAgent,
-        toolBlacklist: ['write_file']
+        leaderId: null,
+        tokenAllocation: 1000000,
+        type: 'custom',
+        toolWhitelist: ['read_file', 'write_file', 'list_files', 'get_file_info']
       }
 
-      const available = getAvailableTools(sampleOrg, agentWithBlacklist, team)
+      const agentWithWhitelist: Agent = {
+        ...sampleAgent,
+        toolWhitelist: ['read_file', 'list_files', 'get_file_info']
+      }
+
+      const available = getAvailableTools(sampleOrg, agentWithWhitelist, team)
 
       expect(available).toHaveLength(3)
       expect(available.map((t) => t.name)).toEqual(['read_file', 'list_files', 'get_file_info'])
     })
 
-    it('should handle empty organization tools', () => {
-      const orgWithoutTools: Organization = {
+    it('should return all tools when org has no whitelist', () => {
+      const orgWithoutWhitelist: Organization = {
         ...sampleOrg,
-        tools: undefined
+        toolWhitelist: undefined
       }
 
-      const available = getAvailableTools(orgWithoutTools, sampleAgent)
+      const available = getAvailableTools(orgWithoutWhitelist, sampleAgent)
 
-      expect(available).toHaveLength(0)
+      // Should return all 10 registered tools
+      expect(available.length).toBeGreaterThan(5)
     })
 
-    it('should handle blacklist with non-existent tool names', () => {
-      const agentWithBlacklist: Agent = {
+    it('should handle whitelist with non-existent tool names', () => {
+      const agentWithWhitelist: Agent = {
         ...sampleAgent,
-        toolBlacklist: ['non_existent_tool', 'another_fake_tool']
+        toolWhitelist: ['read_file', 'non_existent_tool', 'another_fake_tool']
       }
 
-      const available = getAvailableTools(sampleOrg, agentWithBlacklist)
+      const available = getAvailableTools(sampleOrg, agentWithWhitelist)
 
-      // Should still return all 5 tools (blacklist entries don't match)
-      expect(available).toHaveLength(5)
+      // Should only return read_file (intersection with org whitelist, non-existent tools ignored)
+      expect(available).toHaveLength(1)
+      expect(available[0].name).toBe('read_file')
     })
   })
 
@@ -484,13 +473,13 @@ describe('Orchestrator Tool Validation - Issue #51', () => {
       expect(canAccess).toBe(true)
     })
 
-    it('should return false for blacklisted tool', () => {
-      const agentWithBlacklist: Agent = {
+    it('should return false for tool not in agent whitelist', () => {
+      const agentWithWhitelist: Agent = {
         ...sampleAgent,
-        toolBlacklist: ['delete_file']
+        toolWhitelist: ['read_file', 'list_files']
       }
 
-      const canAccess = validateToolAccess('delete_file', sampleOrg, agentWithBlacklist)
+      const canAccess = validateToolAccess('delete_file', sampleOrg, agentWithWhitelist)
 
       expect(canAccess).toBe(false)
     })
@@ -501,13 +490,16 @@ describe('Orchestrator Tool Validation - Issue #51', () => {
       expect(canAccess).toBe(false)
     })
 
-    it('should respect team blacklist', () => {
+    it('should respect team whitelist', () => {
       const team: Team = {
         id: 'team-test',
         name: 'Test Team',
         organizationId: 'org-test',
-        toolBlacklist: ['write_file']
-      } as Team
+        leaderId: null,
+        tokenAllocation: 1000000,
+        type: 'custom',
+        toolWhitelist: ['read_file', 'list_files', 'get_file_info']
+      }
 
       const canAccess = validateToolAccess('write_file', sampleOrg, sampleAgent, team)
 
@@ -516,12 +508,12 @@ describe('Orchestrator Tool Validation - Issue #51', () => {
   })
 
   describe('getToolDefinition', () => {
-    it('should return tool definition by name', () => {
+    it('should return tool definition by name from registry', () => {
       const tool = getToolDefinition('read_file', sampleOrg)
 
       expect(tool).toBeDefined()
       expect(tool!.name).toBe('read_file')
-      expect(tool!.description).toBe('Read file')
+      expect(tool!.description).toBeTruthy()
     })
 
     it('should return undefined for non-existent tool', () => {
@@ -530,15 +522,16 @@ describe('Orchestrator Tool Validation - Issue #51', () => {
       expect(tool).toBeUndefined()
     })
 
-    it('should return undefined when org has no tools', () => {
-      const orgWithoutTools: Organization = {
+    it('should return tool definition even when org has no whitelist', () => {
+      const orgWithoutWhitelist: Organization = {
         ...sampleOrg,
-        tools: undefined
+        toolWhitelist: undefined
       }
 
-      const tool = getToolDefinition('read_file', orgWithoutTools)
+      const tool = getToolDefinition('read_file', orgWithoutWhitelist)
 
-      expect(tool).toBeUndefined()
+      expect(tool).toBeDefined()
+      expect(tool!.name).toBe('read_file')
     })
   })
 
@@ -548,8 +541,11 @@ describe('Orchestrator Tool Validation - Issue #51', () => {
         id: 'team-hr',
         name: 'HR Team',
         organizationId: 'org-test',
-        toolBlacklist: ['delete_file'] // HR can't delete files
-      } as Team
+        leaderId: null,
+        tokenAllocation: 1000000,
+        type: 'hr',
+        toolWhitelist: ['read_file', 'write_file', 'list_files', 'get_file_info'] // No delete
+      }
 
       const hrAgent: Agent = {
         ...sampleAgent,
@@ -564,12 +560,12 @@ describe('Orchestrator Tool Validation - Issue #51', () => {
       expect(available.map((t) => t.name)).not.toContain('delete_file')
     })
 
-    it('should handle junior developer with write/delete restrictions', () => {
+    it('should handle junior developer with read-only access', () => {
       const juniorAgent: Agent = {
         ...sampleAgent,
         id: 'agent-junior',
         name: 'Junior Dev',
-        toolBlacklist: ['write_file', 'delete_file'] // Read-only access
+        toolWhitelist: ['read_file', 'list_files', 'get_file_info'] // Read-only
       }
 
       const available = getAvailableTools(sampleOrg, juniorAgent)
@@ -581,20 +577,23 @@ describe('Orchestrator Tool Validation - Issue #51', () => {
       const leadershipTeam: Team = {
         id: 'team-leadership',
         name: 'Leadership',
-        organizationId: 'org-test'
-        // No toolBlacklist = full access
-      } as Team
+        organizationId: 'org-test',
+        leaderId: null,
+        tokenAllocation: 2000000,
+        type: 'custom'
+        // No toolWhitelist = inherits org whitelist (full access within org)
+      }
 
       const leaderAgent: Agent = {
         ...sampleAgent,
         id: 'agent-leader',
         name: 'Team Lead'
-        // No toolBlacklist = full access
+        // No toolWhitelist = inherits team/org whitelist
       }
 
       const available = getAvailableTools(sampleOrg, leaderAgent, leadershipTeam)
 
-      expect(available).toHaveLength(5) // All tools available
+      expect(available).toHaveLength(5) // All org tools available
     })
   })
 })

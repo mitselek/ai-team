@@ -62,7 +62,7 @@ const mockOrganization: Organization = {
   githubRepoUrl: 'https://github.com/test/repo',
   tokenPool: 100000,
   rootAgentId: null,
-  tools: [],
+  toolWhitelist: [],
   createdAt: new Date()
 }
 

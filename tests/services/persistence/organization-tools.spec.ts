@@ -1,76 +1,69 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeAll } from 'vitest'
 import { loadOrganization } from '../../../app/server/services/persistence/filesystem'
+import { ToolRegistry } from '../../../app/server/services/mcp/tool-registry'
+import { registerAllTools } from '../../../app/server/services/mcp/register-tools'
 
-describe('Organization Configuration with Tools', () => {
+describe('Organization Configuration with Tool Whitelist', () => {
   const orgId = '537ba67e-0e50-47f7-931d-360b547efe90'
 
-  it('should load organization with tools array', async () => {
+  // Initialize registry once before all tests
+  beforeAll(() => {
+    const registry = ToolRegistry.getInstance()
+    registry.clear()
+    registerAllTools()
+  })
+
+  it('should load organization with toolWhitelist array', async () => {
     const org = await loadOrganization(orgId)
 
     expect(org).toBeDefined()
-    expect(org!.tools).toBeDefined()
-    expect(Array.isArray(org!.tools)).toBe(true)
+    expect(org!.toolWhitelist).toBeDefined()
+    expect(Array.isArray(org!.toolWhitelist)).toBe(true)
   })
 
-  it('should have 5 filesystem tools defined', async () => {
+  it('should have 10 tools in whitelist (5 legacy + 5 F059)', async () => {
     const org = await loadOrganization(orgId)
 
-    expect(org!.tools).toHaveLength(5)
+    expect(org!.toolWhitelist).toHaveLength(10)
 
-    const toolNames = org!.tools!.map((t: { name: string }) => t.name)
-    expect(toolNames).toContain('read_file')
-    expect(toolNames).toContain('write_file')
-    expect(toolNames).toContain('delete_file')
-    expect(toolNames).toContain('list_files')
-    expect(toolNames).toContain('get_file_info')
+    // Legacy tools
+    expect(org!.toolWhitelist).toContain('read_file')
+    expect(org!.toolWhitelist).toContain('write_file')
+    expect(org!.toolWhitelist).toContain('delete_file')
+    expect(org!.toolWhitelist).toContain('list_files')
+    expect(org!.toolWhitelist).toContain('get_file_info')
+
+    // F059 tools
+    expect(org!.toolWhitelist).toContain('list_folders')
+    expect(org!.toolWhitelist).toContain('read_file_by_id')
+    expect(org!.toolWhitelist).toContain('write_file_by_id')
+    expect(org!.toolWhitelist).toContain('delete_file_by_id')
+    expect(org!.toolWhitelist).toContain('get_file_info_by_id')
   })
 
-  it('should have valid tool definitions with required fields', async () => {
+  it('should have whitelisted tools available in Tool Registry', async () => {
     const org = await loadOrganization(orgId)
+    const registry = ToolRegistry.getInstance()
 
-    org!.tools!.forEach(
-      (tool: {
-        name: string
-        description: string
-        inputSchema: { type: string; properties: unknown }
-      }) => {
-        expect(tool.name).toBeTruthy()
-        expect(tool.description).toBeTruthy()
-        expect(tool.inputSchema).toBeDefined()
-        expect(tool.inputSchema.type).toBe('object')
-        expect(tool.inputSchema.properties).toBeDefined()
-      }
-    )
+    // Verify all whitelisted tools exist in registry
+    org!.toolWhitelist!.forEach((toolName) => {
+      const tool = registry.getTool(toolName)
+      expect(tool).toBeDefined()
+      expect(tool!.name).toBe(toolName)
+      expect(tool!.description).toBeTruthy()
+      expect(tool!.inputSchema).toBeDefined()
+    })
   })
 
-  it('should have path in all tool input schemas (agentId from context)', async () => {
+  it('should have valid tool definitions from registry', async () => {
     const org = await loadOrganization(orgId)
+    const registry = ToolRegistry.getInstance()
 
-    org!.tools!.forEach(
-      (tool: {
-        name: string
-        inputSchema: { properties: Record<string, unknown>; required?: string[] }
-      }) => {
-        // All tools should have path parameter
-        expect(tool.inputSchema.properties.path).toBeDefined()
-
-        // agentId is no longer required in schemas (comes from execution context)
-        expect(tool.inputSchema.properties.agentId).toBeUndefined()
-
-        // Path is required for most tools (except list_files which can default to root)
-        if (tool.name !== 'list_files') {
-          expect(tool.inputSchema.required).toContain('path')
-        }
-      }
-    )
-  })
-
-  it('write_file should have content parameter', async () => {
-    const org = await loadOrganization(orgId)
-    const writeTool = org!.tools!.find((t: { name: string }) => t.name === 'write_file')
-
-    expect(writeTool).toBeDefined()
-    expect(writeTool!.inputSchema.properties.content).toBeDefined()
-    expect(writeTool!.inputSchema.required).toContain('content')
+    org!.toolWhitelist!.forEach((toolName) => {
+      const tool = registry.getTool(toolName)
+      expect(tool).toBeDefined()
+      expect(tool!.inputSchema.type).toBe('object')
+      expect(tool!.inputSchema.properties).toBeDefined()
+    })
   })
 })

@@ -22,80 +22,70 @@ describe('MCP Tool Type Definitions', () => {
     })
   })
 
-  describe('Organization with Tools', () => {
-    it('should accept organization with tools array', () => {
+  describe('Organization with Tool Whitelist', () => {
+    it('should accept organization with toolWhitelist array', () => {
       const org: Partial<Organization> = {
         id: 'org-test',
         name: 'Test Org',
-        tools: [
-          {
-            name: 'read_file',
-            description: 'Read file',
-            inputSchema: {
-              type: 'object',
-              properties: {},
-              required: []
-            }
-          }
-        ]
+        toolWhitelist: ['read_file', 'write_file', 'delete_file']
       }
 
-      expect(org.tools).toHaveLength(1)
-      expect(org.tools![0].name).toBe('read_file')
+      expect(org.toolWhitelist).toHaveLength(3)
+      expect(org.toolWhitelist).toContain('read_file')
     })
 
-    it('should accept organization without tools (optional field)', () => {
+    it('should accept organization without toolWhitelist (optional field)', () => {
       const org: Partial<Organization> = {
         id: 'org-test',
         name: 'Test Org'
-        // tools is optional
+        // toolWhitelist is optional (defaults to all tools)
       }
 
-      expect(org.tools).toBeUndefined()
+      expect(org.toolWhitelist).toBeUndefined()
     })
   })
 
-  describe('Team with Tool Blacklist', () => {
-    it('should accept team with toolBlacklist', () => {
+  describe('Team with Tool Whitelist', () => {
+    it('should accept team with toolWhitelist', () => {
       const team: Partial<Team> = {
         id: 'team-test',
         name: 'Test Team',
-        toolBlacklist: ['delete_file', 'write_file']
+        toolWhitelist: ['read_file', 'write_file']
       }
 
-      expect(team.toolBlacklist).toContain('delete_file')
+      expect(team.toolWhitelist).toContain('read_file')
     })
 
-    it('should accept team without toolBlacklist (optional field)', () => {
+    it('should accept team without toolWhitelist (optional field)', () => {
       const team: Partial<Team> = {
         id: 'team-test',
         name: 'Test Team'
-        // toolBlacklist is optional
+        // toolWhitelist is optional (inherits from org)
       }
 
-      expect(team.toolBlacklist).toBeUndefined()
+      expect(team.toolWhitelist).toBeUndefined()
     })
   })
 
-  describe('Agent with Tool Blacklist', () => {
-    it('should accept agent with toolBlacklist', () => {
+  describe('Agent with Tool Whitelist', () => {
+    it('should accept agent with toolWhitelist', () => {
       const agent: Partial<Agent> = {
         id: 'agent-test',
         name: 'Test Agent',
-        toolBlacklist: ['delete_file']
+        toolWhitelist: ['read_file']
       }
 
-      expect(agent.toolBlacklist).toContain('delete_file')
+      expect(agent.toolWhitelist).toContain('read_file')
     })
 
-    it('should accept agent without toolBlacklist (optional field)', () => {
+    it('should accept agent without toolWhitelist (optional field)', () => {
       const agent: Partial<Agent> = {
         id: 'agent-test',
         name: 'Test Agent'
-        // toolBlacklist is optional
+        // toolWhitelist is optional (inherits from team/org)
       }
 
-      expect(agent.toolBlacklist).toBeUndefined()
+      expect(agent.toolWhitelist).toBeUndefined()
     })
   })
 

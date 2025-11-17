@@ -1,5 +1,6 @@
 import { createLogger } from '../utils/logger'
 import type { Agent, Task, Organization, MCPTool, Team } from '@@/types'
+import { ToolRegistry as MCPToolRegistry } from './mcp/tool-registry'
 import {
   writeFileExecutor,
   readFileExecutor,
@@ -296,24 +297,11 @@ export function createToolRegistry(permissionService?: PermissionService): ToolR
           throw error
         }
 
-        // Check tool not blacklisted for agent/team
+        // Check tool whitelisted for agent/team
         const hasAccess = validateToolAccess(name, organization, agent, team)
         if (!hasAccess) {
-          // Determine which blacklist blocked access
-          const teamBlocked = team?.toolBlacklist?.includes(name)
-          const agentBlocked = agent.toolBlacklist?.includes(name)
-
-          let reason = ''
-          if (teamBlocked && agentBlocked) {
-            reason = `Tool '${name}' is restricted for your role and team`
-          } else if (teamBlocked) {
-            reason = `Tool '${name}' is restricted for your team`
-          } else {
-            reason = `Tool '${name}' is restricted for your role`
-          }
-
           const error = new PermissionError(
-            reason,
+            `Tool '${name}' is not enabled for your organization, team, or role`,
             context.agentId,
             '',
             'execute',
@@ -324,13 +312,14 @@ export function createToolRegistry(permissionService?: PermissionService): ToolR
             {
               agentId: context.agentId,
               toolName: name,
-              teamBlocked,
-              agentBlocked,
+              orgWhitelist: organization.toolWhitelist,
+              teamWhitelist: team?.toolWhitelist,
+              agentWhitelist: agent.toolWhitelist,
               correlationId: context.correlationId,
               organizationId: context.organizationId,
               timestamp: new Date().toISOString()
             },
-            'PERMISSION DENIED: Tool blacklisted for agent/team'
+            'PERMISSION DENIED: Tool not in whitelist for organization/team/agent'
           )
 
           throw error
@@ -598,34 +587,37 @@ export function getAvailableTools(
   agent: Agent,
   team?: Team
 ): MCPTool[] {
-  // Start with organization tools (or empty array if none defined)
-  const orgTools = organization.tools || []
+  const registry = MCPToolRegistry.getInstance()
 
-  // Build combined blacklist
-  const blacklist = new Set<string>()
+  // Start with organization whitelist (all tools if not specified)
+  let allowedNames = new Set<string>(organization.toolWhitelist || registry.getAllToolNames())
 
-  // Add team blacklist if agent is in a team
-  if (team?.toolBlacklist) {
-    team.toolBlacklist.forEach((toolName) => blacklist.add(toolName))
+  // Intersect with team whitelist if agent is in a team with whitelist
+  if (team?.toolWhitelist) {
+    const teamAllowed = new Set(team.toolWhitelist)
+    allowedNames = new Set([...allowedNames].filter((name) => teamAllowed.has(name)))
   }
 
-  // Add agent blacklist
-  if (agent.toolBlacklist) {
-    agent.toolBlacklist.forEach((toolName) => blacklist.add(toolName))
+  // Intersect with agent whitelist if specified
+  if (agent.toolWhitelist) {
+    const agentAllowed = new Set(agent.toolWhitelist)
+    allowedNames = new Set([...allowedNames].filter((name) => agentAllowed.has(name)))
   }
 
-  // Filter org tools by blacklist
-  return orgTools.filter((tool) => !blacklist.has(tool.name))
+  // Convert tool names to tool definitions
+  return Array.from(allowedNames)
+    .map((name) => registry.getTool(name))
+    .filter((tool): tool is MCPTool => tool !== undefined)
 }
 
 /**
  * Validate that an agent has access to a specific tool.
  *
  * Used during tool execution to ensure agent isn't trying to use
- * a blacklisted tool.
+ * a tool outside their whitelist.
  *
  * @param toolName - Name of the tool to validate
- * @param organization - Organization containing base tool list
+ * @param organization - Organization containing base tool whitelist
  * @param agent - Agent requesting tool access
  * @param team - Optional team the agent belongs to
  * @returns true if agent can access the tool, false otherwise
@@ -651,8 +643,8 @@ export function validateToolAccess(
  */
 export function getToolDefinition(
   toolName: string,
-  organization: Organization
+  _organization: Organization
 ): MCPTool | undefined {
-  const orgTools = organization.tools || []
-  return orgTools.find((tool) => tool.name === toolName)
+  const registry = MCPToolRegistry.getInstance()
+  return registry.getTool(toolName)
 }

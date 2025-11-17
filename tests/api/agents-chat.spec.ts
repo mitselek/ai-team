@@ -91,19 +91,7 @@ const testOrganization: Organization = {
   githubRepoUrl: 'https://github.com/test/repo',
   tokenPool: 100000,
   rootAgentId: null,
-  tools: [
-    {
-      name: 'read_file',
-      description: 'Read file content',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          path: { type: 'string' }
-        },
-        required: ['path']
-      }
-    }
-  ],
+  toolWhitelist: ['read_file'],
   createdAt: new Date()
 }
 
