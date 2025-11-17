@@ -31,7 +31,7 @@
 
 **Tool Call Flow:**
 
-```
+```text
 Agent → Orchestrator → MCP FileServer → FilesystemService → WorkspaceAccessService
                          ↓
                     extractWorkspaceInfo() parses path string
@@ -135,6 +135,7 @@ get_file_info_by_id(
      - **Allow creation** if: writing to own/team folder (folderId === agentId OR folderId === teamId)
      - **Deny** otherwise
 3. **Ownership/membership validation:**
+
    ```typescript
    if (folderId === agentId) {
      // Agent owns this folder → check scope-based rules
@@ -191,7 +192,7 @@ await filesystemService.readFile(fullPath) // No permission check, just read
 
 ### Filesystem Structure
 
-```
+```text
 data/organizations/{orgId}/workspaces/
   ├── {agentId}/
   │   ├── private/
