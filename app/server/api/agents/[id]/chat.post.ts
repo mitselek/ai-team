@@ -243,11 +243,11 @@ ${conversationHistory}User: ${message}
 
 Please respond to the user's message, taking into account the conversation history above.`
 
-    // Tool loop - resets for each user message to allow retries
-    // Increased from 5 to 15 to accommodate F059 folder discovery workflows
+    // Simple tool loop (max 15 iterations for chat to keep it responsive)
     const MAX_CHAT_ITERATIONS = 15
     let iteration = 0
     let finalResponse = ''
+    let currentPrompt = prompt
 
     while (iteration < MAX_CHAT_ITERATIONS) {
       iteration++
@@ -261,7 +261,7 @@ Please respond to the user's message, taking into account the conversation histo
       })
 
       // Generate completion using LLM service with tools
-      const llmResponse = await generateCompletion(prompt, {
+      const llmResponse = await generateCompletion(currentPrompt, {
         agentId: agent.id,
         agentRole: agent.role,
         correlationId,
@@ -276,7 +276,7 @@ Please respond to the user's message, taking into account the conversation histo
           tools: llmResponse.toolCalls.map((tc) => tc.name)
         })
 
-        // Execute tool calls (simple mock implementation)
+        // Execute tool calls
         const toolResults = await executeToolCalls(
           llmResponse.toolCalls,
           agent,
@@ -293,32 +293,18 @@ Please respond to the user's message, taking into account the conversation histo
           })
           .join('\n')
 
-        // Continue loop with tool results
-        const updatedPrompt = `${prompt}
+        // Update prompt with tool results for next iteration
+        currentPrompt = `${currentPrompt}
 
-Previous response with tool calls: ${llmResponse.content}
+Assistant used tools: ${llmResponse.content}
 
 Tool execution results:
 ${toolResultsText}
 
-Please provide your final response to the user incorporating the tool results.`
+Please continue your response to the user.`
 
-        // Use updated prompt for next iteration
-        const nextResponse = await generateCompletion(updatedPrompt, {
-          agentId: agent.id,
-          agentRole: agent.role,
-          correlationId,
-          tools: availableTools.length > 0 ? availableTools : undefined
-        })
-
-        // If this response also has tool calls, continue loop
-        if (nextResponse.toolCalls && nextResponse.toolCalls.length > 0) {
-          continue
-        }
-
-        // No more tool calls, we have final response
-        finalResponse = nextResponse.content
-        break
+        // Continue loop - next iteration will call LLM with updated prompt
+        continue
       }
 
       // No tool calls, this is the final response
