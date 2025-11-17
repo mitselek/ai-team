@@ -1,0 +1,21 @@
+# Environment
+.env
+*.pyc
+__pycache__/
+
+# OAuth2 credentials (NEVER commit)
+credentials.json
+token.json
+
+# Virtual environment
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Build
+dist/
+build/
+*.egg-info/
