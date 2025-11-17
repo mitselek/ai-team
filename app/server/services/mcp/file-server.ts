@@ -4,6 +4,8 @@ import type { FolderScope, FileEntry, FileListResult } from '@@/types'
 import { randomUUID } from 'node:crypto'
 import { loadAllTeams } from '../../data/organizations'
 import { loadTeamAgents } from '../../data/teams'
+import { mkdir } from 'node:fs/promises'
+import { join } from 'node:path'
 
 export class MCPFileServer {
   private folderIdCache = new Map<string, { path: string; timestamp: number }>()
@@ -553,6 +555,17 @@ export class MCPFileServer {
     folderPath: string,
     folderType: FolderScope
   ): Promise<FileListResult> {
+    // Ensure directory exists (create if missing)
+    const fullPath = join(this.filesystemService.getBasePath(), folderPath)
+    try {
+      await mkdir(fullPath, { recursive: true })
+    } catch (error: unknown) {
+      // Directory might already exist - that's fine
+      if (!(error instanceof Error && 'code' in error && error.code === 'EEXIST')) {
+        throw error
+      }
+    }
+
     // List files in folder
     let fileInfos: Array<{
       path: string

@@ -59,6 +59,14 @@ export class FilesystemService {
     this.workspaceAccessService.setAgentsAndTeams(agents, teams)
   }
 
+  /**
+   * Get the base directory path for filesystem operations.
+   * Used by MCP file server for directory creation.
+   */
+  getBasePath(): string {
+    return this.basePath
+  }
+
   async readFile(agentId: string, path: string, organizationId: string): Promise<FileContent> {
     try {
       // Validate path security first (before permission check)
