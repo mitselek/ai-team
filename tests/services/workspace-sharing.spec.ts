@@ -17,28 +17,9 @@ vi.mock('../../server/utils/logger', () => ({
 }))
 
 // Import services to test
-// NOTE: WorkspaceAccessService will be created as part of F066 implementation
-import { agents } from '../../app/server/data/agents'
-import { teams } from '../../app/server/data/teams'
+import { WorkspaceAccessService } from '../../app/server/services/persistence/workspace-access'
 import path from 'node:path'
-import * as fs from 'node:fs/promises'
-
-// Mock WorkspaceAccessService for now (will be implemented)
-class WorkspaceAccessService {
-  canRead(_agentId: string, _filePath: string, _organizationId: string): boolean {
-    throw new Error('Not implemented - F066 in progress')
-  }
-
-  canWrite(_agentId: string, _filePath: string, _organizationId: string): boolean {
-    throw new Error('Not implemented - F066 in progress')
-  }
-
-  canDelete(_agentId: string, _filePath: string, _organizationId: string): boolean {
-    throw new Error('Not implemented - F066 in progress')
-  }
-}
-
-// Test data setup
+import * as fs from 'node:fs/promises' // Test data setup
 const testOrgId = 'test-org-123'
 const testTeamId = 'test-team-456'
 const testAgentId = 'test-agent-789'
@@ -87,14 +68,6 @@ const testTeam: Team = {
 }
 
 beforeEach(async () => {
-  // Clear data arrays
-  agents.length = 0
-  teams.length = 0
-
-  // Add test data
-  agents.push(testAgent, testAgent2)
-  teams.push(testTeam)
-
   // Clean up test directory
   try {
     await fs.rm(testDataDir, { recursive: true, force: true })
@@ -105,6 +78,9 @@ beforeEach(async () => {
 
   // Initialize services
   workspaceAccessService = new WorkspaceAccessService()
+
+  // Inject test data
+  workspaceAccessService.setAgentsAndTeams([testAgent, testAgent2], [testTeam])
 })
 
 describe('Suite 1: Team Workspace Creation', () => {
@@ -475,7 +451,9 @@ describe('Suite 6: Integration Scenarios', () => {
       createdAt: new Date(),
       lastActiveAt: new Date()
     }
-    agents.push(elenaAgent)
+
+    // Re-inject agents with Elena added
+    workspaceAccessService.setAgentsAndTeams([testAgent, testAgent2, elenaAgent], [testTeam])
 
     const canRead = workspaceAccessService.canRead(
       elenaId,

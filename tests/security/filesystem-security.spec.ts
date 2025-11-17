@@ -34,6 +34,7 @@ import { join } from 'path'
 
 describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
   const testDataRoot = join(process.cwd(), 'data', 'test-security')
+  const TEST_ORG_ID = 'org-test-123'
   let filesystemService: FilesystemService
   let permissionService: PermissionService
   let auditService: AuditService
@@ -211,6 +212,12 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     // Initialize services
     auditService = new AuditService(join(testDataRoot, 'audit.jsonl'))
     filesystemService = new FilesystemService(testDataRoot, auditService)
+
+    // Inject test data for permission checks
+    const agentsArray = Array.from(mockAgents.values())
+    const teamsArray = Array.from(mockTeams.values())
+    filesystemService.setAgentsAndTeams(agentsArray, teamsArray)
+
     permissionService = new PermissionService(mockDataLoader)
   })
 
@@ -221,25 +228,37 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
   describe('1. Path Traversal Attack Prevention', () => {
     it('should block path traversal with ../ sequences', async () => {
       await expect(
-        filesystemService.readFile('agent-1', '/agents/agent-1/../../sensitive/data.txt')
+        filesystemService.readFile(
+          'agent-1',
+          '/workspaces/agent-1/../../sensitive/data.txt',
+          TEST_ORG_ID
+        )
       ).rejects.toThrow('Path traversal detected')
     })
 
     it('should block path traversal with absolute paths', async () => {
-      await expect(filesystemService.readFile('agent-1', '/etc/passwd')).rejects.toThrow(
-        'Path must be relative'
-      )
+      await expect(
+        filesystemService.readFile('agent-1', '/etc/passwd', TEST_ORG_ID)
+      ).rejects.toThrow('Path must be relative')
     })
 
     it('should block encoded path traversal attempts', async () => {
       await expect(
-        filesystemService.readFile('agent-1', '/agents/agent-1/%2e%2e/%2e%2e/sensitive/data.txt')
+        filesystemService.readFile(
+          'agent-1',
+          '/workspaces/agent-1/%2e%2e/%2e%2e/sensitive/data.txt',
+          TEST_ORG_ID
+        )
       ).rejects.toThrow('Path traversal detected')
     })
 
     it('should block null byte injection', async () => {
       await expect(
-        filesystemService.readFile('agent-1', '/agents/agent-1/test.txt\x00../../etc/passwd')
+        filesystemService.readFile(
+          'agent-1',
+          '/workspaces/agent-1/test.txt\x00../../etc/passwd',
+          TEST_ORG_ID
+        )
       ).rejects.toThrow()
     })
 
@@ -250,21 +269,33 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     })
 
     it('should normalize paths before validation', async () => {
-      // Paths like /agents/agent-1/./subdir/../file.txt should be normalized
+      // Paths like /workspaces/agent-1/./subdir/../file.txt should be normalized
       await expect(
-        filesystemService.readFile('agent-1', '/agents/agent-1/./subdir/../../../etc/passwd')
+        filesystemService.readFile(
+          'agent-1',
+          '/workspaces/agent-1/./subdir/../../../etc/passwd',
+          TEST_ORG_ID
+        )
       ).rejects.toThrow('Path traversal detected')
     })
 
     it('should reject Windows-style path separators on Linux', async () => {
       await expect(
-        filesystemService.readFile('agent-1', '/agents/agent-1\\..\\..\\sensitive\\data.txt')
+        filesystemService.readFile(
+          'agent-1',
+          '/workspaces/agent-1\\..\\..\\sensitive\\data.txt',
+          TEST_ORG_ID
+        )
       ).rejects.toThrow()
     })
 
     it('should block double-encoded traversal sequences', async () => {
       await expect(
-        filesystemService.readFile('agent-1', '/agents/agent-1/%252e%252e/sensitive/data.txt')
+        filesystemService.readFile(
+          'agent-1',
+          '/workspaces/agent-1/%252e%252e/sensitive/data.txt',
+          TEST_ORG_ID
+        )
       ).rejects.toThrow()
     })
   })
@@ -285,7 +316,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
 
       const params = {
         agentId: 'agent-2', // Claiming to be different agent
-        path: '/agents/agent-1/private/file.txt'
+        path: '/workspaces/agent-1/private/file.txt'
       }
 
       await expect(toolRegistry.executeTool('read_file', params, context)).rejects.toThrow(
@@ -308,7 +339,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
 
       const params = {
         // Missing agentId - will use context.agentId
-        path: '/agents/agent-1/private/file.txt'
+        path: '/workspaces/agent-1/private/file.txt'
       }
 
       // Should succeed - agentId comes from context
@@ -331,7 +362,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
 
       const params = {
         agentId: '', // Empty string
-        path: '/agents/agent-1/private/file.txt'
+        path: '/workspaces/agent-1/private/file.txt'
       }
 
       await expect(toolRegistry.executeTool('read_file', params, context)).rejects.toThrow(
@@ -354,7 +385,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
 
       const params = {
         agentId: 'AGENT-1', // Case mismatch
-        path: '/agents/agent-1/private/file.txt'
+        path: '/workspaces/agent-1/private/file.txt'
       }
 
       await expect(toolRegistry.executeTool('read_file', params, context)).rejects.toThrow(
@@ -377,7 +408,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
 
       const params = {
         agentId: ' agent-1 ', // Padded with whitespace
-        path: '/agents/agent-1/private/file.txt'
+        path: '/workspaces/agent-1/private/file.txt'
       }
 
       await expect(toolRegistry.executeTool('read_file', params, context)).rejects.toThrow(
@@ -390,7 +421,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     it('should prevent agent from accessing another agents private workspace', async () => {
       const canAccess = await permissionService.checkFileAccess(
         'agent-1',
-        '/agents/agent-2/private/secret.md',
+        '/workspaces/agent-2/private/secret.md',
         'read'
       )
       expect(canAccess).toBe(false)
@@ -399,7 +430,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     it('should prevent agent from writing to another agents private workspace', async () => {
       const canAccess = await permissionService.checkFileAccess(
         'agent-1',
-        '/agents/agent-2/private/malicious.txt',
+        '/workspaces/agent-2/private/malicious.txt',
         'write'
       )
       expect(canAccess).toBe(false)
@@ -408,7 +439,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     it('should prevent agent from deleting files in another agents private workspace', async () => {
       const canAccess = await permissionService.checkFileAccess(
         'agent-1',
-        '/agents/agent-2/private/important.md',
+        '/workspaces/agent-2/private/important.md',
         'delete'
       )
       expect(canAccess).toBe(false)
@@ -417,7 +448,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     it('should prevent agent from accessing team private workspace without membership', async () => {
       const canAccess = await permissionService.checkFileAccess(
         'agent-1',
-        '/teams/team-1/private/plans.md',
+        '/workspaces/team-1/private/plans.md',
         'read'
       )
       expect(canAccess).toBe(false)
@@ -465,14 +496,14 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       expect(
         await permissionService.checkFileAccess(
           'agent-1',
-          '/agents/agent-1/private/file.txt',
+          '/workspaces/agent-1/private/file.txt',
           'read'
         )
       ).toBe(true)
       expect(
         await permissionService.checkFileAccess(
           'agent-1',
-          '/agents/agent-2/private/file.txt',
+          '/workspaces/agent-2/private/file.txt',
           'read'
         )
       ).toBe(false)
@@ -482,14 +513,14 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       expect(
         await permissionService.checkFileAccess(
           'agent-1',
-          '/agents/agent-1/shared/file.txt',
+          '/workspaces/agent-1/shared/file.txt',
           'read'
         )
       ).toBe(true)
       expect(
         await permissionService.checkFileAccess(
           'agent-2',
-          '/agents/agent-1/shared/file.txt',
+          '/workspaces/agent-1/shared/file.txt',
           'read'
         )
       ).toBe(true)
@@ -499,14 +530,14 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       expect(
         await permissionService.checkFileAccess(
           'agent-in-team-1',
-          '/teams/team-1/private/file.txt',
+          '/workspaces/team-1/private/file.txt',
           'read'
         )
       ).toBe(true)
       expect(
         await permissionService.checkFileAccess(
           'agent-in-team-2',
-          '/teams/team-1/private/file.txt',
+          '/workspaces/team-1/private/file.txt',
           'read'
         )
       ).toBe(false)
@@ -516,14 +547,14 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       expect(
         await permissionService.checkFileAccess(
           'agent-in-team-1',
-          '/teams/team-1/shared/file.txt',
+          '/workspaces/team-1/shared/file.txt',
           'read'
         )
       ).toBe(true)
       expect(
         await permissionService.checkFileAccess(
           'agent-outside-team',
-          '/teams/team-1/shared/file.txt',
+          '/workspaces/team-1/shared/file.txt',
           'read'
         )
       ).toBe(true)
@@ -604,7 +635,12 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     it('should reject files exceeding size limit', async () => {
       const largeContent = 'x'.repeat(6 * 1024 * 1024) // 6MB, over 5MB limit
       await expect(
-        filesystemService.writeFile('agent-1', '/agents/agent-1/private/large.txt', largeContent)
+        filesystemService.writeFile(
+          'agent-1',
+          '/workspaces/agent-1/private/large.txt',
+          largeContent,
+          TEST_ORG_ID
+        )
       ).rejects.toThrow('File size exceeds maximum allowed size')
     })
 
@@ -612,13 +648,15 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       const smallContent = 'x'.repeat(1024 * 1024) // 1MB, under 5MB limit
       await filesystemService.writeFile(
         'agent-1',
-        '/agents/agent-1/private/small.txt',
-        smallContent
+        '/workspaces/agent-1/private/small.txt',
+        smallContent,
+        TEST_ORG_ID
       )
 
       const result = await filesystemService.readFile(
         'agent-1',
-        '/agents/agent-1/private/small.txt'
+        '/workspaces/agent-1/private/small.txt',
+        TEST_ORG_ID
       )
       expect(result.content).toBe(smallContent)
     })
@@ -626,49 +664,85 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
 
   describe('6. Audit Logging Integrity', () => {
     it('should log all read operations', async () => {
-      await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'content')
-      await filesystemService.readFile('agent-1', '/agents/agent-1/private/test.txt')
+      await filesystemService.writeFile(
+        'agent-1',
+        '/workspaces/agent-1/private/test.txt',
+        'content',
+        TEST_ORG_ID
+      )
+      await filesystemService.readFile(
+        'agent-1',
+        '/workspaces/agent-1/private/test.txt',
+        TEST_ORG_ID
+      )
 
       const logs = await auditService.query({ agentId: 'agent-1', operation: 'read' })
       expect(logs.length).toBeGreaterThan(0)
-      expect(logs.some((log) => log.path === '/agents/agent-1/private/test.txt')).toBe(true)
+      expect(logs.some((log) => log.path === '/workspaces/agent-1/private/test.txt')).toBe(true)
     })
 
     it('should log all write operations', async () => {
-      await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'content')
+      await filesystemService.writeFile(
+        'agent-1',
+        '/workspaces/agent-1/private/test.txt',
+        'content',
+        TEST_ORG_ID
+      )
 
       const logs = await auditService.query({ agentId: 'agent-1' })
       const writeLogs = logs.filter(
         (log) => log.operation === 'create' || log.operation === 'update'
       )
       expect(writeLogs.length).toBeGreaterThan(0)
-      expect(writeLogs.some((log) => log.path === '/agents/agent-1/private/test.txt')).toBe(true)
+      expect(writeLogs.some((log) => log.path === '/workspaces/agent-1/private/test.txt')).toBe(
+        true
+      )
     })
 
     it('should log all delete operations', async () => {
-      await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'content')
-      await filesystemService.deleteFile('agent-1', '/agents/agent-1/private/test.txt')
+      await filesystemService.writeFile(
+        'agent-1',
+        '/workspaces/agent-1/private/test.txt',
+        'content',
+        TEST_ORG_ID
+      )
+      await filesystemService.deleteFile(
+        'agent-1',
+        '/workspaces/agent-1/private/test.txt',
+        TEST_ORG_ID
+      )
 
       const logs = await auditService.query({ agentId: 'agent-1', operation: 'delete' })
       expect(logs.length).toBeGreaterThan(0)
-      expect(logs.some((log) => log.path === '/agents/agent-1/private/test.txt')).toBe(true)
+      expect(logs.some((log) => log.path === '/workspaces/agent-1/private/test.txt')).toBe(true)
     })
 
     it('should log failed operations with error details', async () => {
       try {
-        await filesystemService.readFile('agent-1', '/agents/agent-1/private/nonexistent.txt')
+        await filesystemService.readFile(
+          'agent-1',
+          '/workspaces/agent-1/private/nonexistent.txt',
+          TEST_ORG_ID
+        )
       } catch {
         // Expected to fail
       }
 
       const logs = await auditService.query({ agentId: 'agent-1', operation: 'read' })
-      const errorLog = logs.find((log) => log.path === '/agents/agent-1/private/nonexistent.txt')
+      const errorLog = logs.find(
+        (log) => log.path === '/workspaces/agent-1/private/nonexistent.txt'
+      )
       expect(errorLog).toBeDefined()
       expect(errorLog?.error).toBeDefined()
     })
 
     it('should include timestamps in all audit logs', async () => {
-      await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'content')
+      await filesystemService.writeFile(
+        'agent-1',
+        '/workspaces/agent-1/private/test.txt',
+        'content',
+        TEST_ORG_ID
+      )
 
       const logs = await auditService.query({ agentId: 'agent-1' })
       expect(logs.length).toBeGreaterThan(0)
@@ -678,7 +752,12 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     })
 
     it('should preserve audit log immutability', async () => {
-      await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'content')
+      await filesystemService.writeFile(
+        'agent-1',
+        '/workspaces/agent-1/private/test.txt',
+        'content',
+        TEST_ORG_ID
+      )
 
       // Audit log uses append-only JSON Lines format
       // This test documents the requirement for immutability
@@ -690,7 +769,11 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
   describe('7. Error Information Disclosure Prevention', () => {
     it('should not expose internal paths in error messages', async () => {
       try {
-        await filesystemService.readFile('agent-1', '/agents/agent-1/../../etc/passwd')
+        await filesystemService.readFile(
+          'agent-1',
+          '/workspaces/agent-1/../../etc/passwd',
+          TEST_ORG_ID
+        )
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error)
         expect(errorMessage).not.toContain(process.cwd())
@@ -702,7 +785,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       try {
         const canAccess = await permissionService.checkFileAccess(
           'agent-1',
-          '/agents/agent-2/private/file.txt',
+          '/workspaces/agent-2/private/file.txt',
           'read'
         )
         expect(canAccess).toBe(false)
@@ -732,7 +815,7 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       try {
         await toolRegistry.executeTool(
           'read_file',
-          { agentId: 'agent-1', path: '/agents/agent-2/private/file.txt' },
+          { agentId: 'agent-1', path: '/workspaces/agent-2/private/file.txt' },
           context
         )
       } catch (error) {
@@ -750,8 +833,9 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       const operations = Array.from({ length: 10 }, (_, i) =>
         filesystemService.writeFile(
           'agent-1',
-          `/agents/agent-1/private/file-${i}.txt`,
-          `content-${i}`
+          `/workspaces/agent-1/private/file-${i}.txt`,
+          `content-${i}`,
+          TEST_ORG_ID
         )
       )
 
@@ -761,17 +845,23 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       for (let i = 0; i < 10; i++) {
         const result = await filesystemService.readFile(
           'agent-1',
-          `/agents/agent-1/private/file-${i}.txt`
+          `/workspaces/agent-1/private/file-${i}.txt`,
+          TEST_ORG_ID
         )
         expect(result.content).toBe(`content-${i}`)
       }
     })
 
     it('should handle concurrent read operations safely', async () => {
-      await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'content')
+      await filesystemService.writeFile(
+        'agent-1',
+        '/workspaces/agent-1/private/test.txt',
+        'content',
+        TEST_ORG_ID
+      )
 
       const operations = Array.from({ length: 10 }, () =>
-        filesystemService.readFile('agent-1', '/agents/agent-1/private/test.txt')
+        filesystemService.readFile('agent-1', '/workspaces/agent-1/private/test.txt', TEST_ORG_ID)
       )
 
       const results = await Promise.all(operations)
@@ -781,12 +871,22 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
     })
 
     it('should handle mixed read/write operations safely', async () => {
-      await filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'initial')
+      await filesystemService.writeFile(
+        'agent-1',
+        '/workspaces/agent-1/private/test.txt',
+        'initial',
+        TEST_ORG_ID
+      )
 
       const operations = [
-        filesystemService.readFile('agent-1', '/agents/agent-1/private/test.txt'),
-        filesystemService.writeFile('agent-1', '/agents/agent-1/private/test.txt', 'updated'),
-        filesystemService.readFile('agent-1', '/agents/agent-1/private/test.txt')
+        filesystemService.readFile('agent-1', '/workspaces/agent-1/private/test.txt', TEST_ORG_ID),
+        filesystemService.writeFile(
+          'agent-1',
+          '/workspaces/agent-1/private/test.txt',
+          'updated',
+          TEST_ORG_ID
+        ),
+        filesystemService.readFile('agent-1', '/workspaces/agent-1/private/test.txt', TEST_ORG_ID)
       ]
 
       await Promise.all(operations)
@@ -794,7 +894,8 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       // Final state should be consistent
       const finalResult = await filesystemService.readFile(
         'agent-1',
-        '/agents/agent-1/private/test.txt'
+        '/workspaces/agent-1/private/test.txt',
+        TEST_ORG_ID
       )
       expect(['initial', 'updated']).toContain(finalResult.content)
     })
@@ -892,12 +993,14 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
       for (const ext of allowedTypes) {
         await filesystemService.writeFile(
           'agent-1',
-          `/agents/agent-1/private/file${ext}`,
-          'content'
+          `/workspaces/agent-1/private/file${ext}`,
+          'content',
+          TEST_ORG_ID
         )
         const result = await filesystemService.readFile(
           'agent-1',
-          `/agents/agent-1/private/file${ext}`
+          `/workspaces/agent-1/private/file${ext}`,
+          TEST_ORG_ID
         )
         expect(result.content).toBe('content')
       }
@@ -910,8 +1013,9 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
         await expect(
           filesystemService.writeFile(
             'agent-1',
-            `/agents/agent-1/private/malicious${ext}`,
-            'content'
+            `/workspaces/agent-1/private/malicious${ext}`,
+            'content',
+            TEST_ORG_ID
           )
         ).rejects.toThrow('File type not allowed')
       }
@@ -919,7 +1023,12 @@ describe('Filesystem Security - Comprehensive Test Suite (Issue #49)', () => {
 
     it('should reject files without extension', async () => {
       await expect(
-        filesystemService.writeFile('agent-1', '/agents/agent-1/private/noextension', 'content')
+        filesystemService.writeFile(
+          'agent-1',
+          '/workspaces/agent-1/private/noextension',
+          'content',
+          TEST_ORG_ID
+        )
       ).rejects.toThrow('File type not allowed')
     })
   })
