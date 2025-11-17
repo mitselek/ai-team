@@ -255,12 +255,13 @@ export function createToolRegistry(permissionService?: PermissionService): ToolR
       agent?: Agent,
       team?: Team
     ): Promise<unknown> {
-      // Auto-inject agentId from context if not already provided
+      // Auto-inject agentId, organizationId, and teamId from context if not already provided
       // This allows agents to use tools without explicitly passing their own ID
       const enhancedParams = {
         ...params,
         agentId: params.agentId || context.agentId,
-        organizationId: params.organizationId || context.organizationId
+        organizationId: params.organizationId || context.organizationId,
+        teamId: params.teamId || (agent?.teamId ? agent.teamId : undefined)
       }
 
       // Validate identity after injection
