@@ -6,6 +6,7 @@ import type { ToolExecutor, ExecutionContext } from '../orchestrator'
 import { MCPFileServer } from '../mcp/file-server'
 import { FilesystemService } from '../persistence/file-workspace'
 import { AuditService } from '../persistence/audit'
+import { loadAgents, loadTeams } from '../persistence/filesystem'
 import path from 'path'
 
 const logger = createLogger('tools:f059-workspace')
@@ -19,6 +20,15 @@ function getDataDir(): string {
 const auditService = new AuditService(path.join(getDataDir(), 'audit'))
 const filesystemService = new FilesystemService(getDataDir(), auditService)
 const mcpFileServer = new MCPFileServer(filesystemService)
+
+/**
+ * Setup permissions for filesystem service by loading agents and teams
+ */
+async function setupPermissions(organizationId: string): Promise<void> {
+  const agents = await loadAgents(organizationId)
+  const teams = await loadTeams(organizationId)
+  filesystemService.setAgentsAndTeams(agents, teams)
+}
 
 /**
  * list_folders - Discover available workspace folders by scope
@@ -47,6 +57,8 @@ export const listFoldersExecutor: ToolExecutor = {
       // Set organization context on MCP file server
       if (organizationId) {
         mcpFileServer.setOrganizationId(organizationId)
+        // Setup permissions with current agents/teams
+        await setupPermissions(organizationId)
       }
 
       const result = await mcpFileServer.executeTool({
@@ -96,6 +108,8 @@ export const readFileByIdExecutor: ToolExecutor = {
       // Set organization context on MCP file server
       if (organizationId) {
         mcpFileServer.setOrganizationId(organizationId)
+        // Setup permissions with current agents/teams
+        await setupPermissions(organizationId)
       }
 
       const result = await mcpFileServer.executeTool({
@@ -148,6 +162,8 @@ export const writeFileByIdExecutor: ToolExecutor = {
       // Set organization context on MCP file server
       if (organizationId) {
         mcpFileServer.setOrganizationId(organizationId)
+        // Setup permissions with current agents/teams
+        await setupPermissions(organizationId)
       }
 
       const result = await mcpFileServer.executeTool({
@@ -198,6 +214,8 @@ export const deleteFileByIdExecutor: ToolExecutor = {
       // Set organization context on MCP file server
       if (organizationId) {
         mcpFileServer.setOrganizationId(organizationId)
+        // Setup permissions with current agents/teams
+        await setupPermissions(organizationId)
       }
 
       const result = await mcpFileServer.executeTool({
@@ -248,6 +266,8 @@ export const getFileInfoByIdExecutor: ToolExecutor = {
       // Set organization context on MCP file server
       if (organizationId) {
         mcpFileServer.setOrganizationId(organizationId)
+        // Setup permissions with current agents/teams
+        await setupPermissions(organizationId)
       }
 
       const result = await mcpFileServer.executeTool({
