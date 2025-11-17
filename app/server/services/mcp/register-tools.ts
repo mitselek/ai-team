@@ -122,7 +122,7 @@ export function registerAllTools(): void {
 
   registry.registerTool('read_file_by_id', {
     name: 'read_file_by_id',
-    description: 'Read file content using discovered folderId',
+    description: 'Read file content using UUID-based addressing (agent or team folder)',
     inputSchema: {
       type: 'object',
       properties: {
@@ -132,20 +132,30 @@ export function registerAllTools(): void {
         },
         folderId: {
           type: 'string',
-          description: 'Folder ID from list_folders'
+          description: 'Agent or team UUID (not a generated token)'
+        },
+        scope: {
+          type: 'string',
+          enum: ['private', 'shared'],
+          description: 'Access scope: private (owner/team only) or shared (broader access)',
+          default: 'shared'
+        },
+        path: {
+          type: 'string',
+          description: 'File path within scope (e.g., "notes.md" or "subdir/file.txt")'
         },
         filename: {
           type: 'string',
-          description: 'Filename within folder'
+          description: '(Deprecated: use path) Alias for path parameter'
         }
       },
-      required: ['folderId', 'filename']
+      required: ['folderId']
     }
   })
 
   registry.registerTool('write_file_by_id', {
     name: 'write_file_by_id',
-    description: 'Write file content using discovered folderId',
+    description: 'Write file content using UUID-based addressing (agent or team folder)',
     inputSchema: {
       type: 'object',
       properties: {
@@ -155,24 +165,34 @@ export function registerAllTools(): void {
         },
         folderId: {
           type: 'string',
-          description: 'Folder ID from list_folders'
+          description: 'Agent or team UUID (not a generated token)'
+        },
+        scope: {
+          type: 'string',
+          enum: ['private', 'shared'],
+          description: 'Access scope: private (owner/team only) or shared (broader access)',
+          default: 'shared'
+        },
+        path: {
+          type: 'string',
+          description: 'File path within scope (e.g., "notes.md" or "subdir/file.txt")'
         },
         filename: {
           type: 'string',
-          description: 'Filename within folder'
+          description: '(Deprecated: use path) Alias for path parameter'
         },
         content: {
           type: 'string',
           description: 'File content'
         }
       },
-      required: ['folderId', 'filename', 'content']
+      required: ['folderId', 'content']
     }
   })
 
   registry.registerTool('delete_file_by_id', {
     name: 'delete_file_by_id',
-    description: 'Delete file using discovered folderId',
+    description: 'Delete file using UUID-based addressing (agent or team folder)',
     inputSchema: {
       type: 'object',
       properties: {
@@ -182,20 +202,30 @@ export function registerAllTools(): void {
         },
         folderId: {
           type: 'string',
-          description: 'Folder ID from list_folders'
+          description: 'Agent or team UUID (not a generated token)'
+        },
+        scope: {
+          type: 'string',
+          enum: ['private', 'shared'],
+          description: 'Access scope: private (owner/team only) or shared (broader access)',
+          default: 'shared'
+        },
+        path: {
+          type: 'string',
+          description: 'File path within scope (e.g., "notes.md" or "subdir/file.txt")'
         },
         filename: {
           type: 'string',
-          description: 'Filename within folder'
+          description: '(Deprecated: use path) Alias for path parameter'
         }
       },
-      required: ['folderId', 'filename']
+      required: ['folderId']
     }
   })
 
   registry.registerTool('get_file_info_by_id', {
     name: 'get_file_info_by_id',
-    description: 'Get file metadata using discovered folderId',
+    description: 'Get file metadata using UUID-based addressing (agent or team folder)',
     inputSchema: {
       type: 'object',
       properties: {
@@ -205,14 +235,24 @@ export function registerAllTools(): void {
         },
         folderId: {
           type: 'string',
-          description: 'Folder ID from list_folders'
+          description: 'Agent or team UUID (not a generated token)'
+        },
+        scope: {
+          type: 'string',
+          enum: ['private', 'shared'],
+          description: 'Access scope: private (owner/team only) or shared (broader access)',
+          default: 'shared'
+        },
+        path: {
+          type: 'string',
+          description: 'File path within scope (e.g., "notes.md" or "subdir/file.txt")'
         },
         filename: {
           type: 'string',
-          description: 'Filename within folder'
+          description: '(Deprecated: use path) Alias for path parameter'
         }
       },
-      required: ['folderId', 'filename']
+      required: ['folderId']
     }
   })
 }
