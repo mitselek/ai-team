@@ -108,7 +108,7 @@ export function registerAllTools(): void {
         },
         teamId: {
           type: 'string',
-          description: 'The team ID (optional, auto-derived for team scopes)'
+          description: "(Auto-injected) The agent's team ID (auto-derived from agent context)"
         },
         scope: {
           type: 'string',
