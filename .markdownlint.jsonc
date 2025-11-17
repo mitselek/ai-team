@@ -4,7 +4,7 @@
   // Allow long lines (handled pragmatically in docs)
   "MD013": false,
   // Emphasis heading converted rule stays enabled
-  "MD036": true,
+  "MD036": false,
   // Duplicate headings: allow different nesting, we'll still contextualize many
   "MD024": {
     "siblings_only": true
