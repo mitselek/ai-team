@@ -7,6 +7,13 @@ import {
   listFilesExecutor,
   getFileInfoExecutor
 } from './tools/filesystem-tools'
+import {
+  listFoldersExecutor,
+  readFileByIdExecutor,
+  writeFileByIdExecutor,
+  deleteFileByIdExecutor,
+  getFileInfoByIdExecutor
+} from './tools/f059-workspace-tools'
 
 const logger = createLogger('orchestrator')
 
@@ -198,12 +205,19 @@ function mapToolToOperation(toolName: string): 'read' | 'write' | 'delete' {
 export function createToolRegistry(permissionService?: PermissionService): ToolRegistry {
   const tools = new Map<string, ToolExecutor>()
 
-  // Pre-register filesystem tools
+  // Pre-register filesystem tools (legacy path-based)
   tools.set('write_file', writeFileExecutor)
   tools.set('read_file', readFileExecutor)
   tools.set('delete_file', deleteFileExecutor)
   tools.set('list_files', listFilesExecutor)
   tools.set('get_file_info', getFileInfoExecutor)
+
+  // Pre-register F059 folder-based workspace tools
+  tools.set('list_folders', listFoldersExecutor)
+  tools.set('read_file_by_id', readFileByIdExecutor)
+  tools.set('write_file_by_id', writeFileByIdExecutor)
+  tools.set('delete_file_by_id', deleteFileByIdExecutor)
+  tools.set('get_file_info_by_id', getFileInfoByIdExecutor)
 
   return {
     register(name: string, executor: ToolExecutor): void {
@@ -241,8 +255,17 @@ export function createToolRegistry(permissionService?: PermissionService): ToolR
       agent?: Agent,
       team?: Team
     ): Promise<unknown> {
-      // Validate identity before checking tool existence or executing
-      const claimedAgentId = typeof params.agentId === 'string' ? params.agentId : undefined
+      // Auto-inject agentId from context if not already provided
+      // This allows agents to use tools without explicitly passing their own ID
+      const enhancedParams = {
+        ...params,
+        agentId: params.agentId || context.agentId,
+        organizationId: params.organizationId || context.organizationId
+      }
+
+      // Validate identity after injection
+      const claimedAgentId =
+        typeof enhancedParams.agentId === 'string' ? enhancedParams.agentId : undefined
       validateAgentIdentity(claimedAgentId, context, name)
 
       // Issue #54: Validate tool access if org/agent provided
@@ -380,7 +403,7 @@ export function createToolRegistry(permissionService?: PermissionService): ToolR
         team
       }
 
-      return executor.execute(params, enhancedContext)
+      return executor.execute(enhancedParams, enhancedContext)
     }
   }
 }

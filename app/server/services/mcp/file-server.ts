@@ -8,6 +8,7 @@ import { loadTeamAgents } from '../../data/teams'
 export class MCPFileServer {
   private folderIdCache = new Map<string, { path: string; timestamp: number }>()
   private readonly FOLDER_ID_TTL_MS = 30 * 60 * 1000 // 30 minutes
+  private organizationId?: string
 
   constructor(private readonly filesystemService: FilesystemService) {}
 
@@ -294,7 +295,10 @@ export class MCPFileServer {
     }
 
     try {
-      const result = await this.filesystemService.readFile(agentId, path)
+      if (!this.organizationId) {
+        return this.errorResult('Organization ID not set')
+      }
+      const result = await this.filesystemService.readFile(agentId, path, this.organizationId)
       return {
         content: [
           {
@@ -332,7 +336,15 @@ export class MCPFileServer {
     }
 
     try {
-      const result = await this.filesystemService.writeFile(agentId, path, content)
+      if (!this.organizationId) {
+        return this.errorResult('Organization ID not set')
+      }
+      const result = await this.filesystemService.writeFile(
+        agentId,
+        path,
+        content,
+        this.organizationId
+      )
       return {
         content: [
           {
@@ -358,7 +370,10 @@ export class MCPFileServer {
     }
 
     try {
-      const result = await this.filesystemService.deleteFile(agentId, path)
+      if (!this.organizationId) {
+        return this.errorResult('Organization ID not set')
+      }
+      const result = await this.filesystemService.deleteFile(agentId, path, this.organizationId)
       return {
         content: [
           {
@@ -598,11 +613,14 @@ export class MCPFileServer {
     }
 
     try {
+      if (!this.organizationId) {
+        return this.errorResult('Organization ID not set')
+      }
       // Resolve folderId to workspace path (will throw if expired/invalid)
       const folderPath = this.resolveFolderId(folderId)
       const fullPath = `${folderPath}${filename}`
 
-      const result = await this.filesystemService.readFile(agentId, fullPath)
+      const result = await this.filesystemService.readFile(agentId, fullPath, this.organizationId)
 
       return {
         content: [
@@ -647,10 +665,20 @@ export class MCPFileServer {
     }
 
     try {
+      if (!this.organizationId) {
+        return this.errorResult('Organization ID not set')
+      }
       const folderPath = this.resolveFolderId(folderId)
-      const fullPath = `${folderPath}${filename}`
+      // Strip leading / since FilesystemService expects relative paths
+      const relativePath = folderPath.startsWith('/') ? folderPath.slice(1) : folderPath
+      const fullPath = `${relativePath}${filename}`
 
-      const result = await this.filesystemService.writeFile(agentId, fullPath, content)
+      const result = await this.filesystemService.writeFile(
+        agentId,
+        fullPath,
+        content,
+        this.organizationId
+      )
 
       return {
         content: [
@@ -683,10 +711,15 @@ export class MCPFileServer {
     }
 
     try {
+      if (!this.organizationId) {
+        return this.errorResult('Organization ID not set')
+      }
       const folderPath = this.resolveFolderId(folderId)
-      const fullPath = `${folderPath}${filename}`
+      // Strip leading / since FilesystemService expects relative paths
+      const relativePath = folderPath.startsWith('/') ? folderPath.slice(1) : folderPath
+      const fullPath = `${relativePath}${filename}`
 
-      const result = await this.filesystemService.deleteFile(agentId, fullPath)
+      const result = await this.filesystemService.deleteFile(agentId, fullPath, this.organizationId)
 
       return {
         content: [
@@ -731,7 +764,9 @@ export class MCPFileServer {
 
     try {
       const folderPath = this.resolveFolderId(folderId)
-      const fullPath = `${folderPath}${filename}`
+      // Strip leading / since FilesystemService expects relative paths
+      const relativePath = folderPath.startsWith('/') ? folderPath.slice(1) : folderPath
+      const fullPath = `${relativePath}${filename}`
 
       const result = await this.filesystemService.getFileInfo(agentId, fullPath)
 
@@ -756,7 +791,18 @@ export class MCPFileServer {
   }
 
   private getWorkspaceFolder(entityId: string, folderType: 'private' | 'shared'): string {
-    return `/workspaces/${entityId}/${folderType}/`
+    if (!this.organizationId) {
+      throw new Error('OrganizationId not set on MCPFileServer - call setOrganizationId first')
+    }
+    return `${this.organizationId}/workspaces/${entityId}/${folderType}/`
+  }
+
+  /**
+   * Set the organization context for workspace operations.
+   * Must be called before using F059 folder-based tools.
+   */
+  setOrganizationId(orgId: string): void {
+    this.organizationId = orgId
   }
 
   private guessMimeType(filename: string): string {
