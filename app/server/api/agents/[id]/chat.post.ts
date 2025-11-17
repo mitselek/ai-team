@@ -244,8 +244,10 @@ ${conversationHistory}User: ${message}
 Please respond to the user's message, taking into account the conversation history above.`
 
     // Tool loop - resets for each user message to allow retries
-    // Increased from 5 to 15 to accommodate F059 folder discovery workflows
-    const MAX_CHAT_ITERATIONS = 15
+    // Increased from 5 to 25 to accommodate F059 folder discovery workflows
+    // Note: Each tool call counts as one iteration. Complex workflows
+    // (discover folders → read files → process data) can require many iterations.
+    const MAX_CHAT_ITERATIONS = 25
     let iteration = 0
     let finalResponse = ''
 
