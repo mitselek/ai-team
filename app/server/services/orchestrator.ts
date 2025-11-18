@@ -15,6 +15,7 @@ import {
   deleteFileByIdExecutor,
   getFileInfoByIdExecutor
 } from './tools/f059-workspace-tools'
+import { getRosterExecutor } from './tools/roster-executor'
 import { WorkspacePermissionService } from './orchestrator/workspace-permission'
 
 const logger = createLogger('orchestrator')
@@ -230,6 +231,9 @@ export function createToolRegistry(permissionService?: PermissionService): ToolR
   tools.set('write_file_by_id', writeFileByIdExecutor)
   tools.set('delete_file_by_id', deleteFileByIdExecutor)
   tools.set('get_file_info_by_id', getFileInfoByIdExecutor)
+
+  // Pre-register F074 organizational awareness tools
+  tools.set('get_organization_roster', getRosterExecutor)
 
   return {
     register(name: string, executor: ToolExecutor): void {

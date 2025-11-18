@@ -7,6 +7,41 @@ import { ToolRegistry } from './tool-registry'
 export function registerAllTools(): void {
   const registry = ToolRegistry.getInstance()
 
+  // === Organizational Awareness Tools (F074) ===
+
+  registry.registerTool('get_organization_roster', {
+    name: 'get_organization_roster',
+    description:
+      'Query organizational roster to understand colleague availability and expertise. Use this to make informed delegation decisions, find experts, or check team capacity.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        agentId: {
+          type: 'string',
+          description: '(Auto-injected) The ID of the requesting agent'
+        },
+        organizationId: {
+          type: 'string',
+          description: '(Auto-injected) The organization ID'
+        },
+        filter: {
+          type: 'string',
+          enum: ['all', 'my_team', 'available', 'by_expertise'],
+          description:
+            'Filter type: all (all colleagues), my_team (team members only), available (workload < 4 and not paused), by_expertise (filter by skill)'
+        },
+        expertise: {
+          type: 'string',
+          description:
+            'Required when filter=by_expertise. The expertise/skill to search for (case-insensitive)'
+        }
+      },
+      required: []
+    }
+  })
+
+  // === Legacy Filesystem Tools (Path-Based) ===
+
   // Legacy filesystem tools (path-based)
   registry.registerTool('read_file', {
     name: 'read_file',
