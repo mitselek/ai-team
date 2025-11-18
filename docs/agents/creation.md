@@ -327,7 +327,7 @@ await fetch(`/api/agents/${agentId}`, {
 
 ## Best Practices
 
-### DO:
+### DO
 
 - Use HR interview workflow for proper team assignment
 - Set 3-7 specific expertise areas
@@ -335,7 +335,7 @@ await fetch(`/api/agents/${agentId}`, {
 - Let organizational context handle delegation logic
 - Initialize currentWorkload to 0 for new agents
 
-### DON'T:
+### DON'T
 
 - Manually duplicate organizational context in custom prompts
 - Set generic expertise ("developer", "engineer")

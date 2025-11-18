@@ -433,7 +433,7 @@ nr nr nr PHASE 8: CLOSE ISSUE & UPDATE TRACKING
 3. Update progress tracking (if using manage_todo_list):
 
    ```text
-   mark task as completed for Issue #N
+   mark task as completed for Issue nr N
    ```
 
 4. Print closure summary:
@@ -441,20 +441,20 @@ nr nr nr PHASE 8: CLOSE ISSUE & UPDATE TRACKING
    ```text
    == ISSUE CLOSED ==
 
-   Issue #32: ✅ CLOSED
+   Issue nr 32: ✅ CLOSED
    State: closed
    Closed at: 2025-11-18T10:23:45Z
 
    Commits:
-   - abc1234 test(interview): add tests for team assignment (Issue #32 - TDD)
-   - def5678 feat(interview): implement team assignment (closes #32)
+   - abc1234 test(interview): add tests for team assignment (Issue nr 32 - TDD)
+   - def5678 feat(interview): implement team assignment (closes nr 32)
 
    Tests: 8 new tests passing
    Files: 3 modified, 1 created
 
    Progress: 1/7 issues complete
 
-   Next: Issue #33
+   Next: Issue nr 33
    ```
 
 **Output**: Issue officially closed on GitHub, progress tracked
@@ -661,9 +661,9 @@ If using manage_todo_list tool:
 Example todo tracking:
 
 ```text
-- [x] Issue #32: Team assignment type
-- [ ] Issue #33: Team analysis helper (in-progress)
-- [ ] Issue #34: Update HR specialist prompt
+- [x] Issue nr 32: Team assignment type
+- [ ] Issue nr 33: Team analysis helper (in-progress)
+- [ ] Issue nr 34: Update HR specialist prompt
 ```
 
 nr nr Important Notes
