@@ -9,6 +9,7 @@ import { reportCompletion, escalateFailure } from './status'
 import { getAvailableTools, validateToolAccess, createToolRegistry } from '../orchestrator'
 import { loadOrganization, loadTeams } from '../persistence/filesystem'
 import type { ToolCall, LLMServiceOptions } from '../llm/types'
+import { incrementWorkload, decrementWorkload } from '../workload-tracking'
 
 const logger = createLogger('agent-engine:processor')
 
@@ -236,6 +237,9 @@ export async function processTask(agent: Agent, task: Task): Promise<void> {
   task.status = 'in-progress'
   task.assignedToId = agent.id
 
+  // F074: Increment workload when task assigned
+  incrementWorkload(agent, task.id)
+
   log.info(
     {
       taskTitle: task.title,
@@ -376,6 +380,9 @@ export async function processTask(agent: Agent, task: Task): Promise<void> {
       ...task.metadata,
       iterations: iteration
     }
+
+    // F074: Decrement workload when task completed
+    decrementWorkload(agent, task.id)
 
     agent.tokenUsed += totalTokens
     agent.lastActiveAt = new Date()
