@@ -1,8 +1,6 @@
 import { readFile, writeFile, unlink, mkdir, stat, readdir } from 'fs/promises'
 import { join, dirname, normalize, relative } from 'path'
 import { AuditService } from './audit'
-import { WorkspaceAccessService } from './workspace-access'
-import type { Agent, Team } from '@@/types'
 
 export interface FileContent {
   content: string
@@ -42,22 +40,10 @@ const ALLOWED_EXTENSIONS = [
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB in bytes
 
 export class FilesystemService {
-  private readonly workspaceAccessService: WorkspaceAccessService
-
   constructor(
     private readonly basePath: string,
     private readonly auditService: AuditService
-  ) {
-    this.workspaceAccessService = new WorkspaceAccessService()
-  }
-
-  /**
-   * Set agents and teams for permission checks.
-   * This should be called with the current organization's agents/teams.
-   */
-  setAgentsAndTeams(agents: Agent[], teams: Team[]) {
-    this.workspaceAccessService.setAgentsAndTeams(agents, teams)
-  }
+  ) {}
 
   /**
    * Get the base directory path for filesystem operations.
@@ -67,16 +53,12 @@ export class FilesystemService {
     return this.basePath
   }
 
-  async readFile(agentId: string, path: string, organizationId: string): Promise<FileContent> {
+  async readFile(path: string): Promise<FileContent> {
     try {
-      // Validate path security first (before permission check)
+      // Validate path security
       this.validatePath(path)
       this.validateExtension(path)
 
-      // Then check permissions (path already includes orgId for workspace files)
-      if (!this.workspaceAccessService.canRead(agentId, path, organizationId)) {
-        throw new Error(`Permission denied: Agent ${agentId} cannot read file at ${path}`)
-      }
       const fullPath = this.resolvePath(path)
 
       const content = await readFile(fullPath, 'utf-8')
@@ -90,7 +72,7 @@ export class FilesystemService {
 
       await this.auditService.log({
         timestamp: new Date(),
-        agentId,
+        agentId: 'system', // No agent context at filesystem layer
         operation: 'read',
         path,
         size: stats.size
@@ -100,7 +82,7 @@ export class FilesystemService {
     } catch (error: unknown) {
       await this.auditService.log({
         timestamp: new Date(),
-        agentId,
+        agentId: 'system',
         operation: 'read',
         path,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -109,38 +91,14 @@ export class FilesystemService {
     }
   }
 
-  async writeFile(
-    agentId: string,
-    path: string,
-    content: string,
-    organizationId: string
-  ): Promise<OperationResult> {
+  async writeFile(path: string, content: string): Promise<OperationResult> {
     try {
-      // Validate path security first (before permission check)
+      // Validate path security
       this.validatePath(path)
       this.validateExtension(path)
       this.validateFileSize(content)
 
-      // Then check permissions (path already includes orgId for workspace files)
-      const canWriteResult = this.workspaceAccessService.canWrite(agentId, path, organizationId)
-      console.error('[DEBUG writeFile permission]', {
-        agentId,
-        path,
-        organizationId,
-        canWriteResult
-      })
-
-      if (!canWriteResult) {
-        throw new Error(`Permission denied: Agent ${agentId} cannot write file at ${path}`)
-      }
       const fullPath = this.resolvePath(path)
-
-      console.error('[DEBUG writeFile fullPath]', {
-        path,
-        basePath: this.basePath,
-        fullPath,
-        willWriteTo: fullPath
-      })
 
       // Determine if this is create or update
       let isUpdate = false
@@ -164,7 +122,7 @@ export class FilesystemService {
 
       await this.auditService.log({
         timestamp: new Date(),
-        agentId,
+        agentId: 'system', // No agent context at filesystem layer
         operation: isUpdate ? 'update' : 'create',
         path,
         size: stats.size
@@ -174,7 +132,7 @@ export class FilesystemService {
     } catch (error: unknown) {
       await this.auditService.log({
         timestamp: new Date(),
-        agentId,
+        agentId: 'system',
         operation: 'create',
         path,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -183,27 +141,19 @@ export class FilesystemService {
     }
   }
 
-  async deleteFile(
-    agentId: string,
-    path: string,
-    organizationId: string
-  ): Promise<OperationResult> {
+  async deleteFile(path: string): Promise<OperationResult> {
     try {
-      // Validate path security first (before permission check)
+      // Validate path security
       this.validatePath(path)
       this.validateExtension(path)
 
-      // Then check permissions (path already includes orgId for workspace files)
-      if (!this.workspaceAccessService.canDelete(agentId, path, organizationId)) {
-        throw new Error(`Permission denied: Agent ${agentId} cannot delete file at ${path}`)
-      }
       const fullPath = this.resolvePath(path)
 
       await unlink(fullPath)
 
       await this.auditService.log({
         timestamp: new Date(),
-        agentId,
+        agentId: 'system', // No agent context at filesystem layer
         operation: 'delete',
         path
       })
@@ -212,7 +162,7 @@ export class FilesystemService {
     } catch (error: unknown) {
       await this.auditService.log({
         timestamp: new Date(),
-        agentId,
+        agentId: 'system',
         operation: 'delete',
         path,
         error: error instanceof Error ? error.message : 'Unknown error'

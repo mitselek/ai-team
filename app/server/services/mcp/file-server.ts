@@ -297,7 +297,7 @@ export class MCPFileServer {
       if (!this.organizationId) {
         return this.errorResult('Organization ID not set')
       }
-      const result = await this.filesystemService.readFile(agentId, path, this.organizationId)
+      const result = await this.filesystemService.readFile(path)
       return {
         content: [
           {
@@ -338,12 +338,7 @@ export class MCPFileServer {
       if (!this.organizationId) {
         return this.errorResult('Organization ID not set')
       }
-      const result = await this.filesystemService.writeFile(
-        agentId,
-        path,
-        content,
-        this.organizationId
-      )
+      const result = await this.filesystemService.writeFile(path, content)
       return {
         content: [
           {
@@ -372,7 +367,7 @@ export class MCPFileServer {
       if (!this.organizationId) {
         return this.errorResult('Organization ID not set')
       }
-      const result = await this.filesystemService.deleteFile(agentId, path, this.organizationId)
+      const result = await this.filesystemService.deleteFile(path)
       return {
         content: [
           {
@@ -633,7 +628,7 @@ export class MCPFileServer {
       // Construct UUID-based path: {orgId}/workspaces/{folderId}/{scope}/{path}
       const fullPath = `${this.organizationId}/workspaces/${folderId}/${scope}/${path}`
 
-      const result = await this.filesystemService.readFile(agentId, fullPath, this.organizationId)
+      const result = await this.filesystemService.readFile(fullPath)
 
       return {
         content: [
@@ -698,12 +693,7 @@ export class MCPFileServer {
         fullPath
       })
 
-      const result = await this.filesystemService.writeFile(
-        agentId,
-        fullPath,
-        content,
-        this.organizationId
-      )
+      const result = await this.filesystemService.writeFile(fullPath, content)
 
       return {
         content: [
@@ -747,7 +737,7 @@ export class MCPFileServer {
       // Construct UUID-based path: {orgId}/workspaces/{folderId}/{scope}/{path}
       const fullPath = `${this.organizationId}/workspaces/${folderId}/${scope}/${path}`
 
-      const result = await this.filesystemService.deleteFile(agentId, fullPath, this.organizationId)
+      const result = await this.filesystemService.deleteFile(fullPath)
 
       return {
         content: [
