@@ -127,6 +127,136 @@ During brainstorming, identified opportunity to improve F051 tool access control
 
 ---
 
+### Agent Roster & Organizational Awareness (November 18, 2025)
+
+**Session Document:** [`.specify/features/F074-agent-roster/README.md`](../features/F074-agent-roster/README.md)
+
+**GitHub Issue:** [#74](https://github.com/mitselek/ai-team/issues/74)
+
+**Status:** ✅ Design Complete - Ready for Implementation
+
+**Context:** Agents operate in isolation without awareness of colleagues, expertise, availability, or organizational hierarchy. Cannot make intelligent delegation decisions or collaborate effectively.
+
+**Consultant:** Elena Rodriguez (Prompt Engineering Specialist) - Expert consultation on prompt design and agent awareness patterns.
+
+**Key Decisions:**
+
+1. **Hybrid Architecture:** System Prompt (static framework) + Runtime Context (dynamic roster)
+   - System Prompt Only: Stale data (status/workload changes frequently) → bad delegation decisions
+   - Runtime Only: No persistent delegation framework or principles → inconsistent behavior
+   - Hybrid: Best of both worlds - framework persists, data stays fresh
+
+2. **Organizational Context Template:** Appended to agent system prompts at creation
+   - Agent's identity, role, team, hierarchy position
+   - Delegation principles and framework
+   - 5-priority decision logic
+   - Error handling patterns
+   - Self-regulation guidelines (workload awareness)
+
+3. **Roster Tool:** `get_organization_roster` - Runtime query for fresh colleague data
+   - Filters: `all` | `my_team` | `available` | `by_expertise`
+   - Returns: id, name, role, team, expertise, status, workload, seniorId
+   - Fresh data every query (no caching of colleague status)
+
+4. **5-Priority Delegation Framework:**
+   1. Best same-team match (expertise + available)
+   2. Partial expertise same-team (can learn with guidance)
+   3. Best cross-team match (note coordination overhead)
+   4. Queue for primary expert (if wait time < urgency timeline)
+   5. Escalate to senior/manager (no suitable match or critical urgency)
+
+5. **Agent Status Values:**
+   - `idle`: Low workload, available for tasks
+   - `active`: Moderate workload, can accept tasks
+   - `busy`: At/near capacity (4-5/5 tasks), evaluate carefully
+   - `offline`: Not available, do not delegate
+
+6. **Workload Tracking:** X/5 task capacity model
+   - < 4/5: Good capacity for delegation
+   - 4/5: Approaching capacity, consider carefully
+   - 5/5: At capacity, only urgent tasks or queue
+   - Tracked at orchestrator level on task assignment/completion
+
+7. **Delegation Decision Format:** Structured logging for audit trail
+
+   ```text
+   DELEGATION DECISION:
+   Primary Choice: {name} ({reason})
+   Fallback: {backup} ({reason})
+   Decision: DELEGATE | QUEUE | ESCALATE
+   Reasoning: {1-2 sentence explanation}
+   Wait Time: {if queuing}
+   ```
+
+8. **Orchestrator vs Agent Responsibilities:**
+   - **Agent:** Make routing decisions, apply delegation framework, log reasoning
+   - **Orchestrator:** Notify receiving agent, track delegation chains, prevent loops, enforce capacity limits, auto-escalate stale queued tasks, maintain audit trail
+   - Clear boundary: Agents decide routing, orchestrator handles execution
+
+9. **Error Handling Patterns:**
+   - Colleague not in roster → Escalate to manager
+   - Colleague offline → Queue or escalate depending on urgency
+   - No suitable expertise → Escalate to manager for guidance
+   - Delegation loop detected → Escalate to prevent infinite loops
+
+10. **Data Model Changes (Non-Breaking):**
+    - `Agent.currentWorkload?: number` (0-5, defaults to 0)
+    - `Agent.expertise?: string[]` (skills/domains)
+    - Both optional, backward compatible
+
+11. **System Prompt Builder:** New utility `buildAgentPrompt(agent, customPrompt, orgContext)`
+    - Merges custom agent prompt + organizational context template
+    - Fills template variables: {agent_name}, {agent_role}, {agent_team}, {senior_name}, etc.
+    - Single source of truth for agent prompt construction
+
+12. **Scale Considerations:**
+    - MVP (6-10 agents): Return full roster (simple, works fine)
+    - Growth (20-50 agents): Still full roster, agents filter using tool parameters
+    - Future (50+ agents): Return filtered roster by default (my_team + frequent collaborators)
+
+**Implementation Phases:**
+
+1. **Phase 1 - Core Infrastructure (4 tasks):**
+   - Create organizational context template
+   - Implement roster tool executor
+   - Register roster tool in orchestrator
+   - Build system prompt utility
+
+2. **Phase 2 - Integration (3 tasks):**
+   - Update agent creation workflow
+   - Add workload tracking to Agent type
+   - Connect task assignment flow to workload updates
+
+3. **Phase 3 - Testing & Refinement (3 tasks):**
+   - Test delegation scenarios (senior→junior, peer, cross-team, queue, escalate)
+   - Test edge cases (unknown colleague, offline, loops, overflow, expertise mismatch)
+   - Update documentation (agent creation, roster tool usage, delegation best practices)
+
+**Total Estimated Time:** 4-6 hours (can be done YOLO mode like F068)
+
+**Implementation Status:** Design finalized November 18, 2025 as F074. GitHub issue #74 created. Ready for implementation.
+
+**Key Insights from Brainstorming:**
+
+- Elena's methodical questioning clarified requirements effectively
+- Separation of static (framework) vs dynamic (data) prevents stale information problems
+- Delegation is a routing problem, not a notification problem
+- Explicit decision logging more important than real-time communication for distributed agent systems
+- Audit trail enables debugging of complex delegation chains
+
+**Dependencies:**
+
+- Requires: Agent data structure, Team data structure, Task assignment system, Agent creation workflow (all exist)
+- Blocks: Advanced delegation analytics, Workload optimization algorithms, Team capacity planning
+
+**Related Features:**
+
+- F008: HR Interview Workflow (agent creation)
+- F014: Multi-model LLM Support (affects agent execution)
+- #60: Agent Roster Page (parent issue - UI aspect separate from this backend feature)
+
+---
+
 ## Decision Patterns
 
 ### Security-First Approach
