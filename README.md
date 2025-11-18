@@ -91,6 +91,19 @@ npm run build
 
 ## Recent Features
 
+**F074 - Agent Roster & Organizational Awareness** (Nov 2025):
+
+- Real-time colleague roster with `get_organization_roster` tool (filters: all, my_team, available, by_expertise)
+- 5-priority delegation framework (same-team expert → partial expertise → cross-team → queue → escalate)
+- Organizational context appended to every agent's system prompt (hierarchy, delegation principles, decision logic)
+- Workload tracking (0-5 scale) with automatic increment/decrement on task assignment/completion
+- Status calculation: idle (0-2), active (3), busy (4-5), offline (paused)
+- System prompt builder utility merges custom prompts with organizational context
+- Expertise-based agent matching for intelligent task delegation
+- 121 tests covering roster queries, workload tracking, delegation scenarios, edge cases
+- Comprehensive documentation: agent creation, delegation framework, roster tool, API reference (2,326 lines)
+- See `docs/agents/`, `docs/tools/`, and `docs/api/` for full documentation
+
 **Email MCP Server Integration** (Nov 2025 - WIP):
 
 - Python MCP server for Gmail API integration (send, read, search, mark as read)
@@ -171,7 +184,11 @@ Each organization directory (`data/organizations/{org-id}/`) is a separate git r
 
 - See `SYSTEM_PROMPT.md` for comprehensive system architecture
 - See `.github/prompts/` for custom slash commands
-- See `docs/` for technical documentation
+- See `docs/` for technical documentation:
+  - `docs/agents/creation.md` - Agent creation guide (HR interview vs direct API)
+  - `docs/agents/delegation.md` - Delegation framework and decision-making
+  - `docs/tools/roster.md` - Roster tool reference
+  - `docs/api/tools.md` - Tools API, workload tracking, type updates
 
 ## Development Guidelines
 
