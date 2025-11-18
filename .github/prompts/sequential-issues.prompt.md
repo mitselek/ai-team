@@ -1,13 +1,12 @@
-````prompt
-nr  Sequential Issue Implementation Workflow
+nr Sequential Issue Implementation Workflow
 
 You are working on the "AI Team" project - a Nuxt 3 application for asynchronous AI agent orchestration. You will implement a sequence of GitHub issues following an iterative workflow with minimal human interruption.
 
-nr nr  User Input
+nr nr User Input
 
 $ISSUE_NUMBERS (example: "32 33 34 35 36 37 38" or "32-38")
 
-nr nr  Your Mission
+nr nr Your Mission
 
 Implement the specified GitHub issues **sequentially** in the order provided, following the Split TDD approach from WORKFLOW.md. Each issue will follow this cycle:
 
@@ -18,19 +17,20 @@ ISSUE N:
   3. ASSESS → Verify tests, commit
   4. IMPLEMENT → Write production code
   5. ASSESS → Verify implementation, commit
-  6. CONTINUE → Move to next issue
+  6. CLOSE → Close issue on GitHub, update tracking
+  7. CONTINUE → Move to next issue
 ```
 
-nr nr  Critical Workflow Principles
+nr nr Critical Workflow Principles
 
-nr nr nr  Split TDD Approach (MANDATORY)
+nr nr nr Split TDD Approach (MANDATORY)
 
 1. **Tests First**: Generate tests for the issue BEFORE implementation
 2. **Commit Tests**: Tests become the frozen contract
 3. **Implement Second**: Production code adapts to test expectations
 4. **Benefits**: Clear interface contract, self-healing code, better error messages
 
-nr nr nr  Minimal Interruption Philosophy
+nr nr nr Minimal Interruption Philosophy
 
 - Work through ALL issues in sequence automatically
 - Only stop if CRITICAL blocking issue (cannot proceed)
@@ -38,22 +38,24 @@ nr nr nr  Minimal Interruption Philosophy
 - Progress updates at major phase transitions
 - Final summary when all issues complete
 
-nr nr nr  Quality Gates (NON-NEGOTIABLE)
+nr nr nr Quality Gates (NON-NEGOTIABLE)
 
 Before ANY commit:
+
 - ✅ `npm run typecheck` must pass
 - ✅ `npm run lint` must pass
 - ✅ `npm test` must pass (or tests explicitly expected to fail for TDD)
 
-nr nr  Phase-by-Phase Instructions
+nr nr Phase-by-Phase Instructions
 
-nr nr nr  PHASE 1: ANALYZE (Per Issue)
+nr nr nr PHASE 1: ANALYZE (Per Issue)
 
 **Input**: GitHub issue number
 
 **Steps**:
 
 1. Fetch issue details:
+
    ```bash
    gh issue view [NUMBER] --json title,body,labels
    ```
@@ -71,6 +73,7 @@ nr nr nr  PHASE 1: ANALYZE (Per Issue)
    - Check for dependencies on previous issues
 
 4. Print analysis summary:
+
    ```text
    == ISSUE nr N: [TITLE] ==
 
@@ -90,7 +93,7 @@ nr nr nr  PHASE 1: ANALYZE (Per Issue)
 
 **Output**: Clear understanding of what needs to be built
 
-nr nr nr  PHASE 2: TEST GENERATION (Split TDD)
+nr nr nr PHASE 2: TEST GENERATION (Split TDD)
 
 **Input**: Issue requirements and gathered context
 
@@ -103,6 +106,7 @@ nr nr nr  PHASE 2: TEST GENERATION (Split TDD)
    - Utility: `tests/utils/[name].spec.ts`
 
 2. Use test-generation prompt with issue acceptance criteria:
+
    ```bash
    nr  Create test spec from issue requirements
    cat > /tmp/test-spec.md << 'EOF'
@@ -128,12 +132,14 @@ nr nr nr  PHASE 2: TEST GENERATION (Split TDD)
 3. **Wait for completion** (5-10 minutes, DO NOT INTERRUPT)
 
 4. Verify test file created:
+
    ```bash
    ls -lh tests/[path]/[file].spec.ts
    wc -l tests/[path]/[file].spec.ts
    ```
 
 5. Print test generation summary:
+
    ```text
    == TEST GENERATION COMPLETE ==
 
@@ -146,13 +152,14 @@ nr nr nr  PHASE 2: TEST GENERATION (Split TDD)
 
 **Output**: Test file created, implementation contract defined
 
-nr nr nr  PHASE 3: ASSESS TESTS
+nr nr nr PHASE 3: ASSESS TESTS
 
 **Input**: Generated test file
 
 **Steps**:
 
 1. Run quality checks (tests WILL fail - that's expected TDD):
+
    ```bash
    npm run typecheck  nr  Must pass
    npm run lint       nr  Must pass
@@ -172,6 +179,7 @@ nr nr nr  PHASE 3: ASSESS TESTS
    - DO NOT modify implementation (doesn't exist yet)
 
 4. Re-run quality checks:
+
    ```bash
    npm run typecheck  nr  Must pass now
    npm run lint       nr  Must pass now
@@ -179,6 +187,7 @@ nr nr nr  PHASE 3: ASSESS TESTS
    ```
 
 5. Print assessment summary:
+
    ```text
    == TESTS ASSESSED ==
 
@@ -196,35 +205,40 @@ nr nr nr  PHASE 3: ASSESS TESTS
 
 **Output**: Clean, passing type/lint checks, failing tests define contract
 
-nr nr nr  PHASE 4: COMMIT TESTS
+nr nr nr PHASE 4: COMMIT TESTS
 
 **Input**: Assessed test file
 
 **Steps**:
 
 1. Stage test file only:
+
    ```bash
    git add tests/[path]/[file].spec.ts
    ```
 
 2. Verify staged changes:
+
    ```bash
    git status
    git diff --cached --stat
    ```
 
 3. Create commit with conventional format:
+
    ```bash
    git commit -m "test(scope): add tests for [feature] (Issue nr N - TDD)"
    ```
 
 4. Verify commit and clean tree:
+
    ```bash
    git log --oneline -1
    git status  nr  Should show "working tree clean"
    ```
 
 5. Print commit summary:
+
    ```text
    == TESTS COMMITTED ==
 
@@ -237,13 +251,14 @@ nr nr nr  PHASE 4: COMMIT TESTS
 
 **Output**: Tests committed, contract frozen, ready for implementation
 
-nr nr nr  PHASE 5: IMPLEMENTATION
+nr nr nr PHASE 5: IMPLEMENTATION
 
 **Input**: Issue requirements, committed tests, gathered context
 
 **Steps**:
 
 1. Create implementation task spec from issue:
+
    ```bash
    cat > /tmp/impl-spec.md << 'EOF'
    nr nr  Implementation: [Issue Title]
@@ -272,6 +287,7 @@ nr nr nr  PHASE 5: IMPLEMENTATION
    ```
 
 2. Use dev-task prompt with implementation spec:
+
    ```bash
    gemini --yolo "$(cat .github/prompts/dev-task.prompt.md)" \
      "$(cat /tmp/impl-spec.md)" \
@@ -281,12 +297,14 @@ nr nr nr  PHASE 5: IMPLEMENTATION
 3. **Wait for completion** (5-10 minutes, DO NOT INTERRUPT)
 
 4. Verify implementation files created/modified:
+
    ```bash
    git status
    git diff --stat
    ```
 
 5. Print implementation summary:
+
    ```text
    == IMPLEMENTATION COMPLETE ==
 
@@ -302,13 +320,14 @@ nr nr nr  PHASE 5: IMPLEMENTATION
 
 **Output**: Production code created/modified
 
-nr nr nr  PHASE 6: ASSESS IMPLEMENTATION
+nr nr nr PHASE 6: ASSESS IMPLEMENTATION
 
 **Input**: Generated implementation code
 
 **Steps**:
 
 1. Run full quality checks (tests SHOULD pass now):
+
    ```bash
    npm run typecheck  nr  Must pass
    npm run lint       nr  Must pass
@@ -328,6 +347,7 @@ nr nr nr  PHASE 6: ASSESS IMPLEMENTATION
    - Re-run checks until all pass
 
 4. Print assessment summary:
+
    ```text
    == IMPLEMENTATION ASSESSED ==
 
@@ -346,35 +366,40 @@ nr nr nr  PHASE 6: ASSESS IMPLEMENTATION
 
 **Output**: All checks passing, implementation complete
 
-nr nr nr  PHASE 7: COMMIT IMPLEMENTATION
+nr nr nr PHASE 7: COMMIT IMPLEMENTATION
 
 **Input**: Assessed implementation
 
 **Steps**:
 
 1. Stage implementation files:
+
    ```bash
    git add [implementation files from issue]
    ```
 
 2. Verify staged changes:
+
    ```bash
    git status
    git diff --cached --stat
    ```
 
 3. Create commit referencing issue:
+
    ```bash
    git commit -m "feat(scope): implement [feature] (closes nr N)"
    ```
 
 4. Verify commit and clean tree:
+
    ```bash
    git log --oneline -1
    git status  nr  Must show "working tree clean"
    ```
 
 5. Print commit summary:
+
    ```text
    == IMPLEMENTATION COMMITTED ==
 
@@ -387,7 +412,54 @@ nr nr nr  PHASE 7: COMMIT IMPLEMENTATION
 
 **Output**: Implementation committed, issue complete
 
-nr nr nr  PHASE 8: CONTINUE OR FINISH
+nr nr nr PHASE 8: CLOSE ISSUE & UPDATE TRACKING
+
+**Input**: Completed issue with passing tests and commits
+
+**Steps**:
+
+1. Close the GitHub issue:
+
+   ```bash
+   gh issue close [NUMBER] --comment "Implemented in commits [test_sha] and [impl_sha]. All tests passing."
+   ```
+
+2. Verify issue closed:
+
+   ```bash
+   gh issue view [NUMBER] --json state,closedAt
+   ```
+
+3. Update progress tracking (if using manage_todo_list):
+
+   ```text
+   mark task as completed for Issue #N
+   ```
+
+4. Print closure summary:
+
+   ```text
+   == ISSUE CLOSED ==
+
+   Issue #32: ✅ CLOSED
+   State: closed
+   Closed at: 2025-11-18T10:23:45Z
+
+   Commits:
+   - abc1234 test(interview): add tests for team assignment (Issue #32 - TDD)
+   - def5678 feat(interview): implement team assignment (closes #32)
+
+   Tests: 8 new tests passing
+   Files: 3 modified, 1 created
+
+   Progress: 1/7 issues complete
+
+   Next: Issue #33
+   ```
+
+**Output**: Issue officially closed on GitHub, progress tracked
+
+nr nr nr PHASE 9: CONTINUE OR FINISH
 
 **Decision Point**: Are there more issues in the sequence?
 
@@ -430,9 +502,9 @@ Final verification:
 Work complete. Ready for pull request.
 ```
 
-nr nr  Error Handling
+nr nr Error Handling
 
-nr nr nr  When to Stop (CRITICAL BLOCKERS)
+nr nr nr When to Stop (CRITICAL BLOCKERS)
 
 Stop and ask for help ONLY if:
 
@@ -441,7 +513,7 @@ Stop and ask for help ONLY if:
 3. **Test framework error**: Cannot run tests due to environment issue
 4. **Git conflict**: Cannot commit due to merge conflict
 
-nr nr nr  When to Continue (FIXABLE ISSUES)
+nr nr nr When to Continue (FIXABLE ISSUES)
 
 Handle automatically and continue:
 
@@ -451,11 +523,11 @@ Handle automatically and continue:
 4. **Missing files**: Create necessary files if obvious
 5. **Import path errors**: Fix @@/types vs relative paths
 
-nr nr  Output Formatting Rules (MANDATORY)
+nr nr Output Formatting Rules (MANDATORY)
 
 All output must be cleanly formatted for readability:
 
-nr nr nr  Progress Updates
+nr nr nr Progress Updates
 
 Use clear phase headers:
 
@@ -472,7 +544,7 @@ Context gathering:
 Ready to generate tests.
 ```
 
-nr nr nr  Command Output
+nr nr nr Command Output
 
 Always show commands in fenced blocks:
 
@@ -482,7 +554,7 @@ npm run lint
 npm test
 ```
 
-nr nr nr  Status Summaries
+nr nr nr Status Summaries
 
 Use structured format:
 
@@ -493,7 +565,7 @@ Tests: ✅ PASS (8/8)
 Status: Ready to commit
 ```
 
-nr nr nr  Lists
+nr nr nr Lists
 
 One item per line with blank line after:
 
@@ -506,19 +578,19 @@ Modified files:
 Next: Run quality checks
 ```
 
-nr nr nr  Line Length
+nr nr nr Line Length
 
 Keep lines under ~100 characters. Wrap longer content.
 
-nr nr nr  Spacing
+nr nr nr Spacing
 
 - Blank line between phases
 - Blank line between conceptual blocks
 - No run-on paragraphs (max 3 sentences)
 
-nr nr  Success Criteria
+nr nr Success Criteria
 
-nr nr nr  Per Issue
+nr nr nr Per Issue
 
 - ✅ Tests committed (TDD contract frozen)
 - ✅ Implementation committed (closes issue)
@@ -526,7 +598,7 @@ nr nr nr  Per Issue
 - ✅ Working tree clean after commits
 - ✅ Conventional commit messages
 
-nr nr nr  Overall Workflow
+nr nr nr Overall Workflow
 
 - ✅ All issues in sequence completed
 - ✅ No manual intervention required
@@ -534,9 +606,9 @@ nr nr nr  Overall Workflow
 - ✅ All tests passing at end
 - ✅ Type-safe, lint-clean codebase
 
-nr nr  Time Expectations
+nr nr Time Expectations
 
-Per issue (7 phases):
+Per issue (8 phases):
 
 - ANALYZE: 2-3 minutes
 - TEST GEN: 5-10 minutes (automated)
@@ -545,28 +617,72 @@ Per issue (7 phases):
 - IMPLEMENT: 5-10 minutes (automated)
 - ASSESS IMPL: 2-3 minutes
 - COMMIT IMPL: 1 minute
+- CLOSE ISSUE: 1 minute
 
 **Total per issue**: ~20-30 minutes
 
 For 7 issues: ~2-3.5 hours total (mostly automated)
 
-nr nr  Important Notes
+nr nr Issue Closure Best Practices
 
-nr nr nr  Patience is Critical
+nr nr nr When to Close
+
+Close the issue IMMEDIATELY after Phase 7 (COMMIT IMPLEMENTATION), before continuing to next issue. This ensures:
+
+- Clean progress tracking
+- Clear association between commits and issues
+- Immediate verification of work completion
+- Easy rollback if needed (issue can be reopened)
+
+nr nr nr Closure Comment Template
+
+```bash
+gh issue close [NUMBER] --comment "✅ Implemented
+
+Test commit: [test_sha]
+Implementation commit: [impl_sha]
+
+Changes:
+- [file1.ts]: [brief description]
+- [file2.ts]: [brief description]
+
+Tests: [N] new tests passing
+Quality gates: typecheck ✅ lint ✅ tests ✅"
+```
+
+nr nr nr Progress Tracking Integration
+
+If using manage_todo_list tool:
+
+1. Mark issue as in-progress when starting Phase 1 (ANALYZE)
+2. Mark issue as completed after Phase 8 (CLOSE ISSUE)
+3. This provides real-time visibility into workflow state
+
+Example todo tracking:
+
+```text
+- [x] Issue #32: Team assignment type
+- [ ] Issue #33: Team analysis helper (in-progress)
+- [ ] Issue #34: Update HR specialist prompt
+```
+
+nr nr Important Notes
+
+nr nr nr Patience is Critical
 
 - Gemini processes take 5-10 minutes
 - DO NOT interrupt or check status frequently
 - Let self-correction happen
 - Trust the process
 
-nr nr nr  Parallel Execution NOT Recommended Here
+nr nr nr Parallel Execution NOT Recommended Here
 
 - Issues have dependencies (sequential order required)
 - Tests must freeze before implementation
 - Clean git history requires sequential commits
 - One issue fully complete before next
 
-nr nr nr  Git Hygiene
+nr nr nr Git Hygiene
 
 Always verify clean state:
 
@@ -575,14 +691,14 @@ git status  nr  Before AND after every commit
 git diff --cached  nr  Before committing
 ```
 
-nr nr nr  Quality Over Speed
+nr nr nr Quality Over Speed
 
 - Every commit must pass all quality checks
 - Fix issues immediately (don't accumulate debt)
 - Tests define contract (don't modify to make pass)
 - Implementation adapts to tests (not vice versa)
 
-nr nr  Constitutional Requirements
+nr nr Constitutional Requirements
 
 Follow all principles from `.specify/memory/constitution.md`:
 
@@ -592,12 +708,13 @@ Follow all principles from `.specify/memory/constitution.md`:
 - ✅ Test-first when appropriate
 - ✅ Import path conventions (@@/types, relative for services)
 
-nr nr  Final Checklist
+nr nr Final Checklist
 
 Before declaring "ALL ISSUES COMPLETE":
 
 - [ ] All issue numbers processed
 - [ ] Each issue has 2 commits (test + implementation)
+- [ ] All issues closed on GitHub
 - [ ] `npm run typecheck` passes
 - [ ] `npm run lint` passes
 - [ ] `npm test` passes (all tests)
@@ -605,28 +722,26 @@ Before declaring "ALL ISSUES COMPLETE":
 - [ ] All commits follow conventional format
 - [ ] No TODO comments left in code
 
-nr nr  Example Execution
+nr nr Example Execution
 
 ```bash
 nr  User invokes:
 /sequential-issues 32 33 34 35 36 37 38
 
 nr  Assistant executes:
-nr  - ISSUE nr 32: 7 phases, 2 commits
-nr  - ISSUE nr 33: 7 phases, 2 commits
-nr  - ISSUE nr 34: 7 phases, 2 commits
-nr  - ISSUE nr 35: 7 phases, 2 commits
-nr  - ISSUE nr 36: 7 phases, 2 commits
-nr  - ISSUE nr 37: 7 phases, 2 commits
-nr  - ISSUE nr 38: 7 phases, 2 commits
+nr  - ISSUE nr 32: 8 phases, 2 commits, close on GitHub
+nr  - ISSUE nr 33: 8 phases, 2 commits, close on GitHub
+nr  - ISSUE nr 34: 8 phases, 2 commits, close on GitHub
+nr  - ISSUE nr 35: 8 phases, 2 commits, close on GitHub
+nr  - ISSUE nr 36: 8 phases, 2 commits, close on GitHub
+nr  - ISSUE nr 37: 8 phases, 2 commits, close on GitHub
+nr  - ISSUE nr 38: 8 phases, 2 commits, close on GitHub
 
 nr  Result:
 nr  - 14 commits total
-nr  - All issues closed
+nr  - All issues closed on GitHub
 nr  - All tests passing
 nr  - Clean working tree
 ```
 
 Begin with ISSUE nr [FIRST_NUMBER] and proceed sequentially until all complete.
-
-````

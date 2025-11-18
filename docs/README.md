@@ -39,10 +39,26 @@ Root (Human) → Project Manager Agent → Team Leads → Individual Contributor
 - **Team Level** - Detailed team activity
 - **Agent Level** - Full conversation logs (verbatim, concise, index)
 
+## Feature Documentation
+
+### Agent System
+
+- **[Agent Creation Guide](agents/creation.md)** - How to create agents with organizational context
+- **[Delegation Framework](agents/delegation.md)** - Intelligent task delegation and routing
+
+### Tools
+
+- **[Roster Tool Reference](tools/roster.md)** - Query colleagues for delegation decisions
+
+### API Reference
+
+- **[Tools API](api/tools.md)** - Tool definitions, type updates, and workload tracking
+
+### Other Features
+
+- **[Filesystem Security](filesystem-security-implementation.md)** - MCP filesystem security model
+- **[F059 Migration](F059-MIGRATION.md)** - Workspace management migration guide
+
 ## Getting Started
 
-See README.md for setup instructions.
-
-## API Documentation
-
-Coming soon: API endpoint documentation for agent orchestration.
+See `../README.md` for setup instructions.
