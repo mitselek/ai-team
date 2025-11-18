@@ -137,19 +137,15 @@ export function registerAllTools(): void {
         scope: {
           type: 'string',
           enum: ['private', 'shared'],
-          description: 'Access scope: private (owner/team only) or shared (broader access)',
-          default: 'shared'
+          description:
+            'Access scope: private (owner/team only) or shared (broader access). REQUIRED for security validation.'
         },
         path: {
           type: 'string',
           description: 'File path within scope (e.g., "notes.md" or "subdir/file.txt")'
-        },
-        filename: {
-          type: 'string',
-          description: '(Deprecated: use path) Alias for path parameter'
         }
       },
-      required: ['folderId']
+      required: ['folderId', 'scope', 'path']
     }
   })
 
@@ -170,23 +166,19 @@ export function registerAllTools(): void {
         scope: {
           type: 'string',
           enum: ['private', 'shared'],
-          description: 'Access scope: private (owner/team only) or shared (broader access)',
-          default: 'shared'
+          description:
+            'Access scope: private (owner/team only) or shared (broader access). REQUIRED for security validation.'
         },
         path: {
           type: 'string',
           description: 'File path within scope (e.g., "notes.md" or "subdir/file.txt")'
-        },
-        filename: {
-          type: 'string',
-          description: '(Deprecated: use path) Alias for path parameter'
         },
         content: {
           type: 'string',
           description: 'File content'
         }
       },
-      required: ['folderId', 'content']
+      required: ['folderId', 'scope', 'path', 'content']
     }
   })
 
@@ -207,19 +199,15 @@ export function registerAllTools(): void {
         scope: {
           type: 'string',
           enum: ['private', 'shared'],
-          description: 'Access scope: private (owner/team only) or shared (broader access)',
-          default: 'shared'
+          description:
+            'Access scope: private (owner/team only) or shared (broader access). REQUIRED for security validation.'
         },
         path: {
           type: 'string',
           description: 'File path within scope (e.g., "notes.md" or "subdir/file.txt")'
-        },
-        filename: {
-          type: 'string',
-          description: '(Deprecated: use path) Alias for path parameter'
         }
       },
-      required: ['folderId']
+      required: ['folderId', 'scope', 'path']
     }
   })
 
@@ -240,19 +228,15 @@ export function registerAllTools(): void {
         scope: {
           type: 'string',
           enum: ['private', 'shared'],
-          description: 'Access scope: private (owner/team only) or shared (broader access)',
-          default: 'shared'
+          description:
+            'Access scope: private (owner/team only) or shared (broader access). REQUIRED for security validation.'
         },
         path: {
           type: 'string',
           description: 'File path within scope (e.g., "notes.md" or "subdir/file.txt")'
-        },
-        filename: {
-          type: 'string',
-          description: '(Deprecated: use path) Alias for path parameter'
         }
       },
-      required: ['folderId']
+      required: ['folderId', 'scope', 'path']
     }
   })
 }
