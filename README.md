@@ -91,6 +91,15 @@ npm run build
 
 ## Recent Features
 
+**Email MCP Server Integration** (Nov 2025 - WIP):
+
+- Python MCP server for Gmail API integration (send, read, search, mark as read)
+- OAuth2 with automatic token refresh for secure Gmail access
+- MCPClient for stdio communication with external MCP servers
+- API endpoints: GET /api/tools and POST /api/tools-execute
+- Role-based tool permission system for agent access control
+- Branch: `feature/email-mcp-server` (ready for integration with existing MCP infrastructure)
+
 **F059 - Agent Workspace Awareness** (Jan 2025):
 
 - Folder-based workspace discovery with 5 scopes (`my_private`, `my_shared`, `team_private`, `team_shared`, `org_shared`)
@@ -172,6 +181,8 @@ Each organization directory (`data/organizations/{org-id}/`) is a separate git r
 - All user-facing text should be i18n-ready
 - Test critical orchestration logic before implementation
 - Leverage Nuxt auto-imports for components and composables
+
+**Note**: If VS Code shows TypeScript errors that don't appear in `npm run typecheck`, restart the TypeScript language server via Command Palette → "TypeScript: Restart TS Server"
 
 ## License
 
