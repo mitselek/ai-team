@@ -1,6 +1,7 @@
 import { defineEventHandler, readBody, setResponseStatus } from 'h3'
 import { v4 as uuidv4 } from 'uuid'
 import { createLogger, newCorrelationId } from '../../utils/logger'
+import { buildSystemPrompt } from '../../utils/buildAgentPrompt'
 import type { Agent } from '@@/types'
 import { agents } from '../../data/agents'
 
@@ -38,20 +39,29 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const newAgent: Agent = {
+    // F074: Create partial agent for prompt building
+    const partialAgent: Agent = {
       id: uuidv4(),
       name: body.name!,
       role: body.role!,
       seniorId: body.seniorId ?? null,
       teamId: body.teamId!,
       organizationId: body.organizationId!,
-      systemPrompt: body.systemPrompt!,
+      systemPrompt: '', // Temporary - will be filled by buildSystemPrompt
       tokenAllocation: body.tokenAllocation ?? 10000,
       tokenUsed: 0,
       status: 'active',
       createdAt: new Date(),
-      lastActiveAt: new Date()
+      lastActiveAt: new Date(),
+      currentWorkload: body.currentWorkload ?? 0, // F074: Support optional workload
+      expertise: body.expertise // F074: Support optional expertise
     }
+
+    // F074: Build system prompt with organizational context
+    const fullSystemPrompt = await buildSystemPrompt(partialAgent, body.systemPrompt!)
+    partialAgent.systemPrompt = fullSystemPrompt
+
+    const newAgent = partialAgent
 
     agents.push(newAgent)
 

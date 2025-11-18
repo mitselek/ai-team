@@ -5,6 +5,7 @@ import { createLogger } from '../../utils/logger'
 import { agents } from '../../data/agents'
 import { teams } from '../../data/teams'
 import { saveAgent } from '../persistence/filesystem'
+import { buildSystemPrompt } from '../../utils/buildAgentPrompt'
 import type { Agent } from '@@/types'
 import type { InterviewSession } from './types'
 import {
@@ -507,21 +508,32 @@ async function createAgentFromProfile(
   // Determine token allocation based on role
   const tokenAllocation = getTokenAllocation(session.candidateProfile.role)
 
-  // Create new agent
-  const newAgent: Agent = {
+  // F074: Extract expertise from session (candidateProfile.expertise)
+  const expertise = session.candidateProfile.expertise || []
+
+  // Create partial agent for prompt building
+  const partialAgent: Agent = {
     id: uuidv4(),
     name,
     role: session.candidateProfile.role,
     status: 'active',
     tokenAllocation,
     tokenUsed: 0,
-    systemPrompt,
+    systemPrompt: '', // Temporary - will be filled by buildSystemPrompt
     teamId: targetTeamId,
-    seniorId: interviewer.seniorId || interviewer.id, // Report to interviewer's senior or interviewer
+    seniorId: interviewer.seniorId || interviewer.id,
     organizationId: team.organizationId,
     createdAt: new Date(),
-    lastActiveAt: new Date()
+    lastActiveAt: new Date(),
+    currentWorkload: 0, // F074: New agents start with 0 workload
+    expertise: expertise.length > 0 ? expertise : undefined // F074: Optional expertise
   }
+
+  // F074: Build system prompt with organizational context
+  const fullSystemPrompt = await buildSystemPrompt(partialAgent, systemPrompt)
+  partialAgent.systemPrompt = fullSystemPrompt
+
+  const newAgent = partialAgent
 
   agents.push(newAgent)
 
