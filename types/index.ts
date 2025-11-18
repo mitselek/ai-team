@@ -23,6 +23,20 @@ export interface Agent {
    * If not specified, agent inherits team's whitelist.
    */
   toolWhitelist?: string[]
+
+  /**
+   * Current workload (number of assigned tasks).
+   * Range: 0-5 (defaults to 0)
+   * Used for capacity planning and delegation decisions.
+   */
+  currentWorkload?: number
+
+  /**
+   * Agent's expertise domains/skills.
+   * Used for intelligent task delegation and roster queries.
+   * Examples: ['TypeScript', 'React', 'Testing'], ['Backend', 'PostgreSQL']
+   */
+  expertise?: string[]
 }
 
 export type AgentStatus = 'active' | 'bored' | 'stuck' | 'paused'
