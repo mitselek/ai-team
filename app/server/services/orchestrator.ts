@@ -15,6 +15,7 @@ import {
   deleteFileByIdExecutor,
   getFileInfoByIdExecutor
 } from './tools/f059-workspace-tools'
+import { WorkspacePermissionService } from './orchestrator/workspace-permission'
 
 const logger = createLogger('orchestrator')
 
@@ -180,6 +181,16 @@ const FILESYSTEM_TOOLS = new Set([
   'delete_file',
   'list_files',
   'get_file_info'
+])
+
+/**
+ * Workspace tools requiring UUID-based permission checks (F068)
+ */
+const WORKSPACE_TOOLS = new Set([
+  'read_file_by_id',
+  'write_file_by_id',
+  'delete_file_by_id',
+  'get_file_info_by_id'
 ])
 
 /**
@@ -375,6 +386,75 @@ export function createToolRegistry(permissionService?: PermissionService): ToolR
             `Agent ${context.agentId} does not have ${operation} access to ${path}`,
             context.agentId,
             path,
+            operation,
+            context.correlationId
+          )
+        }
+      }
+
+      // Check permissions for workspace tools (F068)
+      if (WORKSPACE_TOOLS.has(name) && organization) {
+        const folderId = typeof params.folderId === 'string' ? params.folderId : ''
+        const scope =
+          typeof params.scope === 'string' ? (params.scope as 'private' | 'shared') : 'shared'
+        const operation = name.includes('write') || name.includes('delete') ? 'write' : 'read'
+
+        // Validate required parameters
+        if (!folderId || folderId.trim() === '') {
+          logger.warn(
+            {
+              agentId: context.agentId,
+              toolName: name,
+              operation,
+              correlationId: context.correlationId,
+              organizationId: context.organizationId,
+              timestamp: new Date().toISOString()
+            },
+            'PERMISSION DENIED: Missing or empty folderId parameter'
+          )
+
+          throw new PermissionError(
+            `Missing or empty folderId parameter for ${name}`,
+            context.agentId,
+            folderId,
+            operation,
+            context.correlationId
+          )
+        }
+
+        // Create workspace permission service instance
+        const workspacePermissionService = new WorkspacePermissionService()
+
+        // Validate access using UUID-based permission checking
+        const permissionResult = await workspacePermissionService.validateAccess(
+          context.agentId,
+          folderId,
+          scope,
+          operation,
+          context.organizationId
+        )
+
+        if (!permissionResult.allowed) {
+          logger.warn(
+            {
+              agentId: context.agentId,
+              toolName: name,
+              folderId,
+              scope,
+              operation,
+              reason: permissionResult.reason,
+              correlationId: context.correlationId,
+              organizationId: context.organizationId,
+              timestamp: new Date().toISOString()
+            },
+            'PERMISSION DENIED: Workspace access denied'
+          )
+
+          throw new PermissionError(
+            permissionResult.reason ||
+              `Agent ${context.agentId} does not have ${operation} access to workspace ${folderId}/${scope}`,
+            context.agentId,
+            `${folderId}/${scope}`,
             operation,
             context.correlationId
           )
