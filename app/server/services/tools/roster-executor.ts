@@ -14,12 +14,11 @@ const logger = createLogger('tools:roster')
  */
 export const getRosterExecutor: ToolExecutor = {
   async execute(params: Record<string, unknown>, context: ExecutionContext): Promise<unknown> {
-    const { agentId, organizationId, filter, expertise } = params as {
-      agentId?: string
-      organizationId?: string
-      filter?: 'all' | 'my_team' | 'available' | 'by_expertise'
-      expertise?: string
-    }
+    // Extract from params or fall back to context (orchestrator pattern)
+    const agentId = (params.agentId as string | undefined) || context.agentId
+    const organizationId = (params.organizationId as string | undefined) || context.organizationId
+    const filter = params.filter as 'all' | 'my_team' | 'available' | 'by_expertise' | undefined
+    const expertise = params.expertise as string | undefined
 
     logger.info(
       {
