@@ -51,6 +51,7 @@ describe('Migration - Issue #64', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'list_folders',
@@ -63,33 +64,35 @@ describe('Migration - Issue #64', () => {
       const parsed = JSON.parse(result.content![0].text!)
       const folder = parsed.folders[0]
 
-      expect(folder.path).toBe('/workspaces/agent-123/private/')
+      expect(folder.path).toBe('org-123/workspaces/agent-123/private/')
     })
 
-    it('should use workspaces paths in file operations by ID', async () => {
+    it('should use workspaces paths in file operations by ID with UUID-based addressing', async () => {
       const mockFilesystemService = {
         writeFile: vi.fn().mockResolvedValue({ success: true })
       } as unknown as FilesystemService
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
-
-      const folderId = fileServer.generateFolderId('/workspaces/agent-123/private/')
+      fileServer.setOrganizationId('org-123')
+      fileServer.setOrganizationId('org-123')
 
       await fileServer.executeTool({
         name: 'write_file_by_id',
         arguments: {
           agentId: 'agent-123',
-          folderId,
-          filename: 'test.md',
+          folderId: 'agent-123',
+          scope: 'private',
+          path: 'test.md',
           content: 'content'
         }
       })
 
       expect(mockFilesystemService.writeFile).toHaveBeenCalledWith(
         'agent-123',
-        '/workspaces/agent-123/private/test.md',
-        'content'
+        'org-123/workspaces/agent-123/private/test.md',
+        'content',
+        'org-123'
       )
     })
   })
@@ -108,6 +111,7 @@ describe('Migration - Issue #64', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       // 1. Discover
       const discoverResult = await fileServer.executeTool({

@@ -27,7 +27,8 @@ describe('File Operations by ID - Issue #63', () => {
 
       expect(tool).toBeDefined()
       expect(tool?.inputSchema.required).toContain('folderId')
-      expect(tool?.inputSchema.required).toContain('filename')
+      expect(tool?.inputSchema.required).toContain('scope')
+      expect(tool?.inputSchema.required).toContain('path')
     })
 
     it('should register write_file_by_id tool', async () => {
@@ -41,7 +42,8 @@ describe('File Operations by ID - Issue #63', () => {
 
       expect(tool).toBeDefined()
       expect(tool?.inputSchema.required).toContain('folderId')
-      expect(tool?.inputSchema.required).toContain('filename')
+      expect(tool?.inputSchema.required).toContain('scope')
+      expect(tool?.inputSchema.required).toContain('path')
       expect(tool?.inputSchema.required).toContain('content')
     })
 
@@ -56,7 +58,8 @@ describe('File Operations by ID - Issue #63', () => {
 
       expect(tool).toBeDefined()
       expect(tool?.inputSchema.required).toContain('folderId')
-      expect(tool?.inputSchema.required).toContain('filename')
+      expect(tool?.inputSchema.required).toContain('scope')
+      expect(tool?.inputSchema.required).toContain('path')
     })
 
     it('should register get_file_info_by_id tool', async () => {
@@ -70,12 +73,13 @@ describe('File Operations by ID - Issue #63', () => {
 
       expect(tool).toBeDefined()
       expect(tool?.inputSchema.required).toContain('folderId')
-      expect(tool?.inputSchema.required).toContain('filename')
+      expect(tool?.inputSchema.required).toContain('scope')
+      expect(tool?.inputSchema.required).toContain('path')
     })
   })
 
   describe('read_file_by_id', () => {
-    it('should read file using valid folderId', async () => {
+    it('should read file using valid folderId with scope and path', async () => {
       const mockFilesystemService = {
         readFile: vi.fn().mockResolvedValue({
           content: 'test content',
@@ -85,16 +89,15 @@ describe('File Operations by ID - Issue #63', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
-
-      // Generate a folderId first
-      const folderId = fileServer.generateFolderId('/workspaces/agent-123/private/')
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'read_file_by_id',
         arguments: {
           agentId: 'agent-123',
-          folderId,
-          filename: 'test.md'
+          folderId: 'agent-123',
+          scope: 'private',
+          path: 'test.md'
         }
       })
 
@@ -105,24 +108,26 @@ describe('File Operations by ID - Issue #63', () => {
       expect(parsed.metadata).toBeDefined()
     })
 
-    it('should error on expired folderId with actionable message', async () => {
+    it('should error on missing required parameters', async () => {
       const mockFilesystemService = {} as FilesystemService
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'read_file_by_id',
         arguments: {
           agentId: 'agent-123',
-          folderId: 'expired-uuid',
-          filename: 'test.md'
+          folderId: 'agent-123',
+          scope: 'private'
+          // Missing path parameter
         }
       })
 
       expect(result.isError).toBe(true)
       const parsed = parseToolResult(result)
-      expect(parsed.error).toContain('list_folders()')
+      expect(parsed.error).toContain('path')
     })
 
     it('should error on file not found', async () => {
@@ -132,15 +137,15 @@ describe('File Operations by ID - Issue #63', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
-
-      const folderId = fileServer.generateFolderId('/workspaces/agent-123/private/')
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'read_file_by_id',
         arguments: {
           agentId: 'agent-123',
-          folderId,
-          filename: 'missing.md'
+          folderId: 'agent-123',
+          scope: 'private',
+          path: 'missing.md'
         }
       })
 
@@ -151,22 +156,22 @@ describe('File Operations by ID - Issue #63', () => {
   })
 
   describe('write_file_by_id', () => {
-    it('should write new file using valid folderId', async () => {
+    it('should write new file using valid folderId with scope and path', async () => {
       const mockFilesystemService = {
         writeFile: vi.fn().mockResolvedValue({ success: true })
       } as unknown as FilesystemService
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
-
-      const folderId = fileServer.generateFolderId('/workspaces/agent-123/private/')
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'write_file_by_id',
         arguments: {
           agentId: 'agent-123',
-          folderId,
-          filename: 'new.md',
+          folderId: 'agent-123',
+          scope: 'private',
+          path: 'new.md',
           content: 'new content'
         }
       })
@@ -176,8 +181,9 @@ describe('File Operations by ID - Issue #63', () => {
       expect(parsed.success).toBe(true)
       expect(mockFilesystemService.writeFile).toHaveBeenCalledWith(
         'agent-123',
-        '/workspaces/agent-123/private/new.md',
-        'new content'
+        'org-123/workspaces/agent-123/private/new.md',
+        'new content',
+        'org-123'
       )
     })
 
@@ -188,15 +194,15 @@ describe('File Operations by ID - Issue #63', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
-
-      const folderId = fileServer.generateFolderId('/workspaces/agent-123/private/')
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'write_file_by_id',
         arguments: {
           agentId: 'agent-123',
-          folderId,
-          filename: 'existing.md',
+          folderId: 'agent-123',
+          scope: 'private',
+          path: 'existing.md',
           content: 'updated content'
         }
       })
@@ -206,45 +212,47 @@ describe('File Operations by ID - Issue #63', () => {
       expect(parsed.success).toBe(true)
     })
 
-    it('should error on expired folderId', async () => {
+    it('should error on missing required parameters', async () => {
       const mockFilesystemService = {} as FilesystemService
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'write_file_by_id',
         arguments: {
           agentId: 'agent-123',
-          folderId: 'expired-uuid',
-          filename: 'test.md',
-          content: 'content'
+          folderId: 'agent-123',
+          scope: 'private',
+          path: 'test.md'
+          // Missing content parameter
         }
       })
 
       expect(result.isError).toBe(true)
       const parsed = parseToolResult(result)
-      expect(parsed.error).toContain('list_folders()')
+      expect(parsed.error).toContain('content')
     })
   })
 
   describe('delete_file_by_id', () => {
-    it('should delete file using valid folderId', async () => {
+    it('should delete file using valid folderId with scope and path', async () => {
       const mockFilesystemService = {
         deleteFile: vi.fn().mockResolvedValue({ success: true })
       } as unknown as FilesystemService
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
-
-      const folderId = fileServer.generateFolderId('/workspaces/agent-123/private/')
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'delete_file_by_id',
         arguments: {
           agentId: 'agent-123',
-          folderId,
-          filename: 'old.md'
+          folderId: 'agent-123',
+          scope: 'private',
+          path: 'old.md'
         }
       })
 
@@ -260,15 +268,15 @@ describe('File Operations by ID - Issue #63', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
-
-      const folderId = fileServer.generateFolderId('/workspaces/agent-123/private/')
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'delete_file_by_id',
         arguments: {
           agentId: 'agent-123',
-          folderId,
-          filename: 'already-deleted.md'
+          folderId: 'agent-123',
+          scope: 'private',
+          path: 'already-deleted.md'
         }
       })
 
@@ -278,29 +286,30 @@ describe('File Operations by ID - Issue #63', () => {
       expect(parsed.success).toBe(true)
     })
 
-    it('should error on expired folderId', async () => {
+    it('should error on missing required parameters', async () => {
       const mockFilesystemService = {} as FilesystemService
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'delete_file_by_id',
         arguments: {
           agentId: 'agent-123',
-          folderId: 'expired-uuid',
-          filename: 'test.md'
+          folderId: 'agent-123'
+          // Missing scope and path
         }
       })
 
       expect(result.isError).toBe(true)
       const parsed = parseToolResult(result)
-      expect(parsed.error).toContain('list_folders()')
+      expect(parsed.error).toMatch(/scope|path/)
     })
   })
 
   describe('get_file_info_by_id', () => {
-    it('should get file metadata using valid folderId', async () => {
+    it('should get file metadata using valid folderId with scope and path', async () => {
       const mockFilesystemService = {
         getFileInfo: vi.fn().mockResolvedValue({
           size: 1024,
@@ -311,15 +320,15 @@ describe('File Operations by ID - Issue #63', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
-
-      const folderId = fileServer.generateFolderId('/workspaces/agent-123/private/')
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'get_file_info_by_id',
         arguments: {
           agentId: 'agent-123',
-          folderId,
-          filename: 'info.md'
+          folderId: 'agent-123',
+          scope: 'private',
+          path: 'info.md'
         }
       })
 
@@ -329,24 +338,26 @@ describe('File Operations by ID - Issue #63', () => {
       expect(parsed.metadata.size).toBe(1024)
     })
 
-    it('should error on expired folderId', async () => {
+    it('should error on missing required parameters', async () => {
       const mockFilesystemService = {} as FilesystemService
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'get_file_info_by_id',
         arguments: {
           agentId: 'agent-123',
-          folderId: 'expired-uuid',
-          filename: 'test.md'
+          folderId: 'agent-123',
+          scope: 'private'
+          // Missing path
         }
       })
 
       expect(result.isError).toBe(true)
       const parsed = parseToolResult(result)
-      expect(parsed.error).toContain('list_folders()')
+      expect(parsed.error).toContain('path')
     })
   })
 
@@ -369,6 +380,7 @@ describe('File Operations by ID - Issue #63', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       // 1. Discover folders
       const discoverResult = await fileServer.executeTool({
@@ -388,7 +400,8 @@ describe('File Operations by ID - Issue #63', () => {
         arguments: {
           agentId: 'agent-123',
           folderId,
-          filename: 'workflow.md',
+          scope: 'private',
+          path: 'workflow.md',
           content: 'workflow test'
         }
       })
@@ -400,7 +413,8 @@ describe('File Operations by ID - Issue #63', () => {
         arguments: {
           agentId: 'agent-123',
           folderId,
-          filename: 'workflow.md'
+          scope: 'private',
+          path: 'workflow.md'
         }
       })
       expect(parseToolResult(readResult).content).toBe('workflow test')
@@ -411,7 +425,8 @@ describe('File Operations by ID - Issue #63', () => {
         arguments: {
           agentId: 'agent-123',
           folderId,
-          filename: 'workflow.md'
+          scope: 'private',
+          path: 'workflow.md'
         }
       })
       expect(parseToolResult(infoResult).metadata.size).toBe(13)
@@ -422,7 +437,8 @@ describe('File Operations by ID - Issue #63', () => {
         arguments: {
           agentId: 'agent-123',
           folderId,
-          filename: 'workflow.md'
+          scope: 'private',
+          path: 'workflow.md'
         }
       })
       expect(parseToolResult(deleteResult).success).toBe(true)

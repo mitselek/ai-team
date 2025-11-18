@@ -22,6 +22,7 @@ describe('list_folders Tool - Issue #62', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const tools = fileServer.getToolDefinitions()
       const listFoldersTool = tools.find((t) => t.name === 'list_folders')
@@ -36,6 +37,7 @@ describe('list_folders Tool - Issue #62', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const tools = fileServer.getToolDefinitions()
       const listFoldersTool = tools.find((t) => t.name === 'list_folders')
@@ -70,6 +72,7 @@ describe('list_folders Tool - Issue #62', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'list_folders',
@@ -85,10 +88,10 @@ describe('list_folders Tool - Issue #62', () => {
 
       const folder: FileListResult = parsed.folders[0]
       expect(folder.folderType).toBe('my_private')
-      expect(folder.folderId).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-      )
-      expect(folder.path).toBe('/workspaces/agent-123/private/')
+      // With UUID-based addressing, folderId is the agent UUID
+      expect(folder.folderId).toBe('agent-123')
+      // Path now includes organization ID
+      expect(folder.path).toBe('org-123/workspaces/agent-123/private/')
       expect(folder.fileCount).toBe(1)
       expect(folder.files).toHaveLength(1)
       expect(folder.files[0].filename).toBe('notes.md')
@@ -103,6 +106,7 @@ describe('list_folders Tool - Issue #62', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'list_folders',
@@ -135,6 +139,7 @@ describe('list_folders Tool - Issue #62', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'list_folders',
@@ -147,7 +152,7 @@ describe('list_folders Tool - Issue #62', () => {
       const parsed = parseToolResult(result)
       const folder: FileListResult = parsed.folders[0]
       expect(folder.folderType).toBe('my_shared')
-      expect(folder.path).toBe('/workspaces/agent-123/shared/')
+      expect(folder.path).toBe('org-123/workspaces/agent-123/shared/')
       expect(folder.files).toHaveLength(1)
       expect(folder.files[0].mimeType).toBe('text/markdown')
     })
@@ -161,6 +166,7 @@ describe('list_folders Tool - Issue #62', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'list_folders',
@@ -174,7 +180,7 @@ describe('list_folders Tool - Issue #62', () => {
       const parsed = parseToolResult(result)
       const folder: FileListResult = parsed.folders[0]
       expect(folder.folderType).toBe('team_private')
-      expect(folder.path).toBe('/workspaces/team-dev/private/')
+      expect(folder.path).toBe('org-123/workspaces/team-dev/private/')
     })
 
     it('should error when agent has no team', async () => {
@@ -182,6 +188,7 @@ describe('list_folders Tool - Issue #62', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'list_folders',
@@ -205,6 +212,7 @@ describe('list_folders Tool - Issue #62', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'list_folders',
@@ -218,7 +226,7 @@ describe('list_folders Tool - Issue #62', () => {
       const parsed = parseToolResult(result)
       const folder: FileListResult = parsed.folders[0]
       expect(folder.folderType).toBe('team_shared')
-      expect(folder.path).toBe('/workspaces/team-dev/shared/')
+      expect(folder.path).toBe('org-123/workspaces/team-dev/shared/')
     })
 
     it('should error when agent has no team', async () => {
@@ -226,6 +234,7 @@ describe('list_folders Tool - Issue #62', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'list_folders',
@@ -249,6 +258,7 @@ describe('list_folders Tool - Issue #62', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       // This test validates the org_shared pattern
       // Implementation will require mocking data loaders in Issue #62
@@ -276,6 +286,7 @@ describe('list_folders Tool - Issue #62', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'list_folders',
@@ -322,6 +333,7 @@ describe('list_folders Tool - Issue #62', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'list_folders',
@@ -346,13 +358,14 @@ describe('list_folders Tool - Issue #62', () => {
   })
 
   describe('FolderId resolution', () => {
-    it('should generate valid UUID v4 folderIds', async () => {
+    it('should use agent UUID as folderId', async () => {
       const mockFilesystemService = {
         listFiles: vi.fn().mockResolvedValue([])
       } as unknown as FilesystemService
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'list_folders',
@@ -365,11 +378,8 @@ describe('list_folders Tool - Issue #62', () => {
       const parsed = parseToolResult(result)
       const folder: FileListResult = parsed.folders[0]
 
-      // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
-      // where y is 8, 9, a, or b
-      expect(folder.folderId).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-      )
+      // With UUID-based addressing, folderId is the agent/team UUID (not generated)
+      expect(folder.folderId).toBe('agent-123')
     })
 
     it('should allow folderId resolution for returned folders', async () => {
@@ -379,6 +389,7 @@ describe('list_folders Tool - Issue #62', () => {
 
       const { MCPFileServer } = await import('../../../app/server/services/mcp/file-server')
       const fileServer = new MCPFileServer(mockFilesystemService)
+      fileServer.setOrganizationId('org-123')
 
       const result = await fileServer.executeTool({
         name: 'list_folders',
@@ -391,9 +402,9 @@ describe('list_folders Tool - Issue #62', () => {
       const parsed = parseToolResult(result)
       const folder: FileListResult = parsed.folders[0]
 
-      // Should be able to resolve the folderId
-      const resolvedPath = fileServer.resolveFolderId(folder.folderId)
-      expect(resolvedPath).toBe('/workspaces/agent-123/private/')
+      // With UUID-based addressing, folderId should be the agent UUID
+      expect(folder.folderId).toBe('agent-123')
+      expect(folder.path).toContain('workspaces/agent-123/private/')
     })
   })
 })
