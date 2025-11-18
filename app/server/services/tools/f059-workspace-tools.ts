@@ -85,23 +85,25 @@ export const listFoldersExecutor: ToolExecutor = {
  */
 export const readFileByIdExecutor: ToolExecutor = {
   async execute(params: Record<string, unknown>, context: ExecutionContext): Promise<unknown> {
-    const { agentId, organizationId, folderId, filename } = params as {
+    const { agentId, organizationId, folderId, scope, path } = params as {
       agentId?: string
       organizationId?: string
       folderId?: string
-      filename?: string
+      scope?: string
+      path?: string
     }
 
     logger.info({
       agentId,
       organizationId,
       folderId,
-      filename,
+      scope,
+      path,
       correlationId: context.correlationId
     })
 
-    if (!agentId || !folderId || !filename) {
-      return { error: 'Missing required parameters: agentId, folderId, filename' }
+    if (!agentId || !folderId || !scope || !path) {
+      return { error: 'Missing required parameters: agentId, folderId, scope, path' }
     }
 
     try {
@@ -114,7 +116,7 @@ export const readFileByIdExecutor: ToolExecutor = {
 
       const result = await mcpFileServer.executeTool({
         name: 'read_file_by_id',
-        arguments: { agentId, folderId, filename }
+        arguments: { agentId, folderId, scope, path }
       })
 
       return result
@@ -123,7 +125,8 @@ export const readFileByIdExecutor: ToolExecutor = {
       logger.error({
         agentId,
         folderId,
-        filename,
+        scope,
+        path,
         error: errorMessage,
         correlationId: context.correlationId
       })
@@ -137,11 +140,12 @@ export const readFileByIdExecutor: ToolExecutor = {
  */
 export const writeFileByIdExecutor: ToolExecutor = {
   async execute(params: Record<string, unknown>, context: ExecutionContext): Promise<unknown> {
-    const { agentId, organizationId, folderId, filename, content } = params as {
+    const { agentId, organizationId, folderId, scope, path, content } = params as {
       agentId?: string
       organizationId?: string
       folderId?: string
-      filename?: string
+      scope?: string
+      path?: string
       content?: string
     }
 
@@ -149,13 +153,14 @@ export const writeFileByIdExecutor: ToolExecutor = {
       agentId,
       organizationId,
       folderId,
-      filename,
+      scope,
+      path,
       contentLength: content?.length || 0,
       correlationId: context.correlationId
     })
 
-    if (!agentId || !folderId || !filename || content === undefined) {
-      return { error: 'Missing required parameters: agentId, folderId, filename, content' }
+    if (!agentId || !folderId || !scope || !path || content === undefined) {
+      return { error: 'Missing required parameters: agentId, folderId, scope, path, content' }
     }
 
     try {
@@ -168,7 +173,7 @@ export const writeFileByIdExecutor: ToolExecutor = {
 
       const result = await mcpFileServer.executeTool({
         name: 'write_file_by_id',
-        arguments: { agentId, folderId, filename, content }
+        arguments: { agentId, folderId, scope, path, content }
       })
 
       return result
@@ -177,7 +182,8 @@ export const writeFileByIdExecutor: ToolExecutor = {
       logger.error({
         agentId,
         folderId,
-        filename,
+        scope,
+        path,
         error: errorMessage,
         correlationId: context.correlationId
       })
@@ -191,23 +197,25 @@ export const writeFileByIdExecutor: ToolExecutor = {
  */
 export const deleteFileByIdExecutor: ToolExecutor = {
   async execute(params: Record<string, unknown>, context: ExecutionContext): Promise<unknown> {
-    const { agentId, organizationId, folderId, filename } = params as {
+    const { agentId, organizationId, folderId, scope, path } = params as {
       agentId?: string
       organizationId?: string
       folderId?: string
-      filename?: string
+      scope?: string
+      path?: string
     }
 
     logger.info({
       agentId,
       organizationId,
       folderId,
-      filename,
+      scope,
+      path,
       correlationId: context.correlationId
     })
 
-    if (!agentId || !folderId || !filename) {
-      return { error: 'Missing required parameters: agentId, folderId, filename' }
+    if (!agentId || !folderId || !scope || !path) {
+      return { error: 'Missing required parameters: agentId, folderId, scope, path' }
     }
 
     try {
@@ -220,7 +228,7 @@ export const deleteFileByIdExecutor: ToolExecutor = {
 
       const result = await mcpFileServer.executeTool({
         name: 'delete_file_by_id',
-        arguments: { agentId, folderId, filename }
+        arguments: { agentId, folderId, scope, path }
       })
 
       return result
@@ -229,7 +237,8 @@ export const deleteFileByIdExecutor: ToolExecutor = {
       logger.error({
         agentId,
         folderId,
-        filename,
+        scope,
+        path,
         error: errorMessage,
         correlationId: context.correlationId
       })
@@ -243,23 +252,25 @@ export const deleteFileByIdExecutor: ToolExecutor = {
  */
 export const getFileInfoByIdExecutor: ToolExecutor = {
   async execute(params: Record<string, unknown>, context: ExecutionContext): Promise<unknown> {
-    const { agentId, organizationId, folderId, filename } = params as {
+    const { agentId, organizationId, folderId, scope, path } = params as {
       agentId?: string
       organizationId?: string
       folderId?: string
-      filename?: string
+      scope?: string
+      path?: string
     }
 
     logger.info({
       agentId,
       organizationId,
       folderId,
-      filename,
+      scope,
+      path,
       correlationId: context.correlationId
     })
 
-    if (!agentId || !folderId || !filename) {
-      return { error: 'Missing required parameters: agentId, folderId, filename' }
+    if (!agentId || !folderId || !scope || !path) {
+      return { error: 'Missing required parameters: agentId, folderId, scope, path' }
     }
 
     try {
@@ -272,7 +283,7 @@ export const getFileInfoByIdExecutor: ToolExecutor = {
 
       const result = await mcpFileServer.executeTool({
         name: 'get_file_info_by_id',
-        arguments: { agentId, folderId, filename }
+        arguments: { agentId, folderId, scope, path }
       })
 
       return result
@@ -281,7 +292,8 @@ export const getFileInfoByIdExecutor: ToolExecutor = {
       logger.error({
         agentId,
         folderId,
-        filename,
+        scope,
+        path,
         error: errorMessage,
         correlationId: context.correlationId
       })

@@ -1,15 +1,12 @@
 import type { FilesystemService } from '../persistence/file-workspace'
 import type { MCPTool, MCPToolCall, MCPToolResult } from '../llm/mcp/types'
 import type { FolderScope, FileEntry, FileListResult } from '@@/types'
-import { randomUUID } from 'node:crypto'
 import { loadAllTeams } from '../../data/organizations'
 import { loadTeamAgents } from '../../data/teams'
 import { mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 
 export class MCPFileServer {
-  private folderIdCache = new Map<string, { path: string; timestamp: number }>()
-  private readonly FOLDER_ID_TTL_MS = 30 * 60 * 1000 // 30 minutes
   private organizationId?: string
 
   constructor(private readonly filesystemService: FilesystemService) {}
@@ -591,11 +588,10 @@ export class MCPFileServer {
         mimeType: this.guessMimeType(f.name)
       }))
 
-    // Generate ephemeral folderId
-    const folderId = this.generateFolderId(folderPath)
-
-    // Extract folder name from path
+    // Extract folderId (agent/team UUID) from path
+    // Path format: {orgId}/workspaces/{folderId}/{scope}/
     const pathParts = folderPath.split('/').filter((p) => p.length > 0)
+    const folderId = pathParts.length >= 3 ? pathParts[2] : agentId // Fallback to agentId
     const folderName = pathParts.length >= 2 ? `${pathParts[1]}/${pathParts[2]}` : folderPath
 
     return {
@@ -611,9 +607,10 @@ export class MCPFileServer {
   private async executeReadFileById(args: {
     agentId?: string
     folderId?: string
-    filename?: string
+    scope?: string
+    path?: string
   }): Promise<MCPToolResult> {
-    const { agentId, folderId, filename } = args
+    const { agentId, folderId, scope, path } = args
 
     if (!agentId) {
       return this.errorResult('Missing required parameter: agentId')
@@ -621,17 +618,20 @@ export class MCPFileServer {
     if (!folderId) {
       return this.errorResult('Missing required parameter: folderId')
     }
-    if (!filename) {
-      return this.errorResult('Missing required parameter: filename')
+    if (!scope) {
+      return this.errorResult('Missing required parameter: scope')
+    }
+    if (!path) {
+      return this.errorResult('Missing required parameter: path')
     }
 
     try {
       if (!this.organizationId) {
         return this.errorResult('Organization ID not set')
       }
-      // Resolve folderId to workspace path (will throw if expired/invalid)
-      const folderPath = this.resolveFolderId(folderId)
-      const fullPath = `${folderPath}${filename}`
+
+      // Construct UUID-based path: {orgId}/workspaces/{folderId}/{scope}/{path}
+      const fullPath = `${this.organizationId}/workspaces/${folderId}/${scope}/${path}`
 
       const result = await this.filesystemService.readFile(agentId, fullPath, this.organizationId)
 
@@ -659,10 +659,11 @@ export class MCPFileServer {
   private async executeWriteFileById(args: {
     agentId?: string
     folderId?: string
-    filename?: string
+    scope?: string
+    path?: string
     content?: string
   }): Promise<MCPToolResult> {
-    const { agentId, folderId, filename, content } = args
+    const { agentId, folderId, scope, path, content } = args
 
     if (!agentId) {
       return this.errorResult('Missing required parameter: agentId')
@@ -670,8 +671,11 @@ export class MCPFileServer {
     if (!folderId) {
       return this.errorResult('Missing required parameter: folderId')
     }
-    if (!filename) {
-      return this.errorResult('Missing required parameter: filename')
+    if (!scope) {
+      return this.errorResult('Missing required parameter: scope')
+    }
+    if (!path) {
+      return this.errorResult('Missing required parameter: path')
     }
     if (content === undefined) {
       return this.errorResult('Missing required parameter: content')
@@ -681,15 +685,16 @@ export class MCPFileServer {
       if (!this.organizationId) {
         return this.errorResult('Organization ID not set')
       }
-      const folderPath = this.resolveFolderId(folderId)
-      const fullPath = `${folderPath}${filename}`
+
+      // Construct UUID-based path: {orgId}/workspaces/{folderId}/{scope}/{path}
+      const fullPath = `${this.organizationId}/workspaces/${folderId}/${scope}/${path}`
 
       console.error('[DEBUG writeFileById]', {
         agentId,
         folderId,
-        filename,
+        scope,
+        path,
         organizationId: this.organizationId,
-        folderPath,
         fullPath
       })
 
@@ -716,9 +721,10 @@ export class MCPFileServer {
   private async executeDeleteFileById(args: {
     agentId?: string
     folderId?: string
-    filename?: string
+    scope?: string
+    path?: string
   }): Promise<MCPToolResult> {
-    const { agentId, folderId, filename } = args
+    const { agentId, folderId, scope, path } = args
 
     if (!agentId) {
       return this.errorResult('Missing required parameter: agentId')
@@ -726,16 +732,20 @@ export class MCPFileServer {
     if (!folderId) {
       return this.errorResult('Missing required parameter: folderId')
     }
-    if (!filename) {
-      return this.errorResult('Missing required parameter: filename')
+    if (!scope) {
+      return this.errorResult('Missing required parameter: scope')
+    }
+    if (!path) {
+      return this.errorResult('Missing required parameter: path')
     }
 
     try {
       if (!this.organizationId) {
         return this.errorResult('Organization ID not set')
       }
-      const folderPath = this.resolveFolderId(folderId)
-      const fullPath = `${folderPath}${filename}`
+
+      // Construct UUID-based path: {orgId}/workspaces/{folderId}/{scope}/{path}
+      const fullPath = `${this.organizationId}/workspaces/${folderId}/${scope}/${path}`
 
       const result = await this.filesystemService.deleteFile(agentId, fullPath, this.organizationId)
 
@@ -766,9 +776,10 @@ export class MCPFileServer {
   private async executeGetFileInfoById(args: {
     agentId?: string
     folderId?: string
-    filename?: string
+    scope?: string
+    path?: string
   }): Promise<MCPToolResult> {
-    const { agentId, folderId, filename } = args
+    const { agentId, folderId, scope, path } = args
 
     if (!agentId) {
       return this.errorResult('Missing required parameter: agentId')
@@ -776,13 +787,20 @@ export class MCPFileServer {
     if (!folderId) {
       return this.errorResult('Missing required parameter: folderId')
     }
-    if (!filename) {
-      return this.errorResult('Missing required parameter: filename')
+    if (!scope) {
+      return this.errorResult('Missing required parameter: scope')
+    }
+    if (!path) {
+      return this.errorResult('Missing required parameter: path')
     }
 
     try {
-      const folderPath = this.resolveFolderId(folderId)
-      const fullPath = `${folderPath}${filename}`
+      if (!this.organizationId) {
+        return this.errorResult('Organization ID not set')
+      }
+
+      // Construct UUID-based path: {orgId}/workspaces/{folderId}/{scope}/{path}
+      const fullPath = `${this.organizationId}/workspaces/${folderId}/${scope}/${path}`
 
       const result = await this.filesystemService.getFileInfo(agentId, fullPath)
 
@@ -847,65 +865,6 @@ export class MCPFileServer {
         }
       ],
       isError: true
-    }
-  }
-
-  /**
-   * Generate a unique ephemeral folder ID with 30-minute TTL.
-   * Maps the folderId to the workspace path for later resolution.
-   *
-   * @param path - Workspace path (e.g., /workspaces/agent-123/private/)
-   * @returns UUID v4 folderId
-   */
-  generateFolderId(path: string): string {
-    const folderId = randomUUID()
-    this.folderIdCache.set(folderId, {
-      path,
-      timestamp: Date.now()
-    })
-    return folderId
-  }
-
-  /**
-   * Resolve a folderId to its workspace path.
-   * Checks TTL expiration and throws error if expired or not found.
-   *
-   * @param folderId - UUID from generateFolderId()
-   * @returns Workspace path
-   * @throws Error if folderId not found or expired
-   */
-  resolveFolderId(folderId: string): string {
-    const entry = this.folderIdCache.get(folderId)
-
-    if (!entry) {
-      throw new Error(
-        `Folder ID '${folderId}' not found. It may have expired. Use list_folders() to discover current folders.`
-      )
-    }
-
-    const age = Date.now() - entry.timestamp
-
-    if (age > this.FOLDER_ID_TTL_MS) {
-      // Remove expired entry
-      this.folderIdCache.delete(folderId)
-      throw new Error(
-        `Folder ID '${folderId}' has expired. Use list_folders() to discover current folders.`
-      )
-    }
-
-    return entry.path
-  }
-
-  /**
-   * Remove expired folderIds from cache.
-   * Should be called periodically to prevent memory leaks.
-   */
-  cleanupExpiredFolderIds(): void {
-    const now = Date.now()
-    for (const [folderId, entry] of this.folderIdCache.entries()) {
-      if (now - entry.timestamp > this.FOLDER_ID_TTL_MS) {
-        this.folderIdCache.delete(folderId)
-      }
     }
   }
 }
