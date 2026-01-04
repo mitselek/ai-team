@@ -429,7 +429,7 @@ Structured logging with PII redaction:
 - ✓ Safe: messageId, snippet, labels, from (redacted)
 - ✗ Never: full email body, personal names in plain text
 
-See [Logging and Observability](../../../../docs/LOGGING.md#pii-redaction) and [Email MCP Logging](../../../mcp-server-kali-pentest/EMAIL_MCP_README.md#logging-and-observability) for implementation details.
+See [Logging and Observability](../../../../docs/LOGGING.md#pii-redaction) and [Email MCP README](../../../mcp-server-email/README.md#logging-and-observability) for implementation details.
 
 ## Phase 1 (Current)
 
