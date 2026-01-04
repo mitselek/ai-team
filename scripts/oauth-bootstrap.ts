@@ -7,13 +7,6 @@ import { createInterface } from 'readline'
 import { writeFileSync, readFileSync, existsSync } from 'fs'
 import { resolve } from 'path'
 
-// Simple logger for CLI (using console.warn/error for no-console compliance)
-const logger = {
-  info: (msg: string) => console.warn(`[INFO] ${msg}`),
-  error: (msg: string) => console.error(`[ERROR] ${msg}`),
-  warn: (msg: string) => console.warn(`[WARNING] ${msg}`)
-}
-
 /**
  * OAuth2 configuration for Google
  */

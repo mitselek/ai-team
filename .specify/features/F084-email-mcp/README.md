@@ -76,7 +76,7 @@ Enable the AI Team orchestrator to send and receive emails through a shared Gmai
 
 ## Execution Order
 
-```
+```text
 #85 (Scaffold) ──────┐
                      ├─→ #87 (Inbound)  ──┐
 #86 (Gmail/Auth) ────┤                    ├─→ #88 (Outbound) ──→ #89 (CLI/Docs)
