@@ -1,0 +1,31 @@
+{
+  "name": "email-mcp-server",
+  "version": "1.0.0",
+  "description": "Gmail Email MCP Server - Phase 1 Implementation",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "node --loader ts-node/esm src/index.ts",
+    "daemon": "node --loader ts-node/esm src/index.ts",
+    "oauth-bootstrap": "node --loader ts-node/esm scripts/oauth-bootstrap.ts",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "googleapis": "^118.0.0",
+    "google-auth-library": "^9.0.0",
+    "pino": "^8.16.0",
+    "@google-cloud/pubsub": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0",
+    "ts-node": "^10.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
+  }
+}
