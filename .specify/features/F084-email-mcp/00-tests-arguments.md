@@ -19,7 +19,7 @@ Comprehensive test requirements for Email MCP Server implementation.
 
 - SecretsProvider contract
   - All implementations have required methods
-  - Methods return Promise<string>
+  - Methods return `Promise<string>`
 
 **Success**: All env var reads correct, stub works, interface satisfied
 
@@ -74,9 +74,9 @@ Comprehensive test requirements for Email MCP Server implementation.
 **Test Cases**:
 
 - Parse plus-addressing
-  - mitselek+hr-hiring@gmail.com → RouteKey = "hr-hiring"
-  - mitselek@gmail.com → RouteKey = "PostOffice" (default)
-  - user+@gmail.com → RouteKey = "PostOffice" (empty token)
+  - <mitselek+hr-hiring@gmail.com> → RouteKey = "hr-hiring"
+  - <mitselek@gmail.com> → RouteKey = "PostOffice" (default)
+  - <user+@gmail.com> → RouteKey = "PostOffice" (empty token)
   - No + sign → RouteKey = "PostOffice"
 
 - Malformed addresses
@@ -91,7 +91,7 @@ Comprehensive test requirements for Email MCP Server implementation.
 **Test Cases**:
 
 - Redact email addresses
-  - "from: user@example.com" → "from: user@[redacted]"
+  - "from: <user@example.com>" → "from: user@[redacted]"
   - Multiple addresses in one line
   - Edge cases (local-only, special chars)
 
