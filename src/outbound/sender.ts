@@ -69,21 +69,23 @@ export class EmailSender {
         }
 
         // Gmail client returned an error
-        const error = result.error as Error & { status?: number; code?: string }
-        const classified = this.classifyError(error, attempt)!
+        if (!result.ok) {
+          const error = result.error as Error & { status?: number; code?: string }
+          const classified = this.classifyError(error, attempt)!
 
-        // If not retryable, return immediately
-        if (!classified.retryable) {
-          return { ok: false, error: classified }
+          // If not retryable, return immediately
+          if (!classified.retryable) {
+            return { ok: false, error: classified }
+          }
+
+          // If this is the last attempt, return the error
+          if (!backoff.shouldRetry(attempt)) {
+            return { ok: false, error: classified }
+          }
+
+          // Sleep before retry
+          await backoff.sleep(attempt)
         }
-
-        // If this is the last attempt, return the error
-        if (!backoff.shouldRetry(attempt)) {
-          return { ok: false, error: classified }
-        }
-
-        // Sleep before retry
-        await backoff.sleep(attempt)
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err))
         const classified = this.classifyError(error, attempt)!
