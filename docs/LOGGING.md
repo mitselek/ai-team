@@ -207,7 +207,7 @@ logger.info(
 
 ### Email MCP Server Redaction
 
-See [Email MCP README - Logging and Observability](../mcp-server-kali-pentest/EMAIL_MCP_README.md#logging-and-observability) for component-specific redaction patterns.
+See [Email MCP README - Logging and Observability](../mcp-server-email/EMAIL_MCP_README.md#logging-and-observability) for component-specific redaction patterns.
 
 ## Error Logging Patterns
 
@@ -312,7 +312,7 @@ grep "teamId.*dev-team-001" logs/* | grep "\[Team\]"
 
 ### Email MCP Server
 
-See [mcp-server-kali-pentest/EMAIL_MCP_README.md - Logging and Observability](../mcp-server-kali-pentest/EMAIL_MCP_README.md#logging-and-observability) for:
+See [mcp-server-kali-pentest/EMAIL_MCP_README.md - Logging and Observability](../mcp-server-email/EMAIL_MCP_README.md#logging-and-observability) for:
 
 - Structured logging with Pino
 - PII redaction for email operations
@@ -415,6 +415,6 @@ Logging practices comply with:
 ## Further Reading
 
 - [Constitution - Observable Development](../.specify/memory/constitution.md#IV-observable-development)
-- [Email MCP Server Logging](../mcp-server-kali-pentest/EMAIL_MCP_README.md#logging-and-observability)
+- [Email MCP Server Logging](../mcp-server-email/EMAIL_MCP_README.md#logging-and-observability)
 - [Pino Logger Documentation](https://getpino.io/)
 - [Structured Logging Best Practices](https://www.kartar.net/2015/12/structured-logging/)
